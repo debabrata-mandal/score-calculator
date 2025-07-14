@@ -78,7 +78,7 @@
   </head>
   <body>
     <div class="container">
-      <h1>Score Calculator (10 Rounds, up to 15 Players)</h1>
+      <h1>Score Calculator (up to 15 Players)</h1>
       <div class="controls">
         <label for="numPlayers">Number of Players (1-15): </label>
         <input type="number" id="numPlayers" min="1" max="15" value="2" />
@@ -187,17 +187,24 @@
           scores.push({ name, total });
         }
 
-        // Keep original order for chart
+        // Keep original order for chart and leaderboard
         const originalOrderScores = [...scores];
 
-        // Sort for leaderboard
-        scores.sort((a, b) => b.total - a.total);
+        // Create a sorted copy just to determine rankings
+        const sortedForRanking = [...scores].sort((a, b) => a.total - b.total); // Low score wins
 
-        let leaderboardHtml = "<h2>Leaderboard</h2><ol>";
-        scores.forEach((score) => {
-          leaderboardHtml += `<li>${score.name}: ${score.total} points</li>`;
+        // Create leaderboard in original order with rankings
+        let leaderboardHtml =
+          "<h2>Leaderboard</h2><ul style='list-style: none; padding: 0;'>";
+        originalOrderScores.forEach((score) => {
+          // Find ranking (1-based)
+          const ranking =
+            sortedForRanking.findIndex(
+              (s) => s.name === score.name && s.total === score.total
+            ) + 1;
+          leaderboardHtml += `<li style='margin: 5px 0;'>${score.name}: ${score.total} points (Rank #${ranking})</li>`;
         });
-        leaderboardHtml += "</ol>";
+        leaderboardHtml += "</ul>";
 
         document.getElementById("leaderboard").innerHTML = leaderboardHtml;
         updateChart(originalOrderScores); // Pass original order to chart
