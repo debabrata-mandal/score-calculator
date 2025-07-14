@@ -1239,7 +1239,7 @@
         }
       }
 
-      // Load from cloud
+      // Load from cloud - without success popup
       async function loadFromCloud() {
         if (!window.db) {
           showModal(
@@ -1278,12 +1278,13 @@
             // Update Game ID display
             updateGameIdDisplay();
 
+            // Just close the loading modal - no success popup
             closeModal();
-            showModal(
-              "✅ Game Loaded",
-              `Successfully loaded Game ID: ${cleanGameId}\n\nYour scores will now auto-sync!`,
-              null
-            );
+            
+            // Optional: Show brief feedback in browser title
+            document.title = "⭐ Rummy Score Master (Game Loaded)";
+            setTimeout(() => (document.title = "⭐ Rummy Score Master"), 3000);
+            
           } else {
             closeModal();
             showModal(
@@ -1346,14 +1347,18 @@
         }
       }
 
-      // Function to copy Game ID
+      // Function to copy Game ID with subtle feedback (no popup)
       function copyGameId() {
         const gameIdInput = document.getElementById("gameIdInput");
         const copyButton = document.getElementById("copyButton");
         const gameId = gameIdInput.value;
 
         if (!gameId) {
-          showModal("⚠️ No Game ID", "No Game ID to copy!", null);
+          // Just change button text briefly instead of popup
+          copyButton.textContent = "❌ No ID";
+          setTimeout(() => {
+            copyButton.textContent = "📋 Copy";
+          }, 1500);
           return;
         }
 
@@ -1361,7 +1366,7 @@
         navigator.clipboard
           .writeText(gameId)
           .then(() => {
-            // Visual feedback
+            // Visual feedback - just change the button
             const originalText = copyButton.textContent;
             copyButton.textContent = "✅ Copied!";
             copyButton.classList.add("copied");
@@ -1371,19 +1376,21 @@
               copyButton.textContent = originalText;
               copyButton.classList.remove("copied");
             }, 2000);
-
-            // Show success message
-            showModal(
-              "✅ Copied!",
-              `Game ID "${gameId}" copied to clipboard!\n\nShare it with other players.`,
-              null
-            );
           })
           .catch(() => {
             // Fallback for older browsers
             gameIdInput.select();
             document.execCommand("copy");
-            showModal("📋 Copied", "Game ID copied to clipboard!", null);
+            
+            // Show feedback without popup
+            const originalText = copyButton.textContent;
+            copyButton.textContent = "✅ Copied!";
+            copyButton.classList.add("copied");
+            
+            setTimeout(() => {
+              copyButton.textContent = originalText;
+              copyButton.classList.remove("copied");
+            }, 2000);
           });
       }
 
