@@ -86,11 +86,12 @@
   </head>
   <body>
     <div class="container">
-      <h1>⭐ Rummy Score Master (up to 15 Players)</h1>
+      <h1>⭐ Rummy Score Master</h1>
       <div class="controls">
         <label for="numPlayers">Number of Players (1-15): </label>
         <input type="number" id="numPlayers" min="1" max="15" value="2" />
         <button onclick="confirmGenerateTable()">Generate Score Table</button>
+        <button onclick="addPlayer()">Add Player</button>
       </div>
 
       <div id="scoreTableContainer"></div>
@@ -139,40 +140,19 @@
         }
       }
 
-      function confirmGenerateTable() {
-        const currentPlayers = parseInt(
-          document.getElementById("numPlayers").value
-        );
-        const savedData = localStorage.getItem("scoreData");
-
-        if (savedData) {
-          const data = JSON.parse(savedData);
-          if (currentPlayers > data.numPlayers) {
-            // Adding players - no confirmation needed
-            generateTable();
-          } else if (currentPlayers < data.numPlayers) {
-            // Removing players - ask for confirmation
-            if (
-              confirm(
-                "⚠️ Reducing players will remove some player data. Continue?"
-              )
-            ) {
-              generateTable();
-            }
-          } else {
-            // Same number - ask for confirmation to reset
-            if (
-              confirm(
-                "⚠️ Are you sure you want to regenerate the score table? This will reset all current scores."
-              )
-            ) {
-              generateTable();
-            }
-          }
-        } else {
-          // No saved data - just generate
-          generateTable();
+      function addPlayer() {
+        const currentPlayers = parseInt(document.getElementById("numPlayers").value);
+        
+        if (currentPlayers >= 15) {
+          alert("Maximum 15 players allowed!");
+          return;
         }
+        
+        // Increase player count by 1
+        document.getElementById("numPlayers").value = currentPlayers + 1;
+        
+        // Regenerate table with existing data preserved
+        generateTable();
       }
 
       function generateTable(savedData = null) {
