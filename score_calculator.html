@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Score Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        th { background-color: #f2f2f2; }
+        input[type="number"] { width: 60px; }
+        .leaderboard { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h2>Score Calculator (10 Rounds, up to 15 Players)</h2>
+    <label for="numPlayers">Number of Players (1-15): </label>
+    <input type="number" id="numPlayers" min="1" max="15" value="5">
+    <button onclick="generateTable()">Generate Table</button>
+
+    <form id="scoreForm" onsubmit="calculateScores(); return false;"></form>
+
+    <div class="leaderboard" id="leaderboard"></div>
+
+    <script>
+        function generateTable() {
+            const numPlayers = parseInt(document.getElementById("numPlayers").value);
+            const form = document.getElementById("scoreForm");
+            form.innerHTML = "";
+
+            if (numPlayers < 1 || numPlayers > 15) {
+                alert("Please enter a number between 1 and 15.");
+                return;
+            }
+
+            let table = "<table><thead><tr><th>Player</th>";
+            for (let r = 1; r <= 10; r++) {
+                table += `<th>Round ${r}</th>`;
+            }
+            table += "</tr></thead><tbody>";
+
+            for (let p = 1; p <= numPlayers; p++) {
+                table += `<tr><td>Player ${p}</td>`;
+                for (let r = 1; r <= 10; r++) {
+                    table += `<td><input type="number" name="p${p}r${r}" min="0" value="0"></td>`;
+                }
+                table += "</tr>";
+            }
+
+            table += "</tbody></table>";
+            table += '<button type="submit">Calculate Scores</button>';
+            form.innerHTML = table;
+        }
+
+        function calculateScores() {
+            const numPlayers = parseInt(document.getElementById("numPlayers").value);
+            const scores = [];
+
+            for (let p = 1; p <= numPlayers; p++) {
+                let total = 0;
+                for (let r = 1; r <= 10; r++) {
+                    const val = parseInt(document.querySelector(`[name="p${p}r${r}"]`).value) || 0;
+                    total += val;
+                }
+                scores.push({ player: `Player ${p}`, total });
+            }
+
+            scores.sort((a, b) => b.total - a.total);
+
+            let leaderboard = "<h3>Leaderboard</h3><table><tr><th>Rank</th><th>Player</th><th>Total Score</th></tr>";
+            scores.forEach((s, index) => {
+                leaderboard += `<tr><td>${index + 1}</td><td>${s.player}</td><td>${s.total}</td></tr>`;
+            });
+            leaderboard += "</table>";
+
+            document.getElementById("leaderboard").innerHTML = leaderboard;
+        }
+
+        window.onload = generateTable;
+    </script>
+</body>
+</html>
