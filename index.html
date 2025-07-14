@@ -29,7 +29,7 @@
     <div class="controls">
         <label for="numPlayers">Number of Players (1-15): </label>
         <input type="number" id="numPlayers" min="1" max="15" value="2">
-        <button onclick="generateTable()">Generate Score Table</button>
+        <button onclick="confirmGenerateTable()">Generate Score Table</button>
     </div>
 
     <div id="scoreTableContainer"></div>
@@ -38,8 +38,6 @@
         <canvas id="scoreChart"></canvas>
     </div>
 </div>
-
-https://cdn.jsdelivr.net/npm/chart.js
 <script>
     let chart;
 
@@ -64,6 +62,12 @@ https://cdn.jsdelivr.net/npm/chart.js
         const data = JSON.parse(saved);
         document.getElementById("numPlayers").value = data.numPlayers;
         generateTable(data);
+    }
+
+    function confirmGenerateTable() {
+        if (confirm("⚠️ Are you sure you want to regenerate the score table? This will reset all current scores.")) {
+            generateTable();
+        }
     }
 
     function generateTable(savedData = null) {
