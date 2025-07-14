@@ -28,11 +28,12 @@
       .table-container {
         overflow-x: auto;
         border: 1px solid #ccc;
+        border-radius: 4px;
       }
 
       table {
         border-collapse: collapse;
-        margin-top: 10px;
+        margin-top: 0; /* Changed from 10px to 0 */
         width: 100%;
         min-width: 800px;
       }
@@ -122,6 +123,22 @@
         background-color: #c82333;
       }
 
+      /* Special styling for the Start Play button */
+      .start-play-button {
+        padding: 12px 24px !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        background-color: #007bff !important;
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3) !important;
+        transition: all 0.3s ease !important;
+      }
+
+      .start-play-button:hover {
+        background-color: #0056b3 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 12px rgba(0, 123, 255, 0.4) !important;
+      }
+
       canvas {
         max-width: 100%;
         height: auto;
@@ -172,15 +189,16 @@
         }
 
         .controls {
-          flex-direction: row;
+          flex-direction: row; /* Keep row direction instead of column */
           flex-wrap: wrap;
           align-items: center;
           gap: 5px;
         }
 
         .controls label {
-          width: 100%;
-          margin-bottom: 5px;
+          width: auto; /* Changed from 100% to auto */
+          margin-bottom: 0; /* Changed from 5px to 0 */
+          white-space: nowrap; /* Prevent label from wrapping */
         }
 
         .controls input[type="number"] {
@@ -190,6 +208,11 @@
         button {
           font-size: 12px;
           padding: 6px 12px;
+        }
+
+        .start-play-button {
+          padding: 10px 20px !important;
+          font-size: 15px !important;
         }
       }
 
@@ -245,16 +268,42 @@
       .modal-button:hover {
         opacity: 0.9;
       }
+      .leaderboard-table,
+      .leaderboard-table * {
+        position: static !important;
+        left: auto !important;
+        z-index: auto !important;
+        background-color: transparent !important;
+      }
+
+      .leaderboard-table th:first-child,
+      .leaderboard-table td:first-child {
+        position: static !important;
+        left: auto !important;
+        background-color: transparent !important;
+        z-index: auto !important;
+        width: auto !important;
+        min-width: auto !important;
+        max-width: auto !important;
+      }
+
+      .leaderboard-table th:first-child {
+        background-color: #f8f9fa !important;
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <h1>⭐ Rummy Score Master</h1>
       <div class="controls">
-        <label for="numPlayers">Number of Players (1-15): </label>
+        <label for="numPlayers">Players (1-15): </label>
         <input type="number" id="numPlayers" min="1" max="15" value="2" />
-        <button onclick="confirmGenerateTable()">Start Play</button>
-        <button onclick="addPlayer()">Add Player</button>
+      </div>
+
+      <div style="text-align: center; margin: 20px 0;">
+        <button class="start-play-button" onclick="confirmGenerateTable()">
+          🎮 Start Play
+        </button>
       </div>
 
       <div id="scoreTableContainer"></div>
@@ -311,9 +360,8 @@
           const name = nameInput.value.trim();
           const scores = [];
           for (let j = 1; j <= 10; j++) {
-            const val =
-              parseInt(document.getElementById(`p${i}r${j}`).value) || 0;
-            scores.push(val);
+            const val = parseInt(document.getElementById(`p${i}r${j}`).value);
+            scores.push(isNaN(val) ? -1 : val);
           }
           data.players.push({ name, scores });
         }
@@ -360,6 +408,7 @@
         generateTable();
       }
 
+      // Update the generateTable function to include the Add Player button at the end
       function generateTable(savedData = null) {
         const numPlayers = parseInt(
           document.getElementById("numPlayers").value
@@ -405,14 +454,25 @@
               savedData.players &&
               savedData.players[i - 1] &&
               savedData.players[i - 1].scores
-                ? savedData.players[i - 1].scores[j - 1] || 0
-                : 0;
-            html += `<td style="border: 1px solid #ccc; padding: 8px; text-align: center; min-width: 60px;"><input type="number" id="p${i}r${j}" value="${val}" min="0" max="100" oninput="saveData(); calculateScores();" style="border: none; background: transparent; width: 100%; text-align: center; padding: 4px; font-size: 14px; min-width: 50px;"></td>`;
+                ? savedData.players[i - 1].scores[j - 1] !== undefined 
+                  ? savedData.players[i - 1].scores[j - 1] 
+                  : -1
+                : -1;
+            html += `<td style="border: 1px solid #ccc; padding: 8px; text-align: center; min-width: 60px;"><input type="number" id="p${i}r${j}" value="${val}" min="-1" max="100" oninput="saveData(); calculateScores();" style="border: none; background: transparent; width: 100%; text-align: center; padding: 4px; font-size: 14px; min-width: 50px;"></td>`;
           }
           html += "</tr>";
         }
 
         html += "</tbody></table></div>";
+        
+        // Add the "Add Player" button after the table
+        html += `
+    <div style="margin-top: 10px;">
+      <button onclick="addPlayer()" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+        + Add Player
+      </button>
+    </div>`;
+
         document.getElementById("scoreTableContainer").innerHTML = html;
         saveData();
         calculateScores();
@@ -427,9 +487,9 @@
         for (let i = 1; i <= numPlayers; i++) {
           let total = 0;
           for (let j = 1; j <= 10; j++) {
-            const val =
-              parseInt(document.getElementById(`p${i}r${j}`).value) || 0;
-            total += val;
+            const val = parseInt(document.getElementById(`p${i}r${j}`).value);
+            // Treat -1 as 0 for calculation, but preserve -1 in the input
+            total += isNaN(val) || val === -1 ? 0 : val;
           }
           const name = document.getElementById(`name${i}`).value.trim();
           scores.push({ name, total });
@@ -441,15 +501,23 @@
         // Sort for leaderboard (low score wins)
         const sortedScores = [...scores].sort((a, b) => a.total - b.total);
 
-        // Create leaderboard as a sorted table with ranks
+        // Create leaderboard table that fits in visible area
         let leaderboardHtml = `
     <h2>Leaderboard</h2>
-    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+    <table class="leaderboard-table" style="
+      width: auto !important; 
+      min-width: auto !important; 
+      max-width: 300px !important; 
+      border-collapse: collapse; 
+      margin-top: 10px; 
+      display: table !important;
+      table-layout: auto !important;
+    ">
       <thead>
         <tr style="background-color: #f8f9fa;">
-          <th style="border: 1px solid #ccc; padding: 8px; text-align: center;">Rank</th>
-          <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Player</th>
-          <th style="border: 1px solid #ccc; padding: 8px; text-align: center;">Total Score</th>
+          <th style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 40px !important; min-width: 40px !important; max-width: 40px !important; font-size: 12px;">#</th>
+          <th style="border: 1px solid #ccc; padding: 6px; text-align: left; width: auto !important; min-width: 80px !important; max-width: 120px !important; font-size: 12px;">Player</th>
+          <th style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 50px !important; min-width: 50px !important; max-width: 50px !important; font-size: 12px;">Score</th>
         </tr>
       </thead>
       <tbody>`;
@@ -457,11 +525,11 @@
         sortedScores.forEach((score, index) => {
           leaderboardHtml += `
       <tr>
-        <td style="border: 1px solid #ccc; padding: 8px; text-align: center; font-weight: bold;">${
+        <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-weight: bold; width: 40px !important; min-width: 40px !important; max-width: 40px !important; font-size: 12px;">${
           index + 1
         }</td>
-        <td style="border: 1px solid #ccc; padding: 8px;">${score.name}</td>
-        <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">${
+        <td style="border: 1px solid #ccc; padding: 6px; width: auto !important; min-width: 80px !important; max-width: 120px !important; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${score.name}</td>
+        <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 50px !important; min-width: 50px !important; max-width: 50px !important; font-size: 12px;">${
           score.total
         }</td>
       </tr>`;
