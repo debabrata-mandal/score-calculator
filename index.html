@@ -14,7 +14,15 @@
       .container {
         max-width: 1000px;
         margin: auto;
+      }      
+      /* Dynamic header sizing */
+      h1 {
+        white-space: nowrap;
+        overflow: hidden;
+        font-size: clamp(1.2rem, 4vw, 2rem);
+        margin: 0 0 20px 0;
       }
+      
       table {
         border-collapse: collapse;
         margin-top: 20px;
@@ -63,6 +71,9 @@
       }
 
       @media (max-width: 768px) {
+        h1 {
+          font-size: clamp(1rem, 5vw, 1.5rem);
+        }
         input[type="text"] {
           width: 100%;
           min-width: 120px;
@@ -247,7 +258,11 @@
         );
 
         if (currentPlayers >= 15) {
-          alert("Maximum 15 players allowed!");
+          showModal(
+            "⚠️ Maximum Players Reached",
+            "Maximum 15 players allowed!",
+            null
+          );
           return;
         }
 
