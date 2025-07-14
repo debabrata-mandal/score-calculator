@@ -24,12 +24,34 @@
         margin: 0 0 20px 0;
       }
 
+      /* Table container for horizontal scroll */
+      .table-container {
+        overflow-x: auto;
+        border: 1px solid #ccc;
+      }
+
       table {
         border-collapse: collapse;
-        margin-top: 20px;
+        margin-top: 10px;
         width: 100%;
-        overflow-x: auto;
-        display: block;
+        min-width: 800px;
+      }
+
+      /* First column (Player Name) - frozen */
+      table th:first-child,
+      table td:first-child {
+        position: sticky;
+        left: 0;
+        background-color: #fff;
+        z-index: 10;
+        min-width: 150px;
+        max-width: 150px;
+        width: 150px;
+      }
+
+      table th:first-child {
+        background-color: #f8f9fa;
+        z-index: 11;
       }
 
       th,
@@ -37,6 +59,7 @@
         border: 1px solid #ccc;
         padding: 8px;
         text-align: center;
+        min-width: 60px;
       }
 
       /* Bigger inputs for better user experience */
@@ -103,10 +126,18 @@
         max-width: 100%;
         height: auto;
       }
-      
+
       @media (max-width: 768px) {
         h1 {
           font-size: clamp(1rem, 5vw, 1.5rem);
+        }
+
+        /* First column smaller on mobile */
+        table th:first-child,
+        table td:first-child {
+          min-width: 120px;
+          max-width: 120px;
+          width: 120px;
         }
 
         input[type="text"] {
@@ -126,6 +157,7 @@
         td {
           padding: 4px;
           font-size: 11px;
+          min-width: 50px;
         }
 
         table input[type="number"],
@@ -160,6 +192,7 @@
           padding: 6px 12px;
         }
       }
+
       /* Custom Modal Styles */
       .modal {
         display: none;
@@ -346,10 +379,11 @@
 
         let html = `
     <h2>Score</h2>
-    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-      <thead>
-        <tr style="background-color: #f8f9fa;">
-          <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Player Name</th>`;
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr style="background-color: #f8f9fa;">
+            <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Player Name</th>`;
 
         for (let round = 1; round <= 10; round++) {
           html += `<th style="border: 1px solid #ccc; padding: 8px; text-align: center;">R${round}</th>`;
@@ -363,7 +397,7 @@
               ? savedData.players[i - 1].name
               : `Player ${i}`;
 
-          html += `<tr><td style="border: 1px solid #ccc; padding: 8px;"><input type="text" id="name${i}" value="${name}" oninput="saveData(); calculateScores();" style="border: none; background: transparent; width: 100%;"></td>`;
+          html += `<tr><td style="border: 1px solid #ccc; padding: 8px;"><input type="text" id="name${i}" value="${name}" oninput="saveData(); calculateScores();" style="border: none; background: transparent; width: 100%; padding: 4px; font-size: 14px;"></td>`;
 
           for (let j = 1; j <= 10; j++) {
             const val =
@@ -373,12 +407,12 @@
               savedData.players[i - 1].scores
                 ? savedData.players[i - 1].scores[j - 1] || 0
                 : 0;
-            html += `<td style="border: 1px solid #ccc; padding: 8px; text-align: center;"><input type="number" id="p${i}r${j}" value="${val}" min="0" max="100" oninput="saveData(); calculateScores();" style="border: none; background: transparent; width: 100%; text-align: center;"></td>`;
+            html += `<td style="border: 1px solid #ccc; padding: 8px; text-align: center; min-width: 60px;"><input type="number" id="p${i}r${j}" value="${val}" min="0" max="100" oninput="saveData(); calculateScores();" style="border: none; background: transparent; width: 100%; text-align: center; padding: 4px; font-size: 14px; min-width: 50px;"></td>`;
           }
           html += "</tr>";
         }
 
-        html += "</tbody></table>";
+        html += "</tbody></table></div>";
         document.getElementById("scoreTableContainer").innerHTML = html;
         saveData();
         calculateScores();
