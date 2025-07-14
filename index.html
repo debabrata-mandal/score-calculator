@@ -15,6 +15,7 @@
         max-width: 1000px;
         margin: auto;
       }
+
       /* Dynamic header sizing */
       h1 {
         white-space: nowrap;
@@ -30,23 +31,52 @@
         overflow-x: auto;
         display: block;
       }
+
       th,
       td {
         border: 1px solid #ccc;
-        padding: 4px;
+        padding: 8px;
         text-align: center;
       }
+
+      /* Bigger inputs for better user experience */
       input[type="number"] {
-        width: 50px;
+        width: 60px;
+        padding: 6px;
+        font-size: 14px;
+        text-align: center;
+        border: 1px solid #ddd;
+        border-radius: 4px;
       }
+
       input[type="text"] {
         width: 100%;
-        min-width: 100px;
+        min-width: 120px;
+        padding: 6px;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
       }
+
+      /* Input fields in tables - transparent styling */
+      table input[type="number"],
+      table input[type="text"] {
+        border: none;
+        background: transparent;
+        width: 100%;
+        padding: 4px;
+        font-size: 14px;
+      }
+
+      table input[type="number"] {
+        text-align: center;
+      }
+
       .leaderboard,
       .chart-container {
         margin-top: 30px;
       }
+
       .controls {
         margin-bottom: 10px;
         display: flex;
@@ -54,17 +84,21 @@
         align-items: center;
         gap: 10px;
       }
+
       button {
-        padding: 6px 12px;
+        padding: 8px 16px;
         background-color: #dc3545;
         color: white;
         border: none;
         border-radius: 4px;
         cursor: pointer;
+        font-size: 14px;
       }
+
       button:hover {
         background-color: #c82333;
       }
+
       canvas {
         max-width: 100%;
         height: auto;
@@ -74,38 +108,54 @@
         h1 {
           font-size: clamp(1rem, 5vw, 1.5rem);
         }
+
         input[type="text"] {
           width: 100%;
-          min-width: 120px;
-          font-size: 14px;
+          min-width: 100px;
+          font-size: 13px;
+          padding: 4px;
         }
+
         input[type="number"] {
-          width: 40px;
-          font-size: 12px;
+          width: 50px;
+          font-size: 13px;
+          padding: 4px;
         }
+
         th,
         td {
-          padding: 2px;
+          padding: 6px;
           font-size: 12px;
         }
+
+        table input[type="number"],
+        table input[type="text"] {
+          font-size: 13px;
+          padding: 3px;
+        }
+
         .controls {
           flex-direction: row;
           flex-wrap: wrap;
           align-items: center;
           gap: 5px;
         }
+
         .controls label {
           width: 100%;
           margin-bottom: 5px;
         }
+
         .controls input[type="number"] {
           width: 60px;
         }
+
         button {
           font-size: 12px;
-          padding: 4px 8px;
+          padding: 6px 12px;
         }
       }
+
       /* Custom Modal Styles */
       .modal {
         display: none;
@@ -291,7 +341,7 @@
         }
 
         let html = `
-    <h2>Score Table</h2>
+    <h2>Score</h2>
     <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
       <thead>
         <tr style="background-color: #f8f9fa;">
