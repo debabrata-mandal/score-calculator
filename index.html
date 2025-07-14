@@ -187,6 +187,10 @@
           scores.push({ name, total });
         }
 
+        // Keep original order for chart
+        const originalOrderScores = [...scores];
+
+        // Sort for leaderboard
         scores.sort((a, b) => b.total - a.total);
 
         let leaderboardHtml = "<h2>Leaderboard</h2><ol>";
@@ -196,7 +200,7 @@
         leaderboardHtml += "</ol>";
 
         document.getElementById("leaderboard").innerHTML = leaderboardHtml;
-        updateChart(scores);
+        updateChart(originalOrderScores); // Pass original order to chart
       }
 
       function updateChart(scores) {
