@@ -14,7 +14,7 @@
       .container {
         max-width: 1000px;
         margin: auto;
-      }      
+      }
       /* Dynamic header sizing */
       h1 {
         white-space: nowrap;
@@ -22,7 +22,7 @@
         font-size: clamp(1.2rem, 4vw, 2rem);
         margin: 0 0 20px 0;
       }
-      
+
       table {
         border-collapse: collapse;
         margin-top: 20px;
@@ -290,11 +290,17 @@
           }
         }
 
-        let html = "<table><thead><tr><th>Player Name</th>";
+        let html = `
+    <h2>Score Table</h2>
+    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+      <thead>
+        <tr style="background-color: #f8f9fa;">
+          <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Player Name</th>`;
+
         for (let round = 1; round <= 10; round++) {
-          html += `<th>R${round}</th>`;
+          html += `<th style="border: 1px solid #ccc; padding: 8px; text-align: center;">R${round}</th>`;
         }
-        html += "</tr></thead><tbody>";
+        html += `</tr></thead><tbody>`;
 
         for (let i = 1; i <= numPlayers; i++) {
           // Use existing data if available, otherwise default values
@@ -303,7 +309,7 @@
               ? savedData.players[i - 1].name
               : `Player ${i}`;
 
-          html += `<tr><td><input type="text" id="name${i}" value="${name}" oninput="saveData(); calculateScores();"></td>`;
+          html += `<tr><td style="border: 1px solid #ccc; padding: 8px;"><input type="text" id="name${i}" value="${name}" oninput="saveData(); calculateScores();" style="border: none; background: transparent; width: 100%;"></td>`;
 
           for (let j = 1; j <= 10; j++) {
             const val =
@@ -313,7 +319,7 @@
               savedData.players[i - 1].scores
                 ? savedData.players[i - 1].scores[j - 1] || 0
                 : 0;
-            html += `<td><input type="number" id="p${i}r${j}" value="${val}" min="0" max="100" oninput="saveData(); calculateScores();"></td>`;
+            html += `<td style="border: 1px solid #ccc; padding: 8px; text-align: center;"><input type="number" id="p${i}r${j}" value="${val}" min="0" max="100" oninput="saveData(); calculateScores();" style="border: none; background: transparent; width: 100%; text-align: center;"></td>`;
           }
           html += "</tr>";
         }
