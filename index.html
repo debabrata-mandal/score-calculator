@@ -85,7 +85,7 @@
     </style>
   </head>
   <body>
-    <div class="container">      
+    <div class="container">
       <h1>⭐ Rummy Score Master (up to 15 Players)</h1>
       <div class="controls">
         <label for="numPlayers">Number of Players (1-15): </label>
@@ -110,11 +110,6 @@
         for (let i = 1; i <= numPlayers; i++) {
           const nameInput = document.getElementById(`name${i}`);
           const name = nameInput.value.trim();
-          if (!name) {
-            nameInput.focus();
-            alert("Player name cannot be empty.");
-            return;
-          }
           const scores = [];
           for (let j = 1; j <= 10; j++) {
             const val =
@@ -144,6 +139,42 @@
         }
       }
 
+      function confirmGenerateTable() {
+        const currentPlayers = parseInt(
+          document.getElementById("numPlayers").value
+        );
+        const savedData = localStorage.getItem("scoreData");
+
+        if (savedData) {
+          const data = JSON.parse(savedData);
+          if (currentPlayers > data.numPlayers) {
+            // Adding players - no confirmation needed
+            generateTable();
+          } else if (currentPlayers < data.numPlayers) {
+            // Removing players - ask for confirmation
+            if (
+              confirm(
+                "⚠️ Reducing players will remove some player data. Continue?"
+              )
+            ) {
+              generateTable();
+            }
+          } else {
+            // Same number - ask for confirmation to reset
+            if (
+              confirm(
+                "⚠️ Are you sure you want to regenerate the score table? This will reset all current scores."
+              )
+            ) {
+              generateTable();
+            }
+          }
+        } else {
+          // No saved data - just generate
+          generateTable();
+        }
+      }
+
       function generateTable(savedData = null) {
         const numPlayers = parseInt(
           document.getElementById("numPlayers").value
@@ -153,6 +184,14 @@
           return;
         }
 
+        // Get existing data if not provided
+        if (!savedData) {
+          const saved = localStorage.getItem("scoreData");
+          if (saved) {
+            savedData = JSON.parse(saved);
+          }
+        }
+
         let html = "<table><thead><tr><th>Player Name</th>";
         for (let round = 1; round <= 10; round++) {
           html += `<th>R${round}</th>`;
@@ -160,12 +199,22 @@
         html += "</tr></thead><tbody>";
 
         for (let i = 1; i <= numPlayers; i++) {
-          const name = savedData
-            ? savedData.players[i - 1].name
-            : `Player ${i}`;
+          // Use existing data if available, otherwise default values
+          const name =
+            savedData && savedData.players && savedData.players[i - 1]
+              ? savedData.players[i - 1].name
+              : `Player ${i}`;
+
           html += `<tr><td><input type="text" id="name${i}" value="${name}" oninput="saveData(); calculateScores();"></td>`;
+
           for (let j = 1; j <= 10; j++) {
-            const val = savedData ? savedData.players[i - 1].scores[j - 1] : 0;
+            const val =
+              savedData &&
+              savedData.players &&
+              savedData.players[i - 1] &&
+              savedData.players[i - 1].scores
+                ? savedData.players[i - 1].scores[j - 1] || 0
+                : 0;
             html += `<td><input type="number" id="p${i}r${j}" value="${val}" min="0" max="100" oninput="saveData(); calculateScores();"></td>`;
           }
           html += "</tr>";
@@ -173,7 +222,6 @@
 
         html += "</tbody></table>";
         document.getElementById("scoreTableContainer").innerHTML = html;
-        document.getElementById("leaderboard").innerHTML = "";
         saveData();
         calculateScores();
       }
