@@ -103,7 +103,7 @@
         max-width: 100%;
         height: auto;
       }
-
+      
       @media (max-width: 768px) {
         h1 {
           font-size: clamp(1rem, 5vw, 1.5rem);
@@ -117,21 +117,26 @@
         }
 
         input[type="number"] {
-          width: 50px;
-          font-size: 13px;
+          width: 55px;
+          font-size: 12px;
           padding: 4px;
         }
 
         th,
         td {
-          padding: 6px;
-          font-size: 12px;
+          padding: 4px;
+          font-size: 11px;
         }
 
         table input[type="number"],
         table input[type="text"] {
-          font-size: 13px;
-          padding: 3px;
+          font-size: 12px;
+          padding: 2px;
+        }
+
+        table input[type="number"] {
+          min-width: 45px;
+          width: 100%;
         }
 
         .controls {
@@ -155,7 +160,6 @@
           padding: 6px 12px;
         }
       }
-
       /* Custom Modal Styles */
       .modal {
         display: none;
