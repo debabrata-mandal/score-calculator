@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,78 +5,107 @@
     <title>Score Calculator</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; }
-        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-        th { background-color: #f2f2f2; }
-        input[type="number"] { width: 60px; }
-        .leaderboard { margin-top: 20px; }
+        table { border-collapse: collapse; margin-top: 20px; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 4px; text-align: center; }
+        input[type="number"] { width: 50px; }
+        input[type="text"] { width: 100px; }
+        .leaderboard { margin-top: 30px; }
+        .controls { margin-bottom: 10px; }
+        button { margin-left: 10px; }
     </style>
 </head>
 <body>
-    <h2>Score Calculator (10 Rounds, up to 15 Players)</h2>
-    <label for="numPlayers">Number of Players (1-15): </label>
-    <input type="number" id="numPlayers" min="1" max="15" value="5">
-    <button onclick="generateTable()">Generate Table</button>
+    <h1>Score Calculator (10 Rounds, up to 15 Players)</h1>
+    <div class="controls">
+        <label for="numPlayers">Number of Players (1-15): </label>
+        <input type="number" id="numPlayers" min="1" max="15" value="2">
+        <button onclick="generateTable()">Generate Score Table</button>
+    </div>
 
-    <form id="scoreForm" onsubmit="calculateScores(); return false;"></form>
-
+    <div id="scoreTableContainer"></div>
     <div class="leaderboard" id="leaderboard"></div>
 
     <script>
-        function generateTable() {
+        function saveData() {
             const numPlayers = parseInt(document.getElementById("numPlayers").value);
-            const form = document.getElementById("scoreForm");
-            form.innerHTML = "";
+            const data = { numPlayers, players: [] };
+            for (let i = 1; i <= numPlayers; i++) {
+                const name = document.getElementById(`name${i}`).value;
+                const scores = [];
+                for (let j = 1; j <= 10; j++) {
+                    const val = parseInt(document.getElementById(`p${i}r${j}`).value) || 0;
+                    scores.push(val);
+                }
+                data.players.push({ name, scores });
+            }
+            localStorage.setItem("scoreData", JSON.stringify(data));
+        }
 
-            if (numPlayers < 1 || numPlayers > 15) {
-                alert("Please enter a number between 1 and 15.");
+        function loadData() {
+            const saved = localStorage.getItem("scoreData");
+            if (!saved) return;
+            const data = JSON.parse(saved);
+            document.getElementById("numPlayers").value = data.numPlayers;
+            generateTable(data);
+        }
+
+        function generateTable(savedData = null) {
+            const numPlayers = parseInt(document.getElementById("numPlayers").value);
+            if (isNaN(numPlayers) || numPlayers < 1 || numPlayers > 15) {
+                alert("Please enter a valid number of players (1-15).");
                 return;
             }
 
-            let table = "<table><thead><tr><th>Player</th>";
-            for (let r = 1; r <= 10; r++) {
-                table += `<th>Round ${r}</th>`;
+            let html = '<table><thead><tr><th>Player Name</th>';
+            for (let round = 1; round <= 10; round++) {
+                html += `<th>R${round}</th>`;
             }
-            table += "</tr></thead><tbody>";
+            html += '</tr></thead><tbody>';
 
-            for (let p = 1; p <= numPlayers; p++) {
-                table += `<tr><td>Player ${p}</td>`;
-                for (let r = 1; r <= 10; r++) {
-                    table += `<td><input type="number" name="p${p}r${r}" min="0" value="0"></td>`;
+            for (let i = 1; i <= numPlayers; i++) {
+                const name = savedData ? savedData.players[i-1].name : `Player ${i}`;
+                html += `<tr><td><input type="text" id="name${i}" value="${name}" oninput="saveData()"></td>`;
+                for (let j = 1; j <= 10; j++) {
+                    const val = savedData ? savedData.players[i-1].scores[j-1] : 0;
+                    html += `<td><input type="number" id="p${i}r${j}" value="${val}" oninput="saveData()"></td>`;
                 }
-                table += "</tr>";
+                html += '</tr>';
             }
 
-            table += "</tbody></table>";
-            table += '<button type="submit">Calculate Scores</button>';
-            form.innerHTML = table;
+            html += '</tbody></table>';
+            html += '<button onclick="calculateScores()">Calculate Scores</button>';
+            document.getElementById("scoreTableContainer").innerHTML = html;
+            document.getElementById("leaderboard").innerHTML = "";
+            saveData();
         }
 
         function calculateScores() {
             const numPlayers = parseInt(document.getElementById("numPlayers").value);
             const scores = [];
 
-            for (let p = 1; p <= numPlayers; p++) {
+            for (let i = 1; i <= numPlayers; i++) {
                 let total = 0;
-                for (let r = 1; r <= 10; r++) {
-                    const val = parseInt(document.querySelector(`[name="p${p}r${r}"]`).value) || 0;
+                for (let j = 1; j <= 10; j++) {
+                    const val = parseInt(document.getElementById(`p${i}r${j}`).value) || 0;
                     total += val;
                 }
-                scores.push({ player: `Player ${p}`, total });
+                const name = document.getElementById(`name${i}`).value;
+                scores.push({ name, total });
             }
 
             scores.sort((a, b) => b.total - a.total);
 
-            let leaderboard = "<h3>Leaderboard</h3><table><tr><th>Rank</th><th>Player</th><th>Total Score</th></tr>";
-            scores.forEach((s, index) => {
-                leaderboard += `<tr><td>${index + 1}</td><td>${s.player}</td><td>${s.total}</td></tr>`;
+            let leaderboardHtml = "<h2>Leaderboard</h2><ol>";
+            scores.forEach(score => {
+                leaderboardHtml += `<li>${score.name}: ${score.total} points</li>`;
             });
-            leaderboard += "</table>";
+            leaderboardHtml += "</ol>";
 
-            document.getElementById("leaderboard").innerHTML = leaderboard;
+            document.getElementById("leaderboard").innerHTML = leaderboardHtml;
+            saveData();
         }
 
-        window.onload = generateTable;
+        window.onload = loadData;
     </script>
 </body>
 </html>
