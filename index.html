@@ -78,8 +78,21 @@
           font-size: 12px;
         }
         .controls {
-          flex-direction: column;
-          align-items: flex-start;
+          flex-direction: row;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 5px;
+        }
+        .controls label {
+          width: 100%;
+          margin-bottom: 5px;
+        }
+        .controls input[type="number"] {
+          width: 60px;
+        }
+        button {
+          font-size: 12px;
+          padding: 4px 8px;
         }
       }
     </style>
@@ -90,7 +103,7 @@
       <div class="controls">
         <label for="numPlayers">Number of Players (1-15): </label>
         <input type="number" id="numPlayers" min="1" max="15" value="2" />
-        <button onclick="confirmGenerateTable()">Generate Score Table</button>
+        <button onclick="confirmGenerateTable()">Start Play</button>
         <button onclick="addPlayer()">Add Player</button>
       </div>
 
@@ -141,16 +154,18 @@
       }
 
       function addPlayer() {
-        const currentPlayers = parseInt(document.getElementById("numPlayers").value);
-        
+        const currentPlayers = parseInt(
+          document.getElementById("numPlayers").value
+        );
+
         if (currentPlayers >= 15) {
           alert("Maximum 15 players allowed!");
           return;
         }
-        
+
         // Increase player count by 1
         document.getElementById("numPlayers").value = currentPlayers + 1;
-        
+
         // Regenerate table with existing data preserved
         generateTable();
       }
