@@ -3,18 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <title>Score Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        table { border-collapse: collapse; margin-top: 20px; width: 100%; }
+        body { font-family: Arial, sans-serif; padding: 20px; margin: 0; }
+        .container { max-width: 1000px; margin: auto; }
+        table { border-collapse: collapse; margin-top: 20px; width: 100%; overflow-x: auto; display: block; }
         th, td { border: 1px solid #ccc; padding: 4px; text-align: center; }
         input[type="number"] { width: 50px; }
         input[type="text"] { width: 100px; }
-        .leaderboard { margin-top: 30px; }
-        .controls { margin-bottom: 10px; }
-        button { margin-left: 10px; }
+        .leaderboard, .chart-container { margin-top: 30px; }
+        .controls { margin-bottom: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+        button { padding: 6px 12px; }
+        canvas { max-width: 100%; height: auto; }
+
+        @media (max-width: 768px) {
+            input[type="text"], input[type="number"] { width: 40px; font-size: 12px; }
+            th, td { padding: 2px; font-size: 12px; }
+            .controls { flex-direction: column; align-items: flex-start; }
+        }
     </style>
 </head>
 <body>
+<div class="container">
     <h1>Score Calculator (10 Rounds, up to 15 Players)</h1>
     <div class="controls">
         <label for="numPlayers">Number of Players (1-15): </label>
@@ -24,88 +34,124 @@
 
     <div id="scoreTableContainer"></div>
     <div class="leaderboard" id="leaderboard"></div>
+    <div class="chart-container">
+        <canvas id="scoreChart"></canvas>
+    </div>
+</div>
 
-    <script>
-        function saveData() {
-            const numPlayers = parseInt(document.getElementById("numPlayers").value);
-            const data = { numPlayers, players: [] };
-            for (let i = 1; i <= numPlayers; i++) {
-                const name = document.getElementById(`name${i}`).value;
-                const scores = [];
-                for (let j = 1; j <= 10; j++) {
-                    const val = parseInt(document.getElementById(`p${i}r${j}`).value) || 0;
-                    scores.push(val);
-                }
-                data.players.push({ name, scores });
-            }
-            localStorage.setItem("scoreData", JSON.stringify(data));
-        }
+https://cdn.jsdelivr.net/npm/chart.js
+<script>
+    let chart;
 
-        function loadData() {
-            const saved = localStorage.getItem("scoreData");
-            if (!saved) return;
-            const data = JSON.parse(saved);
-            document.getElementById("numPlayers").value = data.numPlayers;
-            generateTable(data);
-        }
-
-        function generateTable(savedData = null) {
-            const numPlayers = parseInt(document.getElementById("numPlayers").value);
-            if (isNaN(numPlayers) || numPlayers < 1 || numPlayers > 15) {
-                alert("Please enter a valid number of players (1-15).");
-                return;
-            }
-
-            let html = '<table><thead><tr><th>Player Name</th>';
-            for (let round = 1; round <= 10; round++) {
-                html += `<th>R${round}</th>`;
-            }
-            html += '</tr></thead><tbody>';
-
-            for (let i = 1; i <= numPlayers; i++) {
-                const name = savedData ? savedData.players[i-1].name : `Player ${i}`;
-                html += `<tr><td><input type="text" id="name${i}" value="${name}" oninput="saveData()"></td>`;
-                for (let j = 1; j <= 10; j++) {
-                    const val = savedData ? savedData.players[i-1].scores[j-1] : 0;
-                    html += `<td><input type="number" id="p${i}r${j}" value="${val}" oninput="saveData()"></td>`;
-                }
-                html += '</tr>';
-            }
-
-            html += '</tbody></table>';
-            html += '<button onclick="calculateScores()">Calculate Scores</button>';
-            document.getElementById("scoreTableContainer").innerHTML = html;
-            document.getElementById("leaderboard").innerHTML = "";
-            saveData();
-        }
-
-        function calculateScores() {
-            const numPlayers = parseInt(document.getElementById("numPlayers").value);
+    function saveData() {
+        const numPlayers = parseInt(document.getElementById("numPlayers").value);
+        const data = { numPlayers, players: [] };
+        for (let i = 1; i <= numPlayers; i++) {
+            const name = document.getElementById(`name${i}`).value;
             const scores = [];
-
-            for (let i = 1; i <= numPlayers; i++) {
-                let total = 0;
-                for (let j = 1; j <= 10; j++) {
-                    const val = parseInt(document.getElementById(`p${i}r${j}`).value) || 0;
-                    total += val;
-                }
-                const name = document.getElementById(`name${i}`).value;
-                scores.push({ name, total });
+            for (let j = 1; j <= 10; j++) {
+                const val = parseInt(document.getElementById(`p${i}r${j}`).value) || 0;
+                scores.push(val);
             }
+            data.players.push({ name, scores });
+        }
+        localStorage.setItem("scoreData", JSON.stringify(data));
+    }
 
-            scores.sort((a, b) => b.total - a.total);
+    function loadData() {
+        const saved = localStorage.getItem("scoreData");
+        if (!saved) return;
+        const data = JSON.parse(saved);
+        document.getElementById("numPlayers").value = data.numPlayers;
+        generateTable(data);
+    }
 
-            let leaderboardHtml = "<h2>Leaderboard</h2><ol>";
-            scores.forEach(score => {
-                leaderboardHtml += `<li>${score.name}: ${score.total} points</li>`;
-            });
-            leaderboardHtml += "</ol>";
-
-            document.getElementById("leaderboard").innerHTML = leaderboardHtml;
-            saveData();
+    function generateTable(savedData = null) {
+        const numPlayers = parseInt(document.getElementById("numPlayers").value);
+        if (isNaN(numPlayers) || numPlayers < 1 || numPlayers > 15) {
+            alert("Please enter a valid number of players (1-15).");
+            return;
         }
 
-        window.onload = loadData;
-    </script>
+        let html = '<table><thead><tr><th>Player Name</th>';
+        for (let round = 1; round <= 10; round++) {
+            html += `<th>R${round}</th>`;
+        }
+        html += '</tr></thead><tbody>';
+
+        for (let i = 1; i <= numPlayers; i++) {
+            const name = savedData ? savedData.players[i-1].name : `Player ${i}`;
+            html += `<tr><td><input type="text" id="name${i}" value="${name}" oninput="saveData()"></td>`;
+            for (let j = 1; j <= 10; j++) {
+                const val = savedData ? savedData.players[i-1].scores[j-1] : 0;
+                html += `<td><input type="number" id="p${i}r${j}" value="${val}" oninput="saveData()"></td>`;
+            }
+            html += '</tr>';
+        }
+
+        html += '</tbody></table>';
+        html += '<button onclick="calculateScores()">Calculate Scores</button>';
+        document.getElementById("scoreTableContainer").innerHTML = html;
+        document.getElementById("leaderboard").innerHTML = "";
+        saveData();
+    }
+
+    function calculateScores() {
+        const numPlayers = parseInt(document.getElementById("numPlayers").value);
+        const scores = [];
+
+        for (let i = 1; i <= numPlayers; i++) {
+            let total = 0;
+            for (let j = 1; j <= 10; j++) {
+                const val = parseInt(document.getElementById(`p${i}r${j}`).value) || 0;
+                total += val;
+            }
+            const name = document.getElementById(`name${i}`).value;
+            scores.push({ name, total });
+        }
+
+        scores.sort((a, b) => b.total - a.total);
+
+        let leaderboardHtml = "<h2>Leaderboard</h2><ol>";
+        scores.forEach(score => {
+            leaderboardHtml += `<li>${score.name}: ${score.total} points</li>`;
+        });
+        leaderboardHtml += "</ol>";
+
+        document.getElementById("leaderboard").innerHTML = leaderboardHtml;
+        saveData();
+        updateChart(scores);
+    }
+
+    function updateChart(scores) {
+        const ctx = document.getElementById('scoreChart').getContext('2d');
+        const labels = scores.map(s => s.name);
+        const data = scores.map(s => s.total);
+
+        if (chart) chart.destroy();
+
+        chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Score',
+                    data: data,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    window.onload = loadData;
+</script>
 </body>
 </html>
