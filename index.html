@@ -326,24 +326,35 @@
           scores.push({ name, total });
         }
 
-        // Keep original order for chart and leaderboard
+        // Keep original order for chart
         const originalOrderScores = [...scores];
 
-        // Create a sorted copy just to determine rankings
-        const sortedForRanking = [...scores].sort((a, b) => a.total - b.total); // Low score wins
+        // Sort for leaderboard (low score wins)
+        const sortedScores = [...scores].sort((a, b) => a.total - b.total);
 
-        // Create leaderboard in original order with rankings
-        let leaderboardHtml =
-          "<h2>Leaderboard</h2><ul style='list-style: none; padding: 0;'>";
-        originalOrderScores.forEach((score) => {
-          // Find ranking (1-based)
-          const ranking =
-            sortedForRanking.findIndex(
-              (s) => s.name === score.name && s.total === score.total
-            ) + 1;
-          leaderboardHtml += `<li style='margin: 5px 0;'>${score.name}: ${score.total} points (Rank #${ranking})</li>`;
+        // Create leaderboard as a sorted table
+        let leaderboardHtml = `
+    <h2>Leaderboard</h2>
+    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+      <thead>
+        <tr style="background-color: #f8f9fa;">
+          <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Player</th>
+          <th style="border: 1px solid #ccc; padding: 8px; text-align: center;">Total Score</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+        sortedScores.forEach((score) => {
+          leaderboardHtml += `
+      <tr>
+        <td style="border: 1px solid #ccc; padding: 8px;">${score.name}</td>
+        <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">${score.total}</td>
+      </tr>`;
         });
-        leaderboardHtml += "</ul>";
+
+        leaderboardHtml += `
+      </tbody>
+    </table>`;
 
         document.getElementById("leaderboard").innerHTML = leaderboardHtml;
         updateChart(originalOrderScores); // Pass original order to chart
