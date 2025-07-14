@@ -22,6 +22,27 @@
         overflow: hidden;
         font-size: clamp(1.2rem, 4vw, 2rem);
         margin: 0 0 20px 0;
+        background: linear-gradient(135deg, #007bff, #28a745);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-align: center;
+      }
+
+      /* Section headers */
+      h2 {
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 5px;
+      }
+
+      /* Table headers with better colors */
+      table th {
+        background-color: #f8f9fa !important;
+        color: #495057 !important;
+        font-weight: 600;
       }
 
       /* Table container for horizontal scroll */
@@ -290,6 +311,119 @@
       .leaderboard-table th:first-child {
         background-color: #f8f9fa !important;
       }
+
+      /* Color improvements */
+      /* Header with gradient */
+      h1 {
+        white-space: nowrap;
+        overflow: hidden;
+        font-size: clamp(1.2rem, 4vw, 2rem);
+        margin: 0 0 20px 0;
+        background: linear-gradient(135deg, #007bff, #28a745);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-align: center;
+      }
+
+      /* Section headers */
+      h2 {
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 5px;
+      }
+
+      /* Table headers with better colors */
+      table th {
+        background-color: #f8f9fa !important;
+        color: #495057 !important;
+        font-weight: 600;
+      }
+
+      /* Player name inputs with subtle styling */
+      table input[type="text"] {
+        border: none;
+        background: transparent;
+        width: 100%;
+        padding: 4px;
+        font-size: 14px;
+        color: #212529;
+        font-weight: 500;
+      }
+
+      /* Score inputs with color coding */
+      table input[type="number"] {
+        border: none;
+        background: transparent;
+        width: 100%;
+        padding: 4px;
+        font-size: 14px;
+        text-align: center;
+        color: #495057;
+        font-weight: 500;
+      }
+
+      /* Color code score inputs based on value */
+      table input[type="number"][value="-1"] {
+        color: #6c757d; /* Gray for -1 values */
+        font-style: italic;
+      }
+
+      /* Leaderboard with better colors */
+      .leaderboard-table th {
+        background-color: #343a40 !important;
+        color: white !important;
+      }
+
+      .leaderboard-table td:first-child {
+        font-weight: bold;
+        color: #495057; /* Standard color for all ranks */
+      }
+
+      /* Player names in leaderboard */
+      .leaderboard-table td:nth-child(2) {
+        color: #495057;
+        font-weight: 500;
+      }
+
+      /* Scores in leaderboard with conditional colors */
+      .leaderboard-table td:last-child {
+        font-weight: 600;
+      }
+
+      /* Controls styling */
+      .controls label {
+        color: #495057;
+        font-weight: 500;
+      }
+
+      .controls input[type="number"] {
+        border: 2px solid #e9ecef;
+        color: #495057;
+        font-weight: 500;
+      }
+
+      .controls input[type="number"]:focus {
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+      }
+
+      /* Add Player button with better styling */
+      .add-player-btn {
+        background: linear-gradient(135deg, #28a745, #20c997) !important;
+        border: none;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .add-player-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+      }
     </style>
   </head>
   <body>
@@ -458,7 +592,7 @@
                   ? savedData.players[i - 1].scores[j - 1] 
                   : -1
                 : -1;
-            html += `<td style="border: 1px solid #ccc; padding: 8px; text-align: center; min-width: 60px;"><input type="number" id="p${i}r${j}" value="${val}" min="-1" max="100" oninput="saveData(); calculateScores();" style="border: none; background: transparent; width: 100%; text-align: center; padding: 4px; font-size: 14px; min-width: 50px;"></td>`;
+            html += `<td style="border: 1px solid #ccc; padding: 8px; text-align: center; min-width: 60px;"><input type="number" id="p${i}r${j}" value="${val}" min="-1" max="100" oninput="saveData(); calculateScores(); colorScoreInputs();" style="border: none; background: transparent; width: 100%; text-align: center; padding: 4px; font-size: 14px; min-width: 50px;"></td>`;
           }
           html += "</tr>";
         }
@@ -468,7 +602,7 @@
         // Add the "Add Player" button after the table
         html += `
     <div style="margin-top: 10px;">
-      <button onclick="addPlayer()" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+      <button onclick="addPlayer()" class="add-player-btn" style="padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
         + Add Player
       </button>
     </div>`;
@@ -478,6 +612,35 @@
         calculateScores();
       }
 
+      // Update the colorScoreInputs function with new thresholds
+      function colorScoreInputs() {
+        const numPlayers = parseInt(document.getElementById("numPlayers").value);
+        
+        for (let i = 1; i <= numPlayers; i++) {
+          for (let j = 1; j <= 10; j++) {
+            const input = document.getElementById(`p${i}r${j}`);
+            if (input) {
+              const val = parseInt(input.value);
+              
+              if (isNaN(val) || val === -1) {
+                input.style.color = '#6c757d'; // Gray for -1
+                input.style.fontStyle = 'italic';
+              } else if (val < 40) {
+                input.style.color = '#28a745'; // Green for low scores (good)
+                input.style.fontStyle = 'normal';
+              } else if (val >= 40 && val <= 60) {
+                input.style.color = '#ffc107'; // Yellow for medium scores
+                input.style.fontStyle = 'normal';
+              } else {
+                input.style.color = '#dc3545'; // Red for high scores (bad)
+                input.style.fontStyle = 'normal';
+              }
+            }
+          }
+        }
+      }
+
+      // Update the calculateScores function - just change the Rank header
       function calculateScores() {
         const numPlayers = parseInt(
           document.getElementById("numPlayers").value
@@ -501,46 +664,68 @@
         // Sort for leaderboard (low score wins)
         const sortedScores = [...scores].sort((a, b) => a.total - b.total);
 
-        // Create leaderboard table that fits in visible area
+        // Create leaderboard table with # symbol in Rank header
         let leaderboardHtml = `
-    <h2>Leaderboard</h2>
-    <table class="leaderboard-table" style="
-      width: auto !important; 
-      min-width: auto !important; 
-      max-width: 300px !important; 
-      border-collapse: collapse; 
-      margin-top: 10px; 
-      display: table !important;
-      table-layout: auto !important;
-    ">
-      <thead>
-        <tr style="background-color: #f8f9fa;">
-          <th style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 40px !important; min-width: 40px !important; max-width: 40px !important; font-size: 12px;">#</th>
-          <th style="border: 1px solid #ccc; padding: 6px; text-align: left; width: auto !important; min-width: 80px !important; max-width: 120px !important; font-size: 12px;">Player</th>
-          <th style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 50px !important; min-width: 50px !important; max-width: 50px !important; font-size: 12px;">Score</th>
-        </tr>
-      </thead>
-      <tbody>`;
+<h2>Leaderboard</h2>
+<table class="leaderboard-table" style="
+  width: auto !important; 
+  min-width: auto !important; 
+  max-width: 320px !important; 
+  border-collapse: collapse; 
+  margin-top: 10px; 
+  display: table !important;
+  table-layout: auto !important;
+">
+  <thead>
+    <tr style="background: linear-gradient(135deg, #212529, #343a40) !important;">
+      <th style="border: 1px solid #ccc; padding: 8px; text-align: center; width: 60px !important; min-width: 60px !important; max-width: 60px !important; font-size: 13px; color: white !important; font-weight: bold !important;"><span style="color: black;">#</span> Rank</th>
+      <th style="border: 1px solid #ccc; padding: 8px; text-align: left; width: auto !important; min-width: 80px !important; max-width: 120px !important; font-size: 13px; color: white !important; font-weight: bold !important;">Player</th>
+      <th style="border: 1px solid #ccc; padding: 8px; text-align: center; width: 50px !important; min-width: 50px !important; max-width: 50px !important; font-size: 13px; color: white !important; font-weight: bold !important;">Score</th>
+    </tr>
+  </thead>
+  <tbody>`;
 
         sortedScores.forEach((score, index) => {
+          // Add medal icons with rank numbers
+          let rankDisplay;
+          if (index === 0) {
+            rankDisplay = '🥇 1st';
+          } else if (index === 1) {
+            rankDisplay = '🥈 2nd';
+          } else if (index === 2) {
+            rankDisplay = '🥉 3rd';
+          } else {
+            rankDisplay = `${index + 1}th`;
+          }
+
           leaderboardHtml += `
-      <tr>
-        <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-weight: bold; width: 40px !important; min-width: 40px !important; max-width: 40px !important; font-size: 12px;">${
-          index + 1
-        }</td>
-        <td style="border: 1px solid #ccc; padding: 6px; width: auto !important; min-width: 80px !important; max-width: 120px !important; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${score.name}</td>
-        <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 50px !important; min-width: 50px !important; max-width: 50px !important; font-size: 12px;">${
-          score.total
-        }</td>
-      </tr>`;
+  <tr>
+    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-weight: bold; width: 60px !important; min-width: 60px !important; max-width: 60px !important; font-size: 11px;">${rankDisplay}</td>
+    <td style="border: 1px solid #ccc; padding: 6px; width: auto !important; min-width: 80px !important; max-width: 120px !important; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${score.name}</td>
+    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 50px !important; min-width: 50px !important; max-width: 50px !important; font-size: 12px;">${score.total}</td>
+  </tr>`;
         });
 
         leaderboardHtml += `
-      </tbody>
-    </table>`;
+  </tbody>
+</table>`;
 
         document.getElementById("leaderboard").innerHTML = leaderboardHtml;
         updateChart(originalOrderScores); // Pass original order to chart
+
+        // Color code the leaderboard scores
+        sortedScores.forEach((score, index) => {
+          const scoreCell = document.querySelector(`.leaderboard-table tbody tr:nth-child(${index + 1}) td:last-child`);
+          if (scoreCell) {
+            if (score.total < 40) {
+              scoreCell.style.color = '#28a745'; // Green for good scores
+            } else if (score.total >= 40 && score.total <= 60) {
+              scoreCell.style.color = '#ffc107'; // Yellow for medium scores
+            } else {
+              scoreCell.style.color = '#dc3545'; // Red for high scores
+            }
+          }
+        });
       }
 
       function updateChart(scores) {
