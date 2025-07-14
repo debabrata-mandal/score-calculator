@@ -548,15 +548,34 @@
         const labels = scores.map((s) => s.name);
         const data = scores.map((s) => s.total);
 
+        // Find min and max scores for relative coloring
+        const minScore = Math.min(...data);
+        const maxScore = Math.max(...data);
+        const range = maxScore - minScore;
+
         const backgroundColors = data.map((score) => {
-          if (score <= 40) {
-            const green = Math.round(255 - (score / 40) * 155); // 255 to 100
+          if (range === 0) {
+            // All scores are the same
+            return 'rgb(128, 128, 128)'; // Gray
+          }
+          
+          // Calculate relative position (0 = best, 1 = worst)
+          const position = (score - minScore) / range;
+          
+          if (position <= 0.33) {
+            // Best third - Green shades (darker green for better scores)
+            const green = Math.round(255 - (position * 0.33 * 100)); // 255 to 155
             return `rgb(0, ${green}, 0)`;
-          } else if (score <= 60) {
-            const yellow = Math.round(255 - ((score - 40) / 20) * 155); // 255 to 100
-            return `rgb(${yellow}, ${yellow}, 0)`;
+          } else if (position <= 0.66) {
+            // Middle third - Yellow/Orange shades
+            const progress = (position - 0.33) / 0.33; // 0 to 1 within this range
+            const red = Math.round(255);
+            const green = Math.round(255 - (progress * 127)); // 255 to 128
+            return `rgb(${red}, ${green}, 0)`;
           } else {
-            const red = Math.round(100 + ((score - 60) / 40) * 155); // 100 to 255
+            // Worst third - Red shades (darker red for worse scores)
+            const progress = (position - 0.66) / 0.34; // 0 to 1 within this range
+            const red = Math.round(200 + (progress * 55)); // 200 to 255
             return `rgb(${red}, 0, 0)`;
           }
         });
@@ -572,15 +591,25 @@
                 label: "Total Score",
                 data: data,
                 backgroundColor: backgroundColors,
-                borderColor: "rgba(0,0,0,0.1)",
+                borderColor: "rgba(0,0,0,0.2)",
                 borderWidth: 1,
               },
             ],
           },
           options: {
             responsive: true,
+            plugins: {
+              legend: {
+                display: false
+              }
+            },
             scales: {
-              y: { beginAtZero: true },
+              y: { 
+                beginAtZero: true
+              },
+              x: {
+                // Removed title
+              }
             },
           },
         });
