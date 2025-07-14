@@ -223,7 +223,8 @@
         }
 
         .controls input[type="number"] {
-          width: 60px;
+          width: 70px !important;
+          font-size: 13px;
         }
 
         button {
@@ -403,6 +404,8 @@
         border: 2px solid #e9ecef;
         color: #495057;
         font-weight: 500;
+        border-radius: 4px;
+        padding: 6px 8px;
       }
 
       .controls input[type="number"]:focus {
@@ -429,12 +432,30 @@
   <body>
     <div class="container">
       <h1>⭐ Rummy Score Master</h1>
-      <div class="controls">
-        <label for="numPlayers">Players (1-15): </label>
-        <input type="number" id="numPlayers" min="1" max="15" value="2" />
+      <div class="controls" style="margin-top: 10px">
+        <label for="pointValue">Point Value: ₹</label>
+        <input
+          type="number"
+          id="pointValue"
+          min="0"
+          step="0.01"
+          value="1.00"
+          style="width: 80px"
+        />
+
+        <label for="gstPercent">GST%: </label>
+        <input
+          type="number"
+          id="gstPercent"
+          min="0"
+          max="100"
+          step="0.01"
+          value="18.00"
+          style="width: 80px"
+        />
       </div>
 
-      <div style="text-align: center; margin: 20px 0;">
+      <div style="text-align: center; margin: 20px 0">
         <button class="start-play-button" onclick="confirmGenerateTable()">
           🎮 Start Play
         </button>
@@ -485,19 +506,33 @@
       }
 
       function saveData() {
-        const numPlayers = parseInt(
-          document.getElementById("numPlayers").value
-        );
-        const data = { numPlayers, players: [] };
-        for (let i = 1; i <= numPlayers; i++) {
+        // Get number of players from the actual table instead of input
+        const playerRows =
+          document.querySelectorAll('input[id^="name"]').length;
+        const pointValue =
+          parseFloat(document.getElementById("pointValue").value) || 1.0;
+        const gstPercent =
+          parseFloat(document.getElementById("gstPercent").value) || 18.0;
+
+        const data = {
+          numPlayers: playerRows,
+          pointValue,
+          gstPercent,
+          players: [],
+        };
+
+        for (let i = 1; i <= playerRows; i++) {
           const nameInput = document.getElementById(`name${i}`);
-          const name = nameInput.value.trim();
-          const scores = [];
-          for (let j = 1; j <= 10; j++) {
-            const val = parseInt(document.getElementById(`p${i}r${j}`).value);
-            scores.push(isNaN(val) ? -1 : val);
+          if (nameInput) {
+            const name = nameInput.value.trim();
+            const scores = [];
+            for (let j = 1; j <= 10; j++) {
+              const scoreInput = document.getElementById(`p${i}r${j}`);
+              const val = scoreInput ? parseInt(scoreInput.value) : -1;
+              scores.push(isNaN(val) ? -1 : val);
+            }
+            data.players.push({ name, scores });
           }
-          data.players.push({ name, scores });
         }
         localStorage.setItem("scoreData", JSON.stringify(data));
       }
@@ -506,7 +541,10 @@
         const saved = localStorage.getItem("scoreData");
         if (!saved) return;
         const data = JSON.parse(saved);
-        document.getElementById("numPlayers").value = data.numPlayers;
+
+        document.getElementById("pointValue").value = data.pointValue || 1.0;
+        document.getElementById("gstPercent").value = data.gstPercent || 18.0;
+
         generateTable(data);
       }
 
@@ -522,9 +560,9 @@
       }
 
       function addPlayer() {
-        const currentPlayers = parseInt(
-          document.getElementById("numPlayers").value
-        );
+        // Get current number of players from existing table
+        const currentPlayers =
+          document.querySelectorAll('input[id^="name"]').length;
 
         if (currentPlayers >= 15) {
           showModal(
@@ -535,21 +573,33 @@
           return;
         }
 
-        // Increase player count by 1
-        document.getElementById("numPlayers").value = currentPlayers + 1;
+        // Save current data first
+        saveData();
+        
+        // Get existing data and add one more player
+        const saved = localStorage.getItem("scoreData");
+        let savedData = null;
+        
+        if (saved) {
+          savedData = JSON.parse(saved);
+          // Increment the number of players
+          savedData.numPlayers = currentPlayers + 1;
+        }
 
-        // Regenerate table with existing data preserved
-        generateTable();
+        // Regenerate table with existing data preserved + 1 new player
+        generateTable(savedData);
       }
 
       // Update the generateTable function to include the Add Player button at the end
       function generateTable(savedData = null) {
-        const numPlayers = parseInt(
-          document.getElementById("numPlayers").value
-        );
-        if (isNaN(numPlayers) || numPlayers < 1 || numPlayers > 15) {
-          alert("Please enter a valid number of players (1-15).");
-          return;
+        let numPlayers;
+
+        if (savedData && savedData.numPlayers) {
+          numPlayers = savedData.numPlayers;
+        } else {
+          // Get current players or default to 2
+          const existingPlayers = document.querySelectorAll('input[id^="name"]').length;
+          numPlayers = existingPlayers > 0 ? existingPlayers + 1 : 2;
         }
 
         // Get existing data if not provided
@@ -561,12 +611,12 @@
         }
 
         let html = `
-    <h2>Score</h2>
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr style="background-color: #f8f9fa;">
-            <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Player Name</th>`;
+<h2>Score</h2>
+<div class="table-container">
+  <table>
+    <thead>
+      <tr style="background-color: #f8f9fa;">
+        <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Player Name</th>`;
 
         for (let round = 1; round <= 10; round++) {
           html += `<th style="border: 1px solid #ccc; padding: 8px; text-align: center;">R${round}</th>`;
@@ -574,7 +624,6 @@
         html += `</tr></thead><tbody>`;
 
         for (let i = 1; i <= numPlayers; i++) {
-          // Use existing data if available, otherwise default values
           const name =
             savedData && savedData.players && savedData.players[i - 1]
               ? savedData.players[i - 1].name
@@ -588,8 +637,8 @@
               savedData.players &&
               savedData.players[i - 1] &&
               savedData.players[i - 1].scores
-                ? savedData.players[i - 1].scores[j - 1] !== undefined 
-                  ? savedData.players[i - 1].scores[j - 1] 
+                ? savedData.players[i - 1].scores[j - 1] !== undefined
+                  ? savedData.players[i - 1].scores[j - 1]
                   : -1
                 : -1;
             html += `<td style="border: 1px solid #ccc; padding: 8px; text-align: center; min-width: 60px;"><input type="number" id="p${i}r${j}" value="${val}" min="-1" max="100" oninput="saveData(); calculateScores(); colorScoreInputs();" style="border: none; background: transparent; width: 100%; text-align: center; padding: 4px; font-size: 14px; min-width: 50px;"></td>`;
@@ -598,63 +647,72 @@
         }
 
         html += "</tbody></table></div>";
-        
+
         // Add the "Add Player" button after the table
         html += `
-    <div style="margin-top: 10px;">
-      <button onclick="addPlayer()" class="add-player-btn" style="padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
-        + Add Player
-      </button>
-    </div>`;
+<div style="margin-top: 10px;">
+  <button onclick="addPlayer()" class="add-player-btn" style="padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+    + Add Player
+  </button>
+</div>`;
 
         document.getElementById("scoreTableContainer").innerHTML = html;
+        
+        // Apply color coding to existing scores
+        colorScoreInputs();
+        
+        // Save the new state and calculate scores
         saveData();
         calculateScores();
       }
 
       // Update the colorScoreInputs function with new thresholds
       function colorScoreInputs() {
-        const numPlayers = parseInt(document.getElementById("numPlayers").value);
-        
+        const numPlayers =
+          document.querySelectorAll('input[id^="name"]').length;
+
         for (let i = 1; i <= numPlayers; i++) {
           for (let j = 1; j <= 10; j++) {
             const input = document.getElementById(`p${i}r${j}`);
             if (input) {
               const val = parseInt(input.value);
-              
+
               if (isNaN(val) || val === -1) {
-                input.style.color = '#6c757d'; // Gray for -1
-                input.style.fontStyle = 'italic';
+                input.style.color = "#6c757d"; // Gray for -1
+                input.style.fontStyle = "italic";
               } else if (val < 40) {
-                input.style.color = '#28a745'; // Green for low scores (good)
-                input.style.fontStyle = 'normal';
+                input.style.color = "#28a745"; // Green for low scores (good)
+                input.style.fontStyle = "normal";
               } else if (val >= 40 && val <= 60) {
-                input.style.color = '#ffc107'; // Yellow for medium scores
-                input.style.fontStyle = 'normal';
+                input.style.color = "#ffc107"; // Yellow for medium scores
+                input.style.fontStyle = "normal";
               } else {
-                input.style.color = '#dc3545'; // Red for high scores (bad)
-                input.style.fontStyle = 'normal';
+                input.style.color = "#dc3545"; // Red for high scores (bad)
+                input.style.fontStyle = "normal";
               }
             }
           }
         }
       }
 
-      // Update the calculateScores function - just change the Rank header
+      // Update the calculateScores function to add Payable column
       function calculateScores() {
-        const numPlayers = parseInt(
-          document.getElementById("numPlayers").value
-        );
+        // Get number of players from actual table
+        const numPlayers =
+          document.querySelectorAll('input[id^="name"]').length;
         const scores = [];
 
         for (let i = 1; i <= numPlayers; i++) {
           let total = 0;
           for (let j = 1; j <= 10; j++) {
-            const val = parseInt(document.getElementById(`p${i}r${j}`).value);
-            // Treat -1 as 0 for calculation, but preserve -1 in the input
-            total += isNaN(val) || val === -1 ? 0 : val;
+            const scoreInput = document.getElementById(`p${i}r${j}`);
+            if (scoreInput) {
+              const val = parseInt(scoreInput.value);
+              total += isNaN(val) || val === -1 ? 0 : val;
+            }
           }
-          const name = document.getElementById(`name${i}`).value.trim();
+          const nameInput = document.getElementById(`name${i}`);
+          const name = nameInput ? nameInput.value.trim() : `Player ${i}`;
           scores.push({ name, total });
         }
 
@@ -664,13 +722,13 @@
         // Sort for leaderboard (low score wins)
         const sortedScores = [...scores].sort((a, b) => a.total - b.total);
 
-        // Create leaderboard table with # symbol in Rank header
+        // Create leaderboard table with Payable column
         let leaderboardHtml = `
 <h2>Leaderboard</h2>
 <table class="leaderboard-table" style="
   width: auto !important; 
   min-width: auto !important; 
-  max-width: 320px !important; 
+  max-width: 420px !important; 
   border-collapse: collapse; 
   margin-top: 10px; 
   display: table !important;
@@ -681,6 +739,7 @@
       <th style="border: 1px solid #ccc; padding: 8px; text-align: center; width: 60px !important; min-width: 60px !important; max-width: 60px !important; font-size: 13px; color: white !important; font-weight: bold !important;"><span style="color: black;">#</span> Rank</th>
       <th style="border: 1px solid #ccc; padding: 8px; text-align: left; width: auto !important; min-width: 80px !important; max-width: 120px !important; font-size: 13px; color: white !important; font-weight: bold !important;">Player</th>
       <th style="border: 1px solid #ccc; padding: 8px; text-align: center; width: 50px !important; min-width: 50px !important; max-width: 50px !important; font-size: 13px; color: white !important; font-weight: bold !important;">Score</th>
+      <th style="border: 1px solid #ccc; padding: 8px; text-align: center; width: 70px !important; min-width: 70px !important; max-width: 70px !important; font-size: 13px; color: white !important; font-weight: bold !important;">Payable</th>
     </tr>
   </thead>
   <tbody>`;
@@ -689,20 +748,24 @@
           // Add medal icons with rank numbers
           let rankDisplay;
           if (index === 0) {
-            rankDisplay = '🥇 1st';
+            rankDisplay = "🥇 1st";
           } else if (index === 1) {
-            rankDisplay = '🥈 2nd';
+            rankDisplay = "🥈 2nd";
           } else if (index === 2) {
-            rankDisplay = '🥉 3rd';
+            rankDisplay = "🥉 3rd";
           } else {
             rankDisplay = `${index + 1}th`;
           }
+
+          // Placeholder for payable calculation (you'll add this later)
+          const payable = 0; // Will be calculated later
 
           leaderboardHtml += `
   <tr>
     <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-weight: bold; width: 60px !important; min-width: 60px !important; max-width: 60px !important; font-size: 11px;">${rankDisplay}</td>
     <td style="border: 1px solid #ccc; padding: 6px; width: auto !important; min-width: 80px !important; max-width: 120px !important; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${score.name}</td>
     <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 50px !important; min-width: 50px !important; max-width: 50px !important; font-size: 12px;">${score.total}</td>
+    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 70px !important; min-width: 70px !important; max-width: 70px !important; font-size: 12px;">${payable}</td>
   </tr>`;
         });
 
@@ -715,14 +778,18 @@
 
         // Color code the leaderboard scores
         sortedScores.forEach((score, index) => {
-          const scoreCell = document.querySelector(`.leaderboard-table tbody tr:nth-child(${index + 1}) td:last-child`);
+          const scoreCell = document.querySelector(
+            `.leaderboard-table tbody tr:nth-child(${
+              index + 1
+            }) td:nth-child(3)`
+          );
           if (scoreCell) {
             if (score.total < 40) {
-              scoreCell.style.color = '#28a745'; // Green for good scores
+              scoreCell.style.color = "#28a745"; // Green for good scores
             } else if (score.total >= 40 && score.total <= 60) {
-              scoreCell.style.color = '#ffc107'; // Yellow for medium scores
+              scoreCell.style.color = "#ffc107"; // Yellow for medium scores
             } else {
-              scoreCell.style.color = '#dc3545'; // Red for high scores
+              scoreCell.style.color = "#dc3545"; // Red for high scores
             }
           }
         });
@@ -741,26 +808,26 @@
         const backgroundColors = data.map((score) => {
           if (range === 0) {
             // All scores are the same
-            return 'rgb(128, 128, 128)'; // Gray
+            return "rgb(128, 128, 128)"; // Gray
           }
-          
+
           // Calculate relative position (0 = best, 1 = worst)
           const position = (score - minScore) / range;
-          
+
           if (position <= 0.33) {
             // Best third - Green shades (darker green for better scores)
-            const green = Math.round(255 - (position * 0.33 * 100)); // 255 to 155
+            const green = Math.round(255 - position * 0.33 * 100); // 255 to 155
             return `rgb(0, ${green}, 0)`;
           } else if (position <= 0.66) {
             // Middle third - Yellow/Orange shades
             const progress = (position - 0.33) / 0.33; // 0 to 1 within this range
             const red = Math.round(255);
-            const green = Math.round(255 - (progress * 127)); // 255 to 128
+            const green = Math.round(255 - progress * 127); // 255 to 128
             return `rgb(${red}, ${green}, 0)`;
           } else {
             // Worst third - Red shades (darker red for worse scores)
             const progress = (position - 0.66) / 0.34; // 0 to 1 within this range
-            const red = Math.round(200 + (progress * 55)); // 200 to 255
+            const red = Math.round(200 + progress * 55); // 200 to 255
             return `rgb(${red}, 0, 0)`;
           }
         });
@@ -785,16 +852,16 @@
             responsive: true,
             plugins: {
               legend: {
-                display: false
-              }
+                display: false,
+              },
             },
             scales: {
-              y: { 
-                beginAtZero: true
+              y: {
+                beginAtZero: true,
               },
               x: {
                 // Removed title
-              }
+              },
             },
           },
         });
