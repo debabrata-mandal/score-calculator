@@ -1031,12 +1031,13 @@
         }
       }
 
-      // Update the calculateScores function to add GST columns
+      // Update the calculateScores function with correct Rummy calculation
       function calculateScores() {
         // Get number of players from actual table
         const numPlayers =
           document.querySelectorAll('input[id^="name"]').length;
         const scores = [];
+        const pointValue = parseFloat(document.getElementById("pointValue").value) || 1.0;
 
         for (let i = 1; i <= numPlayers; i++) {
           let total = 0;
@@ -1057,6 +1058,15 @@
 
         // Sort for leaderboard (low score wins)
         const sortedScores = [...scores].sort((a, b) => a.total - b.total);
+
+        // Calculate total of all scores
+        const totalAllScores = sortedScores.reduce((sum, score) => sum + score.total, 0);
+
+        // Calculate gross amounts using correct Rummy formula
+        sortedScores.forEach(score => {
+          // Formula: (Total of all scores - Player's score × Number of players) × Point value
+          score.grossAmount = (totalAllScores - (score.total * numPlayers)) * pointValue;
+        });
 
         // Create leaderboard table with proper Rummy settlement structure
         let leaderboardHtml = `
@@ -1082,6 +1092,8 @@
   </thead>
   <tbody>`;
 
+        let totalGstCollected = 0;
+
         sortedScores.forEach((score, index) => {
           // Add medal icons with rank numbers
           let rankDisplay;
@@ -1095,10 +1107,9 @@
             rankDisplay = `${index + 1}`;
           }
 
-          // Placeholder calculations (you'll implement these later)
-          const grossAmount = 0; // Positive for winners (receive), negative for losers (pay)
-          const gstPaid = 0; // Only positive for winners, 0 for losers
-          const netAmount = 0; // Gross amount minus GST for winners, same as gross for losers
+          const grossAmount = score.grossAmount;
+          const gstPaid = 0; // Will implement GST later
+          const netAmount = grossAmount - gstPaid; // For now, same as gross
 
           // Determine if this is a winner or loser for styling
           const isWinner = grossAmount > 0;
@@ -1123,9 +1134,9 @@
     <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-weight: bold; width: 50px !important; font-size: 11px;">${rankDisplay}</td>
     <td style="border: 1px solid #ccc; padding: 6px; width: auto !important; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${score.name}</td>
     <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 50px !important; font-size: 11px; font-weight: 600;">${score.total}</td>
-    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 80px !important; font-size: 11px; ${grossStyle}">₹${grossAmount}</td>
-    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 65px !important; font-size: 11px; color: #6c757d;">₹${gstPaid}</td>
-    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 80px !important; font-size: 11px; ${netStyle}">₹${netAmount}</td>
+    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 80px !important; font-size: 11px; ${grossStyle}">₹${grossAmount.toFixed(2)}</td>
+    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 65px !important; font-size: 11px; color: #6c757d;">₹${gstPaid.toFixed(2)}</td>
+    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 80px !important; font-size: 11px; ${netStyle}">₹${netAmount.toFixed(2)}</td>
   </tr>`;
         });
 
@@ -1134,7 +1145,7 @@
   <tfoot>
     <tr style="background-color: #e9ecef; font-weight: bold;">
       <td colspan="4" style="border: 1px solid #ccc; padding: 6px; text-align: right; font-size: 12px; color: #6c757d;">Total GST Collected:</td>
-      <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-size: 12px; color: #28a745; font-weight: bold;">₹0</td>
+      <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-size: 12px; color: #28a745; font-weight: bold;">₹${totalGstCollected.toFixed(2)}</td>
       <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-size: 12px; color: #6c757d;">-</td>
     </tr>
   </tfoot>
@@ -1145,7 +1156,8 @@
   <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #6c757d;">
     <li><strong style="color: #28a745;">Winners (Green):</strong> Receive money but pay GST on winnings</li>
     <li><strong style="color: #dc3545;">Losers (Red):</strong> Pay money, no GST required</li>
-    <li><strong>Net Amount:</strong> Final amount after GST deduction for winners</li>
+    <li><strong>Formula:</strong> (Total All Scores - Your Score × ${numPlayers}) × ₹${pointValue}</li>
+    <li><strong>Example:</strong> If total=1000, your score=100, players=4: (1000-100×4)×₹1 = ₹600</li>
   </ul>
 </div>`;
 
