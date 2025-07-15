@@ -1018,6 +1018,61 @@
         generateTable();
         updateGameIdDisplay();
         disableGameSettingsAfterStart();
+
+        // Save initial game state to cloud with device info
+        saveInitialGameStateToCloud();
+      }
+
+      // ...existing code...
+
+      // Add helper function to save initial game state to cloud with device info
+      async function saveInitialGameStateToCloud() {
+        const gameId = localStorage.getItem("gameId");
+        const data = localStorage.getItem("scoreData");
+
+        // Only save if we have gameId and Firebase is ready
+        if (!gameId || !window.db) {
+          return; // Skip cloud save if no gameId or Firebase not ready
+        }
+
+        try {
+          // Get device ID and IP address
+          const deviceId = getDeviceId();
+          const ipAddress = await getIpAddress();
+
+          // Parse existing data or create empty structure
+          const gameData = data
+            ? JSON.parse(data)
+            : {
+                numPlayers: 2,
+                pointValue:
+                  parseFloat(document.getElementById("pointValue").value) ||
+                  1.0,
+                gstPercent:
+                  parseFloat(document.getElementById("gstPercent").value) ||
+                  18.0,
+                players: [],
+              };
+
+          // Save initial game state to cloud with device information
+          await window.firestore.setDoc(
+            window.firestore.doc(window.db, "games", gameId),
+            {
+              data: gameData,
+              lastUpdated: window.firestore.serverTimestamp(),
+              version: "1.0",
+              deviceInfo: {
+                deviceId: deviceId,
+                ipAddress: ipAddress,
+              },
+            }
+          );
+
+          console.log("Initial game state saved to cloud with device info");
+        } catch (error) {
+          console.error("Failed to save initial game state to cloud:", error);
+          // Don't show error to user, just log it
+        }
       }
 
       function addPlayer() {
@@ -1816,7 +1871,63 @@
         // No modal needed - user can see the fresh state immediately
       }
 
-      // Add helper function to save current data to cloud before closing
+      // Add helper function to get device ID (browser fingerprint)
+      function getDeviceId() {
+        let deviceId = localStorage.getItem("deviceId");
+        if (!deviceId) {
+          // Create a simple device fingerprint
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          ctx.textBaseline = "top";
+          ctx.font = "14px Arial";
+          ctx.fillText("Device fingerprint", 2, 2);
+
+          const fingerprint = [
+            navigator.userAgent,
+            navigator.language,
+            screen.width + "x" + screen.height,
+            new Date().getTimezoneOffset(),
+            canvas.toDataURL(),
+          ].join("|");
+
+          // Create hash-like ID from fingerprint
+          deviceId = btoa(fingerprint)
+            .slice(0, 16)
+            .replace(/[^a-zA-Z0-9]/g, "");
+          localStorage.setItem("deviceId", deviceId);
+        }
+        return deviceId;
+      }
+
+      // Add helper function to get IP address
+      async function getIpAddress() {
+        try {
+          // Try multiple IP services as fallback
+          const services = [
+            "https://api.ipify.org?format=json",
+            "https://ipapi.co/json/",
+            "https://jsonip.com",
+          ];
+
+          for (const service of services) {
+            try {
+              const response = await fetch(service);
+              const data = await response.json();
+
+              // Different services return IP in different fields
+              return data.ip || data.IPv4 || data.query || "unknown";
+            } catch (err) {
+              continue; // Try next service
+            }
+          }
+
+          return "unknown";
+        } catch (error) {
+          console.warn("Could not fetch IP address:", error);
+          return "unknown";
+        }
+      }
+
       async function saveCurrentDataToCloud() {
         const gameId = localStorage.getItem("gameId");
         const data = localStorage.getItem("scoreData");
@@ -1827,19 +1938,30 @@
         }
 
         try {
-          // Save current data to cloud
-          await window.firestore.setDoc(
-            window.firestore.doc(window.db, "games", gameId),
-            {
-              data: JSON.parse(data),
-              lastUpdated: window.firestore.serverTimestamp(),
-              version: "1.0",
-            }
-          );
+          // Parse existing data
+          const gameData = JSON.parse(data);
 
-          console.log("Data saved to cloud before closing game");
+          // First, get existing document to preserve device info
+          const docRef = window.firestore.doc(window.db, "games", gameId);
+          const docSnap = await window.firestore.getDoc(docRef);
+
+          let existingDeviceInfo = {};
+          if (docSnap.exists()) {
+            const existingData = docSnap.data();
+            existingDeviceInfo = existingData.deviceInfo || {};
+          }
+
+          // Save current data to cloud while preserving existing device information
+          await window.firestore.setDoc(docRef, {
+            data: gameData,
+            lastUpdated: window.firestore.serverTimestamp(),
+            version: "1.0",
+            deviceInfo: existingDeviceInfo
+          });
+
+          console.log("Data saved to cloud while preserving device info");
         } catch (error) {
-          console.error("Failed to save to cloud before closing:", error);
+          console.error("Failed to save to cloud:", error);
           // Don't show error to user, just log it
         }
       }
