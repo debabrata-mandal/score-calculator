@@ -850,9 +850,11 @@
       // Add function to disable game settings after start
       function disableGameSettingsAfterStart() {
         const gstInput = document.getElementById("gstPercent");
+        const pointValueInput = document.getElementById("pointValue");
         const loadButton = document.querySelector(
           'button[onclick="loadFromCloud()"]'
         );
+        const startButton = document.querySelector('.start-play-button');
         const closeButton = document.getElementById("closeGameButton");
 
         if (gstInput) {
@@ -860,6 +862,14 @@
           gstInput.style.opacity = "0.6";
           gstInput.style.cursor = "not-allowed";
           gstInput.title = "GST percentage cannot be changed after game starts";
+        }
+
+        // Disable Point Value input
+        if (pointValueInput) {
+          pointValueInput.disabled = true;
+          pointValueInput.style.opacity = "0.6";
+          pointValueInput.style.cursor = "not-allowed";
+          pointValueInput.title = "Point value cannot be changed after game starts";
         }
 
         if (loadButton) {
@@ -871,6 +881,15 @@
             "Cannot load new game while current game is in progress";
         }
 
+        // Disable Start Play button
+        if (startButton) {
+          startButton.disabled = true;
+          startButton.style.opacity = "0.6";
+          startButton.style.cursor = "not-allowed";
+          startButton.textContent = "🎮 Game In Progress";
+          startButton.title = "Game is already in progress. Close game to start new one.";
+        }
+
         // Show close game button
         if (closeButton) {
           closeButton.style.display = "inline-block";
@@ -880,9 +899,11 @@
       // Add function to enable game settings (for new games)
       function enableGameSettings() {
         const gstInput = document.getElementById("gstPercent");
+        const pointValueInput = document.getElementById("pointValue");
         const loadButton = document.querySelector(
           'button[onclick="loadFromCloud()"]'
         );
+        const startButton = document.querySelector('.start-play-button');
         const closeButton = document.getElementById("closeGameButton");
 
         if (gstInput) {
@@ -892,12 +913,29 @@
           gstInput.title = "";
         }
 
+        // Re-enable Point Value input
+        if (pointValueInput) {
+          pointValueInput.disabled = false;
+          pointValueInput.style.opacity = "1";
+          pointValueInput.style.cursor = "text";
+          pointValueInput.title = "";
+        }
+
         if (loadButton) {
           loadButton.disabled = false;
           loadButton.style.opacity = "1";
           loadButton.style.cursor = "pointer";
           loadButton.textContent = "📥 Load Game";
           loadButton.title = "";
+        }
+
+        // Re-enable Start Play button
+        if (startButton) {
+          startButton.disabled = false;
+          startButton.style.opacity = "1";
+          startButton.style.cursor = "pointer";
+          startButton.textContent = "🎮 Start Play";
+          startButton.title = "";
         }
 
         // Hide close game button
@@ -929,6 +967,12 @@
       }
 
       function startNewGame() {
+        // Check if Start Play button is already disabled
+        const startButton = document.querySelector('.start-play-button');
+        if (startButton && startButton.disabled) {
+          return; // Prevent action if button is disabled
+        }
+
         // Just start the game directly
         localStorage.removeItem("scoreData");
         localStorage.removeItem("gameId");
@@ -1082,7 +1126,7 @@
         }
       }
 
-      // Update the calculateScores function with correct GST calculation
+      // Update the calculateScores function to remove settlement info from leaderboard
       function calculateScores() {
         // Get number of players from actual table
         const numPlayers =
@@ -1141,7 +1185,7 @@
           0
         );
 
-        // Create leaderboard table with proper Rummy settlement structure
+        // Create leaderboard table WITHOUT settlement explanation
         let leaderboardHtml = `
 <h2>Leaderboard & Settlement</h2>
 <table class="leaderboard-table" style="
@@ -1236,15 +1280,7 @@
       <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-size: 12px; color: #6c757d;">-</td>
     </tr>
   </tfoot>
-</table>
-
-<div style="margin-top: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 6px; border-left: 4px solid #007bff;">
-  <h4 style="margin: 0 0 8px 0; color: #495057; font-size: 14px;">💡 How Settlement Works:</h4>
-  <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #6c757d;">
-    <li><strong style="color: #28a745;">Winners (Green):</strong> Receive money but pay ${gstPercent}% GST on winnings</li>
-    <li><strong style="color: #dc3545;">Losers (Red):</strong> Pay money, no GST required</li>
-  </ul>
-</div>`;
+</table>`;
 
         document.getElementById("leaderboard").innerHTML = leaderboardHtml;
         updateChart(originalOrderScores); // Pass original order to chart
@@ -1266,6 +1302,9 @@
             }
           }
         });
+
+        // Add settlement explanation AFTER chart is updated
+        updateSettlementInfo(gstPercent, numPlayers, pointValue);
       }
 
       function updateChart(scores) {
@@ -1338,6 +1377,47 @@
             },
           },
         });
+
+        // After chart is rendered, add settlement info
+        setTimeout(() => {
+          // Get current values for settlement info
+          const gstPercent = parseFloat(document.getElementById("gstPercent").value) || 18.0;
+          const numPlayers = document.querySelectorAll('input[id^="name"]').length;
+          const pointValue = parseFloat(document.getElementById("pointValue").value) || 1.0;
+          updateSettlementInfo(gstPercent, numPlayers, pointValue);
+        }, 100);
+      }
+
+      // New function to add settlement info after the chart
+      function updateSettlementInfo(gstPercent, numPlayers, pointValue) {
+        // Remove existing settlement info if any
+        const existingInfo = document.getElementById("settlementInfo");
+        if (existingInfo) {
+          existingInfo.remove();
+        }
+
+        // Create settlement explanation
+        const settlementHtml = `
+<div id="settlementInfo" style="margin-top: 30px; padding: 15px; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #007bff;">
+  <h4 style="margin: 0 0 12px 0; color: #495057; font-size: 16px;">💡 How Settlement Works:</h4>
+  <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #6c757d; line-height: 1.5;">
+    <li><strong style="color: #28a745;">Winners (Green):</strong> Receive money but pay ${gstPercent}% GST on winnings</li>
+    <li><strong style="color: #dc3545;">Losers (Red):</strong> Pay money, no GST required</li>
+    <li><strong>Formula:</strong> (Total All Scores - Your Score × ${numPlayers}) × ₹${pointValue}</li>
+    <li><strong>GST:</strong> Only winners pay ${gstPercent}% GST on positive amounts</li>
+    <li><strong>Net Amount:</strong> Gross Amount - GST (for winners) or just Gross Amount (for losers)</li>
+  </ul>
+  <div style="margin-top: 10px; padding: 8px; background-color: #e3f2fd; border-radius: 4px; font-size: 12px; color: #1565c0;">
+    <strong>💰 Example:</strong> If you score 25 points in a ${numPlayers}-player game with ₹${pointValue}/point:<br>
+    Your settlement = (Total of all ${numPlayers} scores - 25 × ${numPlayers}) × ₹${pointValue}
+  </div>
+</div>`;
+
+        // Add after the chart container
+        const chartContainer = document.querySelector('.chart-container');
+        if (chartContainer) {
+          chartContainer.insertAdjacentHTML('afterend', settlementHtml);
+        }
       }
 
       // Add these cloud functions after your existing functions
