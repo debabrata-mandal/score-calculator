@@ -1031,7 +1031,7 @@
         }
       }
 
-      // Update the calculateScores function to add Payable column
+      // Update the calculateScores function to add GST columns
       function calculateScores() {
         // Get number of players from actual table
         const numPlayers =
@@ -1058,13 +1058,13 @@
         // Sort for leaderboard (low score wins)
         const sortedScores = [...scores].sort((a, b) => a.total - b.total);
 
-        // Create leaderboard table with Payable column
+        // Create leaderboard table with proper Rummy settlement structure
         let leaderboardHtml = `
-<h2>Leaderboard</h2>
+<h2>Leaderboard & Settlement</h2>
 <table class="leaderboard-table" style="
   width: auto !important; 
   min-width: auto !important; 
-  max-width: 420px !important; 
+  max-width: 650px !important; 
   border-collapse: collapse; 
   margin-top: 10px; 
   display: table !important;
@@ -1072,10 +1072,12 @@
 ">
   <thead>
     <tr style="background: linear-gradient(135deg, #212529, #343a40) !important;">
-      <th style="border: 1px solid #ccc; padding: 8px; text-align: center; width: 60px !important; min-width: 60px !important; max-width: 60px !important; font-size: 13px; color: white !important; font-weight: bold !important;"><span style="color: black;">#</span> Rank</th>
-      <th style="border: 1px solid #ccc; padding: 8px; text-align: left; width: auto !important; min-width: 80px !important; max-width: 120px !important; font-size: 13px; color: white !important; font-weight: bold !important;">Player</th>
-      <th style="border: 1px solid #ccc; padding: 8px; text-align: center; width: 50px !important; min-width: 50px !important; max-width: 50px !important; font-size: 13px; color: white !important; font-weight: bold !important;">Score</th>
-      <th style="border: 1px solid #ccc; padding: 8px; text-align: center; width: 70px !important; min-width: 70px !important; max-width: 70px !important; font-size: 13px; color: white !important; font-weight: bold !important;">Payable</th>
+      <th style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 50px !important; font-size: 12px; color: white !important; font-weight: bold !important;">Rank</th>
+      <th style="border: 1px solid #ccc; padding: 6px; text-align: left; width: auto !important; min-width: 80px !important; max-width: 100px !important; font-size: 12px; color: white !important; font-weight: bold !important;">Player</th>
+      <th style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 50px !important; font-size: 12px; color: white !important; font-weight: bold !important;">Score</th>
+      <th style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 80px !important; font-size: 12px; color: white !important; font-weight: bold !important;">Gross Amount</th>
+      <th style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 65px !important; font-size: 12px; color: white !important; font-weight: bold !important;">GST Paid</th>
+      <th style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 80px !important; font-size: 12px; color: white !important; font-weight: bold !important;">Net Amount</th>
     </tr>
   </thead>
   <tbody>`;
@@ -1084,30 +1086,68 @@
           // Add medal icons with rank numbers
           let rankDisplay;
           if (index === 0) {
-            rankDisplay = "🥇 1st";
+            rankDisplay = "🥇";
           } else if (index === 1) {
-            rankDisplay = "🥈 2nd";
+            rankDisplay = "🥈";
           } else if (index === 2) {
-            rankDisplay = "🥉 3rd";
+            rankDisplay = "🥉";
           } else {
-            rankDisplay = `${index + 1}th`;
+            rankDisplay = `${index + 1}`;
           }
 
-          // Placeholder for payable calculation (you'll add this later)
-          const payable = 0; // Will be calculated later
+          // Placeholder calculations (you'll implement these later)
+          const grossAmount = 0; // Positive for winners (receive), negative for losers (pay)
+          const gstPaid = 0; // Only positive for winners, 0 for losers
+          const netAmount = 0; // Gross amount minus GST for winners, same as gross for losers
+
+          // Determine if this is a winner or loser for styling
+          const isWinner = grossAmount > 0;
+          const isLoser = grossAmount < 0;
+          
+          let grossStyle = "";
+          let netStyle = "";
+          
+          if (isWinner) {
+            grossStyle = "color: #28a745; font-weight: bold;"; // Green for receiving money
+            netStyle = "color: #28a745; font-weight: bold;";
+          } else if (isLoser) {
+            grossStyle = "color: #dc3545; font-weight: bold;"; // Red for paying money
+            netStyle = "color: #dc3545; font-weight: bold;";
+          } else {
+            grossStyle = "color: #6c757d;"; // Gray for break-even
+            netStyle = "color: #6c757d;";
+          }
 
           leaderboardHtml += `
   <tr>
-    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-weight: bold; width: 60px !important; min-width: 60px !important; max-width: 60px !important; font-size: 11px;">${rankDisplay}</td>
-    <td style="border: 1px solid #ccc; padding: 6px; width: auto !important; min-width: 80px !important; max-width: 120px !important; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${score.name}</td>
-    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 50px !important; min-width: 50px !important; max-width: 50px !important; font-size: 12px;">${score.total}</td>
-    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 70px !important; min-width: 70px !important; max-width: 70px !important; font-size: 12px;">${payable}</td>
+    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-weight: bold; width: 50px !important; font-size: 11px;">${rankDisplay}</td>
+    <td style="border: 1px solid #ccc; padding: 6px; width: auto !important; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${score.name}</td>
+    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 50px !important; font-size: 11px; font-weight: 600;">${score.total}</td>
+    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 80px !important; font-size: 11px; ${grossStyle}">₹${grossAmount}</td>
+    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 65px !important; font-size: 11px; color: #6c757d;">₹${gstPaid}</td>
+    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 80px !important; font-size: 11px; ${netStyle}">₹${netAmount}</td>
   </tr>`;
         });
 
         leaderboardHtml += `
   </tbody>
-</table>`;
+  <tfoot>
+    <tr style="background-color: #e9ecef; font-weight: bold;">
+      <td colspan="4" style="border: 1px solid #ccc; padding: 6px; text-align: right; font-size: 12px; color: #6c757d;">Total GST Collected:</td>
+      <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-size: 12px; color: #28a745; font-weight: bold;">₹0</td>
+      <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-size: 12px; color: #6c757d;">-</td>
+    </tr>
+  </tfoot>
+</table>
+
+<div style="margin-top: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 6px; border-left: 4px solid #007bff;">
+  <h4 style="margin: 0 0 8px 0; color: #495057; font-size: 14px;">💡 How Settlement Works:</h4>
+  <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #6c757d;">
+    <li><strong style="color: #28a745;">Winners (Green):</strong> Receive money but pay GST on winnings</li>
+    <li><strong style="color: #dc3545;">Losers (Red):</strong> Pay money, no GST required</li>
+    <li><strong>Net Amount:</strong> Final amount after GST deduction for winners</li>
+  </ul>
+</div>`;
 
         document.getElementById("leaderboard").innerHTML = leaderboardHtml;
         updateChart(originalOrderScores); // Pass original order to chart
