@@ -718,15 +718,18 @@
 
         <!-- Action buttons group -->
         <div style="display: flex; gap: 10px; flex-wrap: wrap">
-          <button
-            onclick="loadFromCloud()"
-            style="background-color: #6c757d; opacity: 0.6; cursor: not-allowed"
-            disabled
-          >
-            📥 Load Game (Coming Soon)
+          <button onclick="loadFromCloud()" style="background-color: #6c757d">
+            📥 Load Game
           </button>
-          <button class="start-play-button" onclick="confirmGenerateTable()">
+          <button class="start-play-button" onclick="startNewGame()">
             🎮 Start Play
+          </button>
+          <button
+            id="closeGameButton"
+            onclick="confirmCloseGame()"
+            style="background-color: #dc3545; display: none"
+          >
+            🗑️ Close Game
           </button>
         </div>
       </div>
@@ -844,9 +847,73 @@
         autoSaveToCloud();
       }
 
+      // Add function to disable game settings after start
+      function disableGameSettingsAfterStart() {
+        const gstInput = document.getElementById("gstPercent");
+        const loadButton = document.querySelector(
+          'button[onclick="loadFromCloud()"]'
+        );
+        const closeButton = document.getElementById("closeGameButton");
+
+        if (gstInput) {
+          gstInput.disabled = true;
+          gstInput.style.opacity = "0.6";
+          gstInput.style.cursor = "not-allowed";
+          gstInput.title = "GST percentage cannot be changed after game starts";
+        }
+
+        if (loadButton) {
+          loadButton.disabled = true;
+          loadButton.style.opacity = "0.6";
+          loadButton.style.cursor = "not-allowed";
+          loadButton.textContent = "📥 Load Game (Disabled)";
+          loadButton.title =
+            "Cannot load new game while current game is in progress";
+        }
+
+        // Show close game button
+        if (closeButton) {
+          closeButton.style.display = "inline-block";
+        }
+      }
+
+      // Add function to enable game settings (for new games)
+      function enableGameSettings() {
+        const gstInput = document.getElementById("gstPercent");
+        const loadButton = document.querySelector(
+          'button[onclick="loadFromCloud()"]'
+        );
+        const closeButton = document.getElementById("closeGameButton");
+
+        if (gstInput) {
+          gstInput.disabled = false;
+          gstInput.style.opacity = "1";
+          gstInput.style.cursor = "text";
+          gstInput.title = "";
+        }
+
+        if (loadButton) {
+          loadButton.disabled = false;
+          loadButton.style.opacity = "1";
+          loadButton.style.cursor = "pointer";
+          loadButton.textContent = "📥 Load Game";
+          loadButton.title = "";
+        }
+
+        // Hide close game button
+        if (closeButton) {
+          closeButton.style.display = "none";
+        }
+      }
+
       function loadData() {
         const saved = localStorage.getItem("scoreData");
-        if (!saved) return;
+        if (!saved) {
+          // No saved data - enable settings
+          enableGameSettings();
+          return;
+        }
+
         const data = JSON.parse(saved);
 
         document.getElementById("pointValue").value = data.pointValue || 1.0;
@@ -856,39 +923,23 @@
 
         // Update Game ID display
         updateGameIdDisplay();
+
+        // Disable settings since game is already started
+        disableGameSettingsAfterStart();
       }
 
-      // Update confirmGenerateTable to generate Game ID and show display
-      function confirmGenerateTable() {
-        showModal(
-          "🎮 Start New Game",
-          "Are you sure you want to start a new game? This will reset all current scores.",
-          () => {
-            localStorage.removeItem("scoreData");
-            localStorage.removeItem("gameId"); // Clear old Game ID
+      function startNewGame() {
+        // Just start the game directly
+        localStorage.removeItem("scoreData");
+        localStorage.removeItem("gameId");
 
-            // Generate new Game ID
-            const gameId = Math.random()
-              .toString(36)
-              .substr(2, 9)
-              .toUpperCase();
-            localStorage.setItem("gameId", gameId);
+        // Generate new Game ID
+        const gameId = Math.random().toString(36).substr(2, 9).toUpperCase();
+        localStorage.setItem("gameId", gameId);
 
-            generateTable();
-
-            // Update Game ID display
-            updateGameIdDisplay();
-
-            // Show success message
-            setTimeout(() => {
-              showModal(
-                "🎮 New Game Started",
-                `Game ID: ${gameId}\n\nGame will auto-sync to cloud!`,
-                null
-              );
-            }, 500);
-          }
-        );
+        generateTable();
+        updateGameIdDisplay();
+        disableGameSettingsAfterStart();
       }
 
       function addPlayer() {
@@ -1073,7 +1124,7 @@
           // Formula: (Total of all scores - Player's score × Number of players) × Point value
           score.grossAmount =
             (totalAllScores - score.total * numPlayers) * pointValue;
-          
+
           // GST is only paid by winners (those with positive gross amount)
           if (score.grossAmount > 0) {
             score.gstPaid = (score.grossAmount * gstPercent) / 100;
@@ -1166,8 +1217,8 @@
             2
           )}</td>
     <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 65px !important; font-size: 11px; ${gstStyle}">₹${gstPaid.toFixed(
-      2
-    )}</td>
+            2
+          )}</td>
     <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 80px !important; font-size: 11px; ${netStyle}">₹${netAmount.toFixed(
             2
           )}</td>
@@ -1192,9 +1243,6 @@
   <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #6c757d;">
     <li><strong style="color: #28a745;">Winners (Green):</strong> Receive money but pay ${gstPercent}% GST on winnings</li>
     <li><strong style="color: #dc3545;">Losers (Red):</strong> Pay money, no GST required</li>
-    <li><strong>Formula:</strong> (Total All Scores - Your Score × ${numPlayers}) × ₹${pointValue}</li>
-    <li><strong>GST:</strong> Only winners pay ${gstPercent}% GST on positive amounts</li>
-    <li><strong>Net Amount:</strong> Gross Amount - GST (for winners) or just Gross Amount (for losers)</li>
   </ul>
 </div>`;
 
@@ -1519,6 +1567,93 @@
         loadData();
         updateGameIdDisplay();
       };
+
+      // Add close game function that clears everything
+      async function closeGame() {
+        // First, save any unsaved data to cloud before clearing
+        await saveCurrentDataToCloud();
+
+        // Clear ALL localStorage data
+        localStorage.removeItem("scoreData");
+        localStorage.removeItem("gameId");
+        localStorage.clear(); // Remove any other related data
+
+        // Clear the game display
+        document.getElementById("scoreTableContainer").innerHTML = "";
+        document.getElementById("leaderboard").innerHTML = "";
+
+        // Clear chart
+        const canvas = document.getElementById("scoreChart");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (chart) {
+          chart.destroy();
+          chart = null;
+        }
+
+        // Reset inputs to defaults
+        document.getElementById("pointValue").value = "1.00";
+        document.getElementById("gstPercent").value = "18.00";
+
+        // Hide Game ID display
+        const gameIdDisplay = document.getElementById("gameIdDisplay");
+        if (gameIdDisplay) {
+          gameIdDisplay.style.display = "none";
+        }
+
+        // Clear Game ID input
+        const gameIdInput = document.getElementById("gameIdInput");
+        if (gameIdInput) {
+          gameIdInput.value = "";
+        }
+
+        // Re-enable game settings
+        enableGameSettings();
+
+        // Reset page title
+        document.title = "⭐ Rummy Score Master";
+
+        // No modal needed - user can see the fresh state immediately
+      }
+
+      // Add helper function to save current data to cloud before closing
+      async function saveCurrentDataToCloud() {
+        const gameId = localStorage.getItem("gameId");
+        const data = localStorage.getItem("scoreData");
+
+        // Only save if we have both gameId and data, and Firebase is ready
+        if (!gameId || !data || !window.db) {
+          return; // Skip cloud save if no data or Firebase not ready
+        }
+
+        try {
+          // Save current data to cloud
+          await window.firestore.setDoc(
+            window.firestore.doc(window.db, "games", gameId),
+            {
+              data: JSON.parse(data),
+              lastUpdated: window.firestore.serverTimestamp(),
+              version: "1.0",
+            }
+          );
+
+          console.log("Data saved to cloud before closing game");
+        } catch (error) {
+          console.error("Failed to save to cloud before closing:", error);
+          // Don't show error to user, just log it
+        }
+      }
+
+      // Update confirmCloseGame message
+      function confirmCloseGame() {
+        showModal(
+          "🗑️ Clear Local Game Data",
+          "This will permanently delete all game data from your browser's local storage and reset the app. Any data saved to the cloud will remain safe. Continue?",
+          () => {
+            closeGame();
+          }
+        );
+      }
     </script>
   </body>
 </html>
