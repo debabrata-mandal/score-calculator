@@ -674,20 +674,23 @@
             gap: 20px;
           "
         >
-          <div
-            id="qrCodeContainer"
-            style="
-              background: white;
-              border: 2px solid #1565c0;
-              border-radius: 6px;
-              padding: 6px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              min-width: 120px;
-              min-height: 50px;
-            "
-          ></div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+            <div
+              id="qrCodeContainer"
+              style="
+                background: white;
+                border: 2px solid #1565c0;
+                border-radius: 6px;
+                padding: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 120px;
+                min-height: 50px;
+              "
+            ></div>
+            <div id="gameIdPinText" style="font-size: 15px; color: #333; margin-top: 2px;"></div>
+          </div>
           <button
             id="copyButton"
             onclick="copyGameId()"
@@ -1745,8 +1748,10 @@
       // Function to update Game ID display
       function updateGameIdDisplay() {
         const gameId = localStorage.getItem("gameId");
+        const gamePin = localStorage.getItem("gamePin");
         const display = document.getElementById("gameIdDisplay");
         const qrContainer = document.getElementById("qrCodeContainer");
+        const gameIdPinText = document.getElementById("gameIdPinText");
         // For copy function compatibility, keep a hidden input
         let input = document.getElementById("gameIdInput");
         if (!input) {
@@ -1766,7 +1771,6 @@
           // Render QR code
           if (qrContainer) {
             qrContainer.innerHTML = "";
-            // Use QRCode.js to render QR
             new QRCode(qrContainer, {
               text: gameId,
               width: 90,
@@ -1776,9 +1780,13 @@
               correctLevel: QRCode.CorrectLevel.H,
             });
           }
+          if (gameIdPinText) {
+            gameIdPinText.textContent = `ID: ${gameId}   |   PIN: ${gamePin || ''}`;
+          }
         } else {
           display.style.display = "none";
           if (qrContainer) qrContainer.innerHTML = "";
+          if (gameIdPinText) gameIdPinText.textContent = "";
           input.value = "";
         }
       }
