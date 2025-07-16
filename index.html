@@ -1019,7 +1019,7 @@
         updateGameIdDisplay();
         disableGameSettingsAfterStart();
 
-        // Save initial game state to cloud with device info and PIN
+        // Save initial game state to cloud with PIN only (no device info)
         saveInitialGameStateToCloud(pin);
       }
 
@@ -1036,10 +1036,6 @@
         }
 
         try {
-          // Get device ID and IP address
-          const deviceId = getDeviceId();
-          const ipAddress = await getIpAddress();
-
           // Parse existing data or create empty structure
           const gameData = data
             ? JSON.parse(data)
@@ -1054,24 +1050,18 @@
                 players: [],
               };
 
-          // Save initial game state to cloud with device information and PIN
+          // Save initial game state to cloud with PIN only (no device info)
           await window.firestore.setDoc(
             window.firestore.doc(window.db, "games", gameId),
             {
               data: gameData,
               lastUpdated: window.firestore.serverTimestamp(),
               version: "1.0",
-              deviceInfo: {
-                deviceId: deviceId,
-                ipAddress: ipAddress,
-              },
               pin: pin || localStorage.getItem("gamePin") || null,
             }
           );
 
-          console.log(
-            "Initial game state saved to cloud with device info and PIN"
-          );
+          console.log("Initial game state saved to cloud with PIN");
         } catch (error) {
           console.error("Failed to save initial game state to cloud:", error);
           // Don't show error to user, just log it
@@ -1555,6 +1545,7 @@
             window.firestore.doc(window.db, "games", gameId),
             {
               data: JSON.parse(data),
+              pin: localStorage.getItem("gamePin"),
               lastUpdated: window.firestore.serverTimestamp(),
               version: "1.0",
             }
@@ -1644,6 +1635,7 @@
             window.firestore.doc(window.db, "games", gameId),
             {
               data: JSON.parse(data),
+              pin: localStorage.getItem("gamePin"),
               lastUpdated: window.firestore.serverTimestamp(),
               version: "1.0",
             }
@@ -1860,6 +1852,7 @@
         // Clear ALL localStorage data
         localStorage.removeItem("scoreData");
         localStorage.removeItem("gameId");
+        localStorage.removeItem("gamePin");
         localStorage.clear(); // Remove any other related data
 
         // Clear the game display
@@ -1900,63 +1893,6 @@
         // No modal needed - user can see the fresh state immediately
       }
 
-      // Add helper function to get device ID (browser fingerprint)
-      function getDeviceId() {
-        let deviceId = localStorage.getItem("deviceId");
-        if (!deviceId) {
-          // Create a simple device fingerprint
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-          ctx.textBaseline = "top";
-          ctx.font = "14px Arial";
-          ctx.fillText("Device fingerprint", 2, 2);
-
-          const fingerprint = [
-            navigator.userAgent,
-            navigator.language,
-            screen.width + "x" + screen.height,
-            new Date().getTimezoneOffset(),
-            canvas.toDataURL(),
-          ].join("|");
-
-          // Create hash-like ID from fingerprint
-          deviceId = btoa(fingerprint)
-            .slice(0, 16)
-            .replace(/[^a-zA-Z0-9]/g, "");
-          localStorage.setItem("deviceId", deviceId);
-        }
-        return deviceId;
-      }
-
-      // Add helper function to get IP address
-      async function getIpAddress() {
-        try {
-          // Try multiple IP services as fallback
-          const services = [
-            "https://api.ipify.org?format=json",
-            "https://ipapi.co/json/",
-            "https://jsonip.com",
-          ];
-
-          for (const service of services) {
-            try {
-              const response = await fetch(service);
-              const data = await response.json();
-
-              // Different services return IP in different fields
-              return data.ip || data.IPv4 || data.query || "unknown";
-            } catch (err) {
-              continue; // Try next service
-            }
-          }
-
-          return "unknown";
-        } catch (error) {
-          console.warn("Could not fetch IP address:", error);
-          return "unknown";
-        }
-      }
-
       async function saveCurrentDataToCloud() {
         const gameId = localStorage.getItem("gameId");
         const data = localStorage.getItem("scoreData");
@@ -1970,25 +1906,16 @@
           // Parse existing data
           const gameData = JSON.parse(data);
 
-          // First, get existing document to preserve device info
+          // Save current data to cloud (no device info)
           const docRef = window.firestore.doc(window.db, "games", gameId);
-          const docSnap = await window.firestore.getDoc(docRef);
-
-          let existingDeviceInfo = {};
-          if (docSnap.exists()) {
-            const existingData = docSnap.data();
-            existingDeviceInfo = existingData.deviceInfo || {};
-          }
-
-          // Save current data to cloud while preserving existing device information
           await window.firestore.setDoc(docRef, {
             data: gameData,
+            pin: localStorage.getItem("gamePin"),
             lastUpdated: window.firestore.serverTimestamp(),
             version: "1.0",
-            deviceInfo: existingDeviceInfo,
           });
 
-          console.log("Data saved to cloud while preserving device info");
+          console.log("Data saved to cloud");
         } catch (error) {
           console.error("Failed to save to cloud:", error);
           // Don't show error to user, just log it
