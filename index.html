@@ -666,38 +666,28 @@
           display: none;
         "
       >
-        <div style="margin-bottom: 8px">
-          <strong style="color: #4a148c; font-size: 14px"
-            >🎮 Game ID (Share with others)</strong
-          >
-        </div>
         <div
           style="
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 20px;
           "
         >
-          <input
-            type="text"
-            id="gameIdInput"
-            readonly
+          <div
+            id="qrCodeContainer"
             style="
               background: white;
               border: 2px solid #1565c0;
               border-radius: 6px;
-              padding: 8px 12px;
-              font-family: monospace;
-              font-size: 18px;
-              font-weight: bold;
-              color: #1565c0;
-              text-align: center;
+              padding: 6px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
               min-width: 120px;
-              cursor: pointer;
+              min-height: 50px;
             "
-            placeholder="No Game ID"
-          />
+          ></div>
           <button
             id="copyButton"
             onclick="copyGameId()"
@@ -716,6 +706,8 @@
             📋 Copy
           </button>
         </div>
+        <!-- QRCode.js CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
       </div>
 
       <!-- Controls section with aligned buttons -->
@@ -1010,23 +1002,31 @@
         // Just start the game directly
         localStorage.removeItem("scoreData");
         localStorage.removeItem("gameId");
+        localStorage.removeItem("gamePin");
 
         // Generate new Game ID
         const gameId = Math.random().toString(36).substr(2, 9).toUpperCase();
         localStorage.setItem("gameId", gameId);
 
+        // Generate a random 4-digit PIN (string, leading zeros allowed), never '0000'
+        let pin;
+        do {
+          pin = ("000" + Math.floor(Math.random() * 10000)).slice(-4);
+        } while (pin === "0000");
+        localStorage.setItem("gamePin", pin);
+
         generateTable();
         updateGameIdDisplay();
         disableGameSettingsAfterStart();
 
-        // Save initial game state to cloud with device info
-        saveInitialGameStateToCloud();
+        // Save initial game state to cloud with device info and PIN
+        saveInitialGameStateToCloud(pin);
       }
 
       // ...existing code...
 
-      // Add helper function to save initial game state to cloud with device info
-      async function saveInitialGameStateToCloud() {
+      // Add helper function to save initial game state to cloud with device info and PIN
+      async function saveInitialGameStateToCloud(pin) {
         const gameId = localStorage.getItem("gameId");
         const data = localStorage.getItem("scoreData");
 
@@ -1054,7 +1054,7 @@
                 players: [],
               };
 
-          // Save initial game state to cloud with device information
+          // Save initial game state to cloud with device information and PIN
           await window.firestore.setDoc(
             window.firestore.doc(window.db, "games", gameId),
             {
@@ -1065,10 +1065,13 @@
                 deviceId: deviceId,
                 ipAddress: ipAddress,
               },
+              pin: pin || localStorage.getItem("gamePin") || null,
             }
           );
 
-          console.log("Initial game state saved to cloud with device info");
+          console.log(
+            "Initial game state saved to cloud with device info and PIN"
+          );
         } catch (error) {
           console.error("Failed to save initial game state to cloud:", error);
           // Don't show error to user, just log it
@@ -1751,14 +1754,40 @@
       function updateGameIdDisplay() {
         const gameId = localStorage.getItem("gameId");
         const display = document.getElementById("gameIdDisplay");
-        const input = document.getElementById("gameIdInput");
-
+        const qrContainer = document.getElementById("qrCodeContainer");
+        // For copy function compatibility, keep a hidden input
+        let input = document.getElementById("gameIdInput");
+        if (!input) {
+          input = document.createElement("input");
+          input.type = "text";
+          input.id = "gameIdInput";
+          input.readOnly = true;
+          input.style.display = "none";
+          if (qrContainer && qrContainer.parentNode) {
+            qrContainer.parentNode.appendChild(input);
+          }
+        }
         if (gameId) {
+          // Set value for copy function
           input.value = gameId;
           display.style.display = "block";
+          // Render QR code
+          if (qrContainer) {
+            qrContainer.innerHTML = "";
+            // Use QRCode.js to render QR
+            new QRCode(qrContainer, {
+              text: gameId,
+              width: 90,
+              height: 90,
+              colorDark: "#1565c0",
+              colorLight: "#ffffff",
+              correctLevel: QRCode.CorrectLevel.H,
+            });
+          }
         } else {
-          input.value = "";
           display.style.display = "none";
+          if (qrContainer) qrContainer.innerHTML = "";
+          input.value = "";
         }
       }
 
@@ -1956,7 +1985,7 @@
             data: gameData,
             lastUpdated: window.firestore.serverTimestamp(),
             version: "1.0",
-            deviceInfo: existingDeviceInfo
+            deviceInfo: existingDeviceInfo,
           });
 
           console.log("Data saved to cloud while preserving device info");
