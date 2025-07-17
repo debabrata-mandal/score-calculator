@@ -1157,6 +1157,7 @@
       if (!saved) {
         // No saved data - enable settings and reset view-only mode
         isViewOnlyMode = false;
+        localStorage.removeItem("gameMode"); // Clear any stored mode
         removeViewOnlyIndicator();
         enableGameSettings();
         return;
@@ -1171,6 +1172,28 @@
 
       // Update Game ID display
       updateGameIdDisplay();
+
+      // Check if we should be in view-only mode (from localStorage)
+      const storedMode = localStorage.getItem("gameMode");
+      if (storedMode === "view") {
+        isViewOnlyMode = true;
+        console.log("Page refresh: Restoring View Only mode from localStorage");
+      } else if (storedMode === "edit") {
+        isViewOnlyMode = false;
+        console.log("Page refresh: Restoring Edit mode from localStorage");
+      } else {
+        // No stored mode, default to edit mode for existing games
+        isViewOnlyMode = false;
+        localStorage.setItem("gameMode", "edit");
+        console.log("Page refresh: No stored mode, defaulting to Edit mode");
+      }
+
+      // Apply appropriate restrictions
+      if (isViewOnlyMode) {
+        applyViewOnlyRestrictions();
+      } else {
+        removeViewOnlyRestrictions();
+      }
 
       // Disable settings since game is already started
       disableGameSettingsAfterStart();
@@ -1187,9 +1210,11 @@
       localStorage.removeItem("scoreData");
       localStorage.removeItem("gameId");
       localStorage.removeItem("gamePin");
+      localStorage.removeItem("gameMode"); // Clear any previous mode
 
       // Reset view-only mode for new games
       isViewOnlyMode = false;
+      localStorage.setItem("gameMode", "edit"); // Store edit mode for new games
       removeViewOnlyIndicator();
 
       // Generate new Game ID
@@ -2296,12 +2321,14 @@
           // Show success toast based on mode
           if (mode === "edit" && isPINVerified) {
             isViewOnlyMode = false; // Enable editing
+            localStorage.setItem("gameMode", "edit"); // Store mode in localStorage
             showToast(`✅ Game loaded in Edit Mode! ID: ${gameId}`, "success", 5000);
             // Optional: Show edit mode indicator in title
             document.title = "⭐ Rummy Score Master (Edit Mode)";
             setTimeout(() => (document.title = "⭐ Rummy Score Master"), 5000);
           } else {
             isViewOnlyMode = true; // Disable editing
+            localStorage.setItem("gameMode", "view"); // Store mode in localStorage
             showToast(`👁️ Game loaded in View Only Mode! ID: ${gameId}`, "info", 5000);
             // Optional: Show view mode indicator in title
             document.title = "⭐ Rummy Score Master (View Only)";
@@ -2789,6 +2816,7 @@
       localStorage.removeItem("scoreData");
       localStorage.removeItem("gameId");
       localStorage.removeItem("gamePin");
+      localStorage.removeItem("gameMode"); // Clear stored mode
       localStorage.clear(); // Remove any other related data
 
       // Reset view-only mode
