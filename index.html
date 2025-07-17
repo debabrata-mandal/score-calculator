@@ -771,19 +771,10 @@
           <canvas id="qrScannerCanvas" style="display: none;"></canvas>
         </div>
         <div style="margin-top: 15px; text-align: center;">
-          <p style="color: #6c757d; font-size: 14px; margin: 10px 0;">
-            Position the QR code within the green frame
+          <p id="scannerStatus" style="color: #007bff; font-size: 14px; margin: 10px 0; font-weight: 500;">
+            📷 Starting camera...
           </p>
           <div style="display: flex; gap: 10px; justify-content: center;">
-            <button onclick="startQRScanner()" id="startScanBtn" style="
-              background-color: #28a745;
-              color: white;
-              border: none;
-              border-radius: 4px;
-              padding: 8px 16px;
-              cursor: pointer;
-              font-size: 14px;
-            ">📷 Start Camera</button>
             <button onclick="closeQRScanner()" style="
               background-color: #6c757d;
               color: white;
@@ -1649,8 +1640,13 @@
         return;
       }
 
-      // Open QR scanner modal
+      // Open QR scanner modal and automatically start camera
       document.getElementById("qrScannerModal").style.display = "block";
+      
+      // Automatically start the camera
+      setTimeout(() => {
+        startQRScanner();
+      }, 100); // Small delay to ensure modal is fully displayed
     }
 
     // QR Scanner variables
@@ -1662,9 +1658,13 @@
       const video = document.getElementById("qrScannerVideo");
       const canvas = document.getElementById("qrScannerCanvas");
       const context = canvas.getContext("2d");
-      const startBtn = document.getElementById("startScanBtn");
+      const statusText = document.getElementById("scannerStatus");
 
       try {
+        // Update status
+        statusText.textContent = "📷 Starting camera...";
+        statusText.style.color = "#007bff";
+
         // Request camera access
         qrStream = await navigator.mediaDevices.getUserMedia({ 
           video: { 
@@ -1677,8 +1677,9 @@
         video.srcObject = qrStream;
         video.play();
 
-        startBtn.textContent = "🔍 Scanning...";
-        startBtn.disabled = true;
+        // Update status
+        statusText.textContent = "🔍 Scanning for QR code... Position it within the green frame";
+        statusText.style.color = "#28a745";
 
         // Wait for video to load
         video.addEventListener("loadedmetadata", () => {
@@ -1696,6 +1697,9 @@
               
               if (code && code.data) {
                 // QR code found!
+                statusText.textContent = "✅ QR Code detected! Loading game...";
+                statusText.style.color = "#28a745";
+                
                 const gameId = code.data.trim().toUpperCase();
                 closeQRScanner();
                 loadGameById(gameId);
@@ -1706,21 +1710,26 @@
 
       } catch (error) {
         console.error("Camera access error:", error);
+        statusText.textContent = "❌ Camera access denied or not available";
+        statusText.style.color = "#dc3545";
+        
+        // Show toast and fallback to text input after a delay
         showToast("❌ Camera access denied or not available", "error");
         
-        // Fallback to text input
-        closeQRScanner();
-        const gameId = prompt("Enter Game ID to load game:");
-        if (gameId) {
-          await loadGameById(gameId.trim().toUpperCase());
-        }
+        setTimeout(() => {
+          closeQRScanner();
+          const gameId = prompt("Enter Game ID to load game:");
+          if (gameId) {
+            loadGameById(gameId.trim().toUpperCase());
+          }
+        }, 2000);
       }
     }
 
     // Close QR Scanner
     function closeQRScanner() {
       const video = document.getElementById("qrScannerVideo");
-      const startBtn = document.getElementById("startScanBtn");
+      const statusText = document.getElementById("scannerStatus");
       
       // Stop camera stream
       if (qrStream) {
@@ -1737,9 +1746,11 @@
       // Reset video
       video.srcObject = null;
 
-      // Reset button
-      startBtn.textContent = "📷 Start Camera";
-      startBtn.disabled = false;
+      // Reset status text
+      if (statusText) {
+        statusText.textContent = "📷 Starting camera...";
+        statusText.style.color = "#007bff";
+      }
 
       // Close modal
       document.getElementById("qrScannerModal").style.display = "none";
