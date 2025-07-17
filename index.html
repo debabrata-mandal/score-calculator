@@ -1202,6 +1202,7 @@
         pin = ("000" + Math.floor(Math.random() * 10000)).slice(-4);
       } while (pin === "0000");
       localStorage.setItem("gamePin", pin);
+      console.log("Generated PIN for new game:", pin);
 
       generateTable();
       updateGameIdDisplay();
@@ -1213,7 +1214,7 @@
 
     // ...existing code...
 
-    // Add helper function to save initial game state to cloud with device info and PIN
+    // Add helper function to save initial game state to cloud with separate collections
     async function saveInitialGameStateToCloud(pin) {
       const gameId = localStorage.getItem("gameId");
       const data = localStorage.getItem("scoreData");
@@ -1238,18 +1239,29 @@
             players: [],
           };
 
-        // Save initial game state to cloud with PIN only (no device info)
+        // Save authentication data to 'games' collection (ID + PIN only)
         await window.firestore.setDoc(
           window.firestore.doc(window.db, "games", gameId),
+          {
+            gameId: gameId,
+            pin: pin || localStorage.getItem("gamePin") || "0000", // Fallback to "0000" if PIN is somehow missing
+            createdAt: window.firestore.serverTimestamp(),
+            version: "1.0",
+          }
+        );
+
+        // Save game data to 'gameData' collection (scores and settings)
+        await window.firestore.setDoc(
+          window.firestore.doc(window.db, "gameData", gameId),
           {
             data: gameData,
             lastUpdated: window.firestore.serverTimestamp(),
             version: "1.0",
-            pin: pin || localStorage.getItem("gamePin") || null,
           }
         );
 
-        console.log("Initial game state saved to cloud with PIN");
+        console.log("Initial game state saved - Games collection (auth):", gameId, "PIN:", pin || localStorage.getItem("gamePin"));
+        console.log("Initial game state saved - GameData collection (data):", gameId);
       } catch (error) {
         console.error("Failed to save initial game state to cloud:", error);
         // Don't show error to user, just log it
@@ -1726,7 +1738,7 @@
 
     // Add these cloud functions after your existing functions
 
-    // Generate or get game ID
+    // Generate or get game ID (no cloud operations)
     function getGameId() {
       let gameId = localStorage.getItem("gameId");
       if (!gameId) {
@@ -1736,7 +1748,7 @@
       return gameId;
     }
 
-    // Save to cloud
+    // Save to cloud - saves to gameData collection only
     async function saveToCloud() {
       // Prevent saving in view-only mode
       if (isViewOnlyMode) {
@@ -1766,15 +1778,14 @@
           "loading"
         );
 
-        await window.firestore.setDoc(
-          window.firestore.doc(window.db, "games", gameId),
-          {
-            data: JSON.parse(data),
-            pin: localStorage.getItem("gamePin"),
-            lastUpdated: window.firestore.serverTimestamp(),
-            version: "1.0",
-          }
-        );
+        // Save data to gameData collection only
+        const gameDataRef = window.firestore.doc(window.db, "gameData", gameId);
+        
+        await window.firestore.setDoc(gameDataRef, {
+          data: JSON.parse(data),
+          lastUpdated: window.firestore.serverTimestamp(),
+          version: "1.0",
+        });
 
         hideLoadingToast();
         showToast(`✅ Game saved! ID: ${gameId}`, "success", 6000);
@@ -1854,7 +1865,7 @@
     let isPINVerified = false;
     let isViewOnlyMode = false; // Global flag to track if game is in view-only mode
 
-    // PIN validation function
+    // PIN validation function - reads from games collection only
     async function validatePIN(enteredPIN) {
       const pinMessage = document.getElementById("pinMessage");
       const gameId = localStorage.getItem("gameId") || getCurrentGameIdFromScanner();
@@ -1875,17 +1886,20 @@
         pinMessage.textContent = "🔍 Verifying PIN...";
         pinMessage.style.color = "#007bff";
 
-        // Fetch game data from cloud to get stored PIN
-        const docSnap = await window.firestore.getDoc(
+        // Fetch PIN from games collection (authentication data only)
+        const authDocSnap = await window.firestore.getDoc(
           window.firestore.doc(window.db, "games", gameId)
         );
 
-        if (docSnap.exists()) {
-          const cloudData = docSnap.data();
-          const storedPIN = cloudData.pin;
+        if (authDocSnap.exists()) {
+          const authData = authDocSnap.data();
+          const storedPIN = authData.pin;
 
           if (storedPIN === enteredPIN) {
-            // PIN matches
+            // PIN matches - immediately set PIN in localStorage to prevent race conditions
+            localStorage.setItem("gamePin", storedPIN);
+            console.log("PIN validation success - stored PIN in localStorage:", storedPIN);
+            
             pinMessage.textContent = "✅ PIN matched! You are in Edit Mode";
             pinMessage.style.color = "#28a745";
             isPINVerified = true;
@@ -1967,7 +1981,7 @@
       }
     }
 
-    // Helper function for manual entry PIN validation
+    // Helper function for manual entry PIN validation - reads from games collection only
     async function validatePINAndLoad(gameId, enteredPIN) {
       if (!window.db) {
         showToast("❌ Database not ready. Please try again.", "error");
@@ -1977,16 +1991,20 @@
       try {
         showToast("🔍 Verifying PIN...", "loading");
 
-        const docSnap = await window.firestore.getDoc(
+        // Fetch PIN from games collection (authentication data only)
+        const authDocSnap = await window.firestore.getDoc(
           window.firestore.doc(window.db, "games", gameId)
         );
 
-        if (docSnap.exists()) {
-          const cloudData = docSnap.data();
-          const storedPIN = cloudData.pin;
+        if (authDocSnap.exists()) {
+          const authData = authDocSnap.data();
+          const storedPIN = authData.pin;
 
           if (storedPIN === enteredPIN) {
-            // PIN matches
+            // PIN matches - immediately set PIN in localStorage to prevent race conditions
+            localStorage.setItem("gamePin", storedPIN);
+            console.log("Manual entry PIN validation success - stored PIN in localStorage:", storedPIN);
+            
             isPINVerified = true;
             currentScanMode = "edit";
             hideLoadingToast();
@@ -2239,21 +2257,30 @@
       document.getElementById("qrScannerModal").style.display = "none";
     }
 
-    // Load game by ID (extracted from original loadFromCloud function)
+    // Load game by ID - reads from gameData collection
     async function loadGameById(gameId, mode = currentScanMode) {
       if (!gameId) return;
 
       try {
         showToast("📥 Loading game from cloud...", "loading");
 
-        const docSnap = await window.firestore.getDoc(
-          window.firestore.doc(window.db, "games", gameId)
+        // Load game data from gameData collection
+        const gameDataSnap = await window.firestore.getDoc(
+          window.firestore.doc(window.db, "gameData", gameId)
         );
 
-        if (docSnap.exists()) {
-          const cloudData = docSnap.data();
+        if (gameDataSnap.exists()) {
+          const cloudData = gameDataSnap.data();
           localStorage.setItem("scoreData", JSON.stringify(cloudData.data));
           localStorage.setItem("gameId", gameId);
+          
+          // For edit mode, we already have the PIN set from validation
+          // For view mode, we don't need the PIN
+          if (mode === "edit" && isPINVerified) {
+            console.log("Edit mode - PIN already validated and stored");
+          } else {
+            console.log("View mode - no PIN needed");
+          }
 
           // Update point value and GST from cloud
           document.getElementById("pointValue").value =
@@ -2460,7 +2487,7 @@
       }
     }
 
-    // Auto-save to cloud (silent)
+    // Auto-save to cloud (silent) - saves to gameData collection only
     async function autoSaveToCloud() {
       // Prevent auto-save in view-only mode
       if (isViewOnlyMode) {
@@ -2475,15 +2502,17 @@
       if (!data) return;
 
       try {
+        // Save data to gameData collection (no need to check games collection)
         await window.firestore.setDoc(
-          window.firestore.doc(window.db, "games", gameId),
+          window.firestore.doc(window.db, "gameData", gameId),
           {
             data: JSON.parse(data),
-            pin: localStorage.getItem("gamePin"),
             lastUpdated: window.firestore.serverTimestamp(),
             version: "1.0",
           }
         );
+
+        console.log("Auto-save: Game data saved to gameData collection for gameId:", gameId);
 
         // Show sync indicator briefly
         document.title = "⭐ Rummy Score Master (Synced)";
@@ -2823,16 +2852,16 @@
         // Parse existing data
         const gameData = JSON.parse(data);
 
-        // Save current data to cloud (no device info)
-        const docRef = window.firestore.doc(window.db, "games", gameId);
-        await window.firestore.setDoc(docRef, {
+        // Save data to gameData collection only
+        const gameDataRef = window.firestore.doc(window.db, "gameData", gameId);
+        
+        await window.firestore.setDoc(gameDataRef, {
           data: gameData,
-          pin: localStorage.getItem("gamePin"),
           lastUpdated: window.firestore.serverTimestamp(),
           version: "1.0",
         });
 
-        console.log("Data saved to cloud");
+        console.log("Data saved to gameData collection for gameId:", gameId);
       } catch (error) {
         console.error("Failed to save to cloud:", error);
         // Don't show error to user, just log it
