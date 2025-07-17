@@ -496,6 +496,24 @@
       }
     }
 
+    /* QR Scanner specific animations */
+    @keyframes scannerPulse {
+      0% {
+        border-color: #00ff00;
+        background: rgba(0, 255, 0, 0.1);
+      }
+
+      50% {
+        border-color: #00aa00;
+        background: rgba(0, 255, 0, 0.2);
+      }
+
+      100% {
+        border-color: #00ff00;
+        background: rgba(0, 255, 0, 0.1);
+      }
+    }
+
     /* Mobile responsive for Game ID display */
     @media (max-width: 768px) {
       #gameIdDisplay {
@@ -709,6 +727,77 @@
       <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     </div>
 
+    <!-- QR Scanner Modal -->
+    <div id="qrScannerModal" class="modal">
+      <div class="modal-content" style="max-width: 500px; padding: 15px;">
+        <h3 style="margin: 0 0 15px 0; text-align: center;">📱 Scan QR Code</h3>
+        <div id="qrScannerContainer" style="
+          position: relative;
+          width: 100%;
+          max-width: 400px;
+          margin: 0 auto;
+          background: #000;
+          border-radius: 8px;
+          overflow: hidden;
+        ">
+          <video id="qrScannerVideo" style="
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            display: block;
+          "></video>
+          <div id="scannerOverlay" style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">
+            <div style="
+              width: 200px;
+              height: 200px;
+              border: 2px solid #00ff00;
+              border-radius: 8px;
+              background: rgba(0, 255, 0, 0.1);
+              animation: scannerPulse 2s infinite;
+            "></div>
+          </div>
+          <canvas id="qrScannerCanvas" style="display: none;"></canvas>
+        </div>
+        <div style="margin-top: 15px; text-align: center;">
+          <p style="color: #6c757d; font-size: 14px; margin: 10px 0;">
+            Position the QR code within the green frame
+          </p>
+          <div style="display: flex; gap: 10px; justify-content: center;">
+            <button onclick="startQRScanner()" id="startScanBtn" style="
+              background-color: #28a745;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              padding: 8px 16px;
+              cursor: pointer;
+              font-size: 14px;
+            ">📷 Start Camera</button>
+            <button onclick="closeQRScanner()" style="
+              background-color: #6c757d;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              padding: 8px 16px;
+              cursor: pointer;
+              font-size: 14px;
+            ">❌ Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Controls section with aligned buttons -->
     <div class="controls" style="margin-top: 10px">
       <!-- Financial inputs group -->
@@ -725,7 +814,7 @@
       <!-- Action buttons group -->
       <div style="display: flex; gap: 10px; flex-wrap: wrap">
         <button onclick="loadFromCloud()" style="background-color: #17a2b8">
-          📥 Load Game
+          � Scan QR / Load Game
         </button>
         <button class="start-play-button" onclick="startNewGame()">
           🎮 Start Play
@@ -790,6 +879,8 @@
 
     console.log("Firebase initialized successfully!");
   </script>
+  <!-- QR Code Scanner Library -->
+  <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
   <!-- Your existing script tag starts here -->
   <script>
     let chart;
@@ -879,7 +970,7 @@
         loadButton.disabled = true;
         loadButton.style.opacity = "0.6";
         loadButton.style.cursor = "not-allowed";
-        loadButton.textContent = "📥 Load Game (Disabled)";
+        loadButton.textContent = "� Scan QR / Load Game (Disabled)";
         loadButton.title =
           "Cannot load new game while current game is in progress";
       }
@@ -929,7 +1020,7 @@
         loadButton.disabled = false;
         loadButton.style.opacity = "1";
         loadButton.style.cursor = "pointer";
-        loadButton.textContent = "📥 Load Game";
+        loadButton.textContent = "� Scan QR / Load Game";
         loadButton.title = "";
       }
 
@@ -1538,7 +1629,7 @@
       }
     }
 
-    // Load from cloud - without success popup
+    // Load from cloud - with QR code scanner
     async function loadFromCloud() {
       if (!window.db) {
         showToast(
@@ -1548,22 +1639,127 @@
         return;
       }
 
-      const gameId = prompt("Enter Game ID to load game:");
-      if (!gameId) return;
+      // Check if device has camera support
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        // Fallback to text input for devices without camera
+        const gameId = prompt("Enter Game ID to load game (Camera not supported):");
+        if (gameId) {
+          await loadGameById(gameId.trim().toUpperCase());
+        }
+        return;
+      }
 
-      const cleanGameId = gameId.trim().toUpperCase();
+      // Open QR scanner modal
+      document.getElementById("qrScannerModal").style.display = "block";
+    }
+
+    // QR Scanner variables
+    let qrStream = null;
+    let qrScanInterval = null;
+
+    // Start QR Scanner
+    async function startQRScanner() {
+      const video = document.getElementById("qrScannerVideo");
+      const canvas = document.getElementById("qrScannerCanvas");
+      const context = canvas.getContext("2d");
+      const startBtn = document.getElementById("startScanBtn");
+
+      try {
+        // Request camera access
+        qrStream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            facingMode: "environment", // Use back camera if available
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          } 
+        });
+        
+        video.srcObject = qrStream;
+        video.play();
+
+        startBtn.textContent = "🔍 Scanning...";
+        startBtn.disabled = true;
+
+        // Wait for video to load
+        video.addEventListener("loadedmetadata", () => {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+
+          // Start scanning for QR codes
+          qrScanInterval = setInterval(() => {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+              context.drawImage(video, 0, 0, canvas.width, canvas.height);
+              const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+              
+              // Use jsQR library to decode QR code
+              const code = jsQR(imageData.data, imageData.width, imageData.height);
+              
+              if (code && code.data) {
+                // QR code found!
+                const gameId = code.data.trim().toUpperCase();
+                closeQRScanner();
+                loadGameById(gameId);
+              }
+            }
+          }, 300); // Check every 300ms
+        });
+
+      } catch (error) {
+        console.error("Camera access error:", error);
+        showToast("❌ Camera access denied or not available", "error");
+        
+        // Fallback to text input
+        closeQRScanner();
+        const gameId = prompt("Enter Game ID to load game:");
+        if (gameId) {
+          await loadGameById(gameId.trim().toUpperCase());
+        }
+      }
+    }
+
+    // Close QR Scanner
+    function closeQRScanner() {
+      const video = document.getElementById("qrScannerVideo");
+      const startBtn = document.getElementById("startScanBtn");
+      
+      // Stop camera stream
+      if (qrStream) {
+        qrStream.getTracks().forEach(track => track.stop());
+        qrStream = null;
+      }
+
+      // Clear scanning interval
+      if (qrScanInterval) {
+        clearInterval(qrScanInterval);
+        qrScanInterval = null;
+      }
+
+      // Reset video
+      video.srcObject = null;
+
+      // Reset button
+      startBtn.textContent = "📷 Start Camera";
+      startBtn.disabled = false;
+
+      // Close modal
+      document.getElementById("qrScannerModal").style.display = "none";
+    }
+
+    // Load game by ID (extracted from original loadFromCloud function)
+    async function loadGameById(gameId) {
+      if (!gameId) return;
 
       try {
         showToast("📥 Loading game from cloud...", "loading");
 
         const docSnap = await window.firestore.getDoc(
-          window.firestore.doc(window.db, "games", cleanGameId)
+          window.firestore.doc(window.db, "games", gameId)
         );
 
         if (docSnap.exists()) {
           const cloudData = docSnap.data();
           localStorage.setItem("scoreData", JSON.stringify(cloudData.data));
-          localStorage.setItem("gameId", cleanGameId);
+          localStorage.setItem("gameId", gameId);
 
           // Update point value and GST from cloud
           document.getElementById("pointValue").value =
@@ -1577,7 +1773,7 @@
           updateGameIdDisplay();
 
           // Show success toast
-          showToast("✅ Game loaded successfully!", "success");
+          showToast(`✅ Game loaded successfully! ID: ${gameId}`, "success");
 
           // Optional: Show brief feedback in browser title
           document.title = "⭐ Rummy Score Master (Game Loaded)";
@@ -1811,6 +2007,23 @@
           this.select();
         });
       }
+
+      // Close QR scanner modal when clicking outside
+      const qrModal = document.getElementById("qrScannerModal");
+      if (qrModal) {
+        qrModal.addEventListener("click", function (event) {
+          if (event.target === qrModal) {
+            closeQRScanner();
+          }
+        });
+      }
+
+      // Close QR scanner on Escape key
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && qrModal.style.display === "block") {
+          closeQRScanner();
+        }
+      });
     });
     window.onload = function () {
       loadData();
