@@ -469,14 +469,16 @@
       border-color: #0d47a1 !important;
     }
 
-    #copyButton:hover {
-      background-color: #0d47a1;
+    #qrCodeContainer:hover {
+      background-color: #f0f8ff !important;
+      border-color: #0d47a1 !important;
       transform: translateY(-1px);
       box-shadow: 0 4px 8px rgba(13, 71, 161, 0.3);
     }
 
-    #copyButton.copied {
-      background-color: #4caf50 !important;
+    #qrCodeContainer.copied {
+      background-color: #e8f5e8 !important;
+      border-color: #4caf50 !important;
       animation: pulse 0.6s ease-in-out;
     }
 
@@ -504,11 +506,6 @@
       #gameIdInput {
         font-size: 16px;
         min-width: 100px;
-      }
-
-      #copyButton {
-        font-size: 12px;
-        padding: 6px 10px;
       }
     }
 
@@ -702,22 +699,11 @@
                 justify-content: center;
                 min-width: 120px;
                 min-height: 50px;
-              "></div>
+                cursor: pointer;
+                transition: all 0.3s ease;
+              " onclick="copyGameId()" title="Click to copy Game ID"></div>
           <div id="gameIdPinText" style="font-size: 15px; color: #333; margin-top: 2px;"></div>
         </div>
-        <button id="copyButton" onclick="copyGameId()" style="
-              background-color: #1565c0;
-              color: white;
-              border: none;
-              border-radius: 6px;
-              padding: 8px 12px;
-              cursor: pointer;
-              font-size: 14px;
-              font-weight: bold;
-              transition: all 0.3s ease;
-            ">
-          📋 Copy
-        </button>
       </div>
       <!-- QRCode.js CDN -->
       <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
@@ -1777,18 +1763,14 @@
       }
     }
 
-    // Function to copy Game ID with subtle feedback (no popup)
+    // Function to copy Game ID with toast feedback
     function copyGameId() {
       const gameIdInput = document.getElementById("gameIdInput");
-      const copyButton = document.getElementById("copyButton");
+      const qrContainer = document.getElementById("qrCodeContainer");
       const gameId = gameIdInput.value;
 
       if (!gameId) {
-        // Just change button text briefly instead of popup
-        copyButton.textContent = "❌ No ID";
-        setTimeout(() => {
-          copyButton.textContent = "📋 Copy";
-        }, 1500);
+        showToast("❌ No Game ID to copy!", "error");
         return;
       }
 
@@ -1796,31 +1778,28 @@
       navigator.clipboard
         .writeText(gameId)
         .then(() => {
-          // Visual feedback - just change the button
-          const originalText = copyButton.textContent;
-          copyButton.textContent = "✅ Copied!";
-          copyButton.classList.add("copied");
-
-          // Reset after 2 seconds
+          // Show success toast
+          showToast(`✅ Game ID copied: ${gameId}`, "success", 3000);
+          
+          // Visual feedback on QR container
+          qrContainer.classList.add("copied");
           setTimeout(() => {
-            copyButton.textContent = originalText;
-            copyButton.classList.remove("copied");
-          }, 2000);
+            qrContainer.classList.remove("copied");
+          }, 1000);
         })
         .catch(() => {
           // Fallback for older browsers
           gameIdInput.select();
           document.execCommand("copy");
 
-          // Show feedback without popup
-          const originalText = copyButton.textContent;
-          copyButton.textContent = "✅ Copied!";
-          copyButton.classList.add("copied");
-
+          // Show success toast
+          showToast(`✅ Game ID copied: ${gameId}`, "success", 3000);
+          
+          // Visual feedback on QR container
+          qrContainer.classList.add("copied");
           setTimeout(() => {
-            copyButton.textContent = originalText;
-            copyButton.classList.remove("copied");
-          }, 2000);
+            qrContainer.classList.remove("copied");
+          }, 1000);
         });
     }
 
