@@ -1013,6 +1013,12 @@
     }
 
     function saveData() {
+      // Prevent saving in view-only mode
+      if (isViewOnlyMode) {
+        console.log("Save blocked - View Only Mode");
+        return;
+      }
+
       // Get number of players from the actual table instead of input
       const playerRows =
         document.querySelectorAll('input[id^="name"]').length;
@@ -1149,7 +1155,9 @@
     function loadData() {
       const saved = localStorage.getItem("scoreData");
       if (!saved) {
-        // No saved data - enable settings
+        // No saved data - enable settings and reset view-only mode
+        isViewOnlyMode = false;
+        removeViewOnlyIndicator();
         enableGameSettings();
         return;
       }
@@ -1179,6 +1187,10 @@
       localStorage.removeItem("scoreData");
       localStorage.removeItem("gameId");
       localStorage.removeItem("gamePin");
+
+      // Reset view-only mode for new games
+      isViewOnlyMode = false;
+      removeViewOnlyIndicator();
 
       // Generate new Game ID
       const gameId = Math.random().toString(36).substr(2, 9).toUpperCase();
@@ -1245,6 +1257,12 @@
     }
 
     function addPlayer() {
+      // Prevent adding players in view-only mode
+      if (isViewOnlyMode) {
+        showToast("❌ Cannot add players in View Only mode", "error");
+        return;
+      }
+
       // Get current number of players from existing table
       const currentPlayers =
         document.querySelectorAll('input[id^="name"]').length;
@@ -1315,7 +1333,7 @@
             ? savedData.players[i - 1].name
             : `Player ${i}`;
 
-        html += `<tr><td style="border: 1px solid #ccc; padding: 8px;"><input type="text" id="name${i}" value="${name}" oninput="saveData(); calculateScores();" style="border: none; background: transparent; width: 100%; padding: 4px; font-size: 14px;"></td>`;
+        html += `<tr><td style="border: 1px solid #ccc; padding: 8px;"><input type="text" id="name${i}" value="${name}" style="border: none; background: transparent; width: 100%; padding: 4px; font-size: 14px;"></td>`;
 
         for (let j = 1; j <= 10; j++) {
           const val =
@@ -1327,7 +1345,7 @@
                 ? savedData.players[i - 1].scores[j - 1]
                 : -1
               : -1;
-          html += `<td style="border: 1px solid #ccc; padding: 8px; text-align: center; min-width: 60px;"><input type="number" id="p${i}r${j}" value="${val}" min="-1" max="100" oninput="saveData(); calculateScores(); colorScoreInputs();" style="border: none; background: transparent; width: 100%; text-align: center; padding: 4px; font-size: 14px; min-width: 50px;"></td>`;
+          html += `<td style="border: 1px solid #ccc; padding: 8px; text-align: center; min-width: 60px;"><input type="number" id="p${i}r${j}" value="${val}" min="-1" max="100" style="border: none; background: transparent; width: 100%; text-align: center; padding: 4px; font-size: 14px; min-width: 50px;"></td>`;
         }
         html += "</tr>";
       }
@@ -1344,8 +1362,18 @@
 
       document.getElementById("scoreTableContainer").innerHTML = html;
 
+      // Add event listeners to inputs (only if not in view-only mode)
+      if (!isViewOnlyMode) {
+        addInputEventListeners();
+      }
+
       // Apply color coding to existing scores
       colorScoreInputs();
+
+      // Apply view-only restrictions if in view-only mode
+      if (isViewOnlyMode) {
+        applyViewOnlyRestrictions();
+      }
 
       // Save the new state and calculate scores
       saveData();
@@ -1353,6 +1381,32 @@
 
       // Update Game ID display
       updateGameIdDisplay();
+    }
+
+    // Function to add event listeners to input fields
+    function addInputEventListeners() {
+      // Add listeners to name inputs
+      const nameInputs = document.querySelectorAll('input[id^="name"]');
+      nameInputs.forEach(input => {
+        input.addEventListener('input', function() {
+          if (!isViewOnlyMode) {
+            saveData();
+            calculateScores();
+          }
+        });
+      });
+
+      // Add listeners to score inputs
+      const scoreInputs = document.querySelectorAll('input[id^="p"][id*="r"]');
+      scoreInputs.forEach(input => {
+        input.addEventListener('input', function() {
+          if (!isViewOnlyMode) {
+            saveData();
+            calculateScores();
+            colorScoreInputs();
+          }
+        });
+      });
     }
 
     // Update the colorScoreInputs function with new thresholds
@@ -1684,6 +1738,12 @@
 
     // Save to cloud
     async function saveToCloud() {
+      // Prevent saving in view-only mode
+      if (isViewOnlyMode) {
+        showToast("❌ Cannot save in View Only mode", "error");
+        return;
+      }
+
       if (!window.db) {
         showToast(
           "❌ Firebase Not Ready - Please refresh the page!",
@@ -1792,6 +1852,7 @@
     // Variables to store mode and PIN verification state
     let currentScanMode = "view";
     let isPINVerified = false;
+    let isViewOnlyMode = false; // Global flag to track if game is in view-only mode
 
     // PIN validation function
     async function validatePIN(enteredPIN) {
@@ -2207,15 +2268,24 @@
 
           // Show success toast based on mode
           if (mode === "edit" && isPINVerified) {
+            isViewOnlyMode = false; // Enable editing
             showToast(`✅ Game loaded in Edit Mode! ID: ${gameId}`, "success", 5000);
             // Optional: Show edit mode indicator in title
             document.title = "⭐ Rummy Score Master (Edit Mode)";
             setTimeout(() => (document.title = "⭐ Rummy Score Master"), 5000);
           } else {
+            isViewOnlyMode = true; // Disable editing
             showToast(`👁️ Game loaded in View Only Mode! ID: ${gameId}`, "info", 5000);
             // Optional: Show view mode indicator in title
             document.title = "⭐ Rummy Score Master (View Only)";
             setTimeout(() => (document.title = "⭐ Rummy Score Master"), 5000);
+          }
+
+          // Apply view-only restrictions if needed
+          if (isViewOnlyMode) {
+            applyViewOnlyRestrictions();
+          } else {
+            removeViewOnlyRestrictions();
           }
 
           // Clear temporary game ID
@@ -2235,8 +2305,169 @@
       }
     }
 
+    // Function to apply view-only restrictions
+    function applyViewOnlyRestrictions() {
+      // Disable all score inputs
+      const scoreInputs = document.querySelectorAll('input[id^="p"][id*="r"]');
+      scoreInputs.forEach(input => {
+        input.disabled = true;
+        input.style.backgroundColor = "#f8f9fa";
+        input.style.color = "#6c757d";
+        input.style.cursor = "not-allowed";
+        input.title = "View Only Mode - Editing disabled";
+      });
+
+      // Disable all player name inputs
+      const nameInputs = document.querySelectorAll('input[id^="name"]');
+      nameInputs.forEach(input => {
+        input.disabled = true;
+        input.style.backgroundColor = "#f8f9fa";
+        input.style.color = "#6c757d";
+        input.style.cursor = "not-allowed";
+        input.title = "View Only Mode - Editing disabled";
+      });
+
+      // Disable Add Player button
+      const addPlayerBtn = document.querySelector('.add-player-btn');
+      if (addPlayerBtn) {
+        addPlayerBtn.disabled = true;
+        addPlayerBtn.style.backgroundColor = "#6c757d";
+        addPlayerBtn.style.color = "#ffffff";
+        addPlayerBtn.style.cursor = "not-allowed";
+        addPlayerBtn.style.opacity = "0.6";
+        addPlayerBtn.title = "View Only Mode - Cannot add players";
+        addPlayerBtn.textContent = "👁️ View Only - Add Player Disabled";
+      }
+
+      // Disable Point Value and GST inputs
+      const pointValueInput = document.getElementById("pointValue");
+      const gstInput = document.getElementById("gstPercent");
+      if (pointValueInput) {
+        pointValueInput.disabled = true;
+        pointValueInput.style.backgroundColor = "#f8f9fa";
+        pointValueInput.style.color = "#6c757d";
+        pointValueInput.style.cursor = "not-allowed";
+        pointValueInput.title = "View Only Mode - Settings cannot be changed";
+      }
+      if (gstInput) {
+        gstInput.disabled = true;
+        gstInput.style.backgroundColor = "#f8f9fa";
+        gstInput.style.color = "#6c757d";
+        gstInput.style.cursor = "not-allowed";
+        gstInput.title = "View Only Mode - Settings cannot be changed";
+      }
+
+      // Add visual indicator for view-only mode
+      addViewOnlyIndicator();
+    }
+
+    // Function to remove view-only restrictions
+    function removeViewOnlyRestrictions() {
+      // Enable all score inputs
+      const scoreInputs = document.querySelectorAll('input[id^="p"][id*="r"]');
+      scoreInputs.forEach(input => {
+        input.disabled = false;
+        input.style.backgroundColor = "";
+        input.style.color = "";
+        input.style.cursor = "";
+        input.title = "";
+      });
+
+      // Enable all player name inputs
+      const nameInputs = document.querySelectorAll('input[id^="name"]');
+      nameInputs.forEach(input => {
+        input.disabled = false;
+        input.style.backgroundColor = "";
+        input.style.color = "";
+        input.style.cursor = "";
+        input.title = "";
+      });
+
+      // Enable Add Player button
+      const addPlayerBtn = document.querySelector('.add-player-btn');
+      if (addPlayerBtn) {
+        addPlayerBtn.disabled = false;
+        addPlayerBtn.style.backgroundColor = "";
+        addPlayerBtn.style.color = "";
+        addPlayerBtn.style.cursor = "";
+        addPlayerBtn.style.opacity = "";
+        addPlayerBtn.title = "";
+        addPlayerBtn.textContent = "+ Add Player";
+      }
+
+      // Keep Point Value and GST inputs disabled if game is already started
+      // (they should only be enabled for new games)
+      const gameData = localStorage.getItem("scoreData");
+      if (!gameData) {
+        const pointValueInput = document.getElementById("pointValue");
+        const gstInput = document.getElementById("gstPercent");
+        if (pointValueInput) {
+          pointValueInput.disabled = false;
+          pointValueInput.style.backgroundColor = "";
+          pointValueInput.style.color = "";
+          pointValueInput.style.cursor = "";
+          pointValueInput.title = "";
+        }
+        if (gstInput) {
+          gstInput.disabled = false;
+          gstInput.style.backgroundColor = "";
+          gstInput.style.color = "";
+          gstInput.style.cursor = "";
+          gstInput.title = "";
+        }
+      }
+
+      // Remove view-only indicator
+      removeViewOnlyIndicator();
+    }
+
+    // Function to add visual indicator for view-only mode
+    function addViewOnlyIndicator() {
+      // Remove existing indicator if any
+      removeViewOnlyIndicator();
+
+      // Add indicator to the header
+      const header = document.querySelector('h1');
+      if (header) {
+        const indicator = document.createElement('div');
+        indicator.id = 'viewOnlyIndicator';
+        indicator.innerHTML = `
+          <div style="
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            margin: 10px auto;
+            max-width: 300px;
+            box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
+            animation: pulse 2s infinite;
+          ">
+            👁️ VIEW ONLY MODE - Editing Disabled
+          </div>
+        `;
+        header.insertAdjacentElement('afterend', indicator);
+      }
+    }
+
+    // Function to remove visual indicator
+    function removeViewOnlyIndicator() {
+      const indicator = document.getElementById('viewOnlyIndicator');
+      if (indicator) {
+        indicator.remove();
+      }
+    }
+
     // Auto-save to cloud (silent)
     async function autoSaveToCloud() {
+      // Prevent auto-save in view-only mode
+      if (isViewOnlyMode) {
+        console.log("Auto-save blocked - View Only Mode");
+        return;
+      }
+
       const gameId = localStorage.getItem("gameId");
       if (!gameId || !window.db) return;
 
@@ -2531,6 +2762,10 @@
       localStorage.removeItem("gamePin");
       localStorage.clear(); // Remove any other related data
 
+      // Reset view-only mode
+      isViewOnlyMode = false;
+      removeViewOnlyIndicator();
+
       // Clear the game display
       document.getElementById("scoreTableContainer").innerHTML = "";
       document.getElementById("leaderboard").innerHTML = "";
@@ -2570,6 +2805,12 @@
     }
 
     async function saveCurrentDataToCloud() {
+      // Prevent saving in view-only mode
+      if (isViewOnlyMode) {
+        console.log("Cloud save blocked - View Only Mode");
+        return;
+      }
+
       const gameId = localStorage.getItem("gameId");
       const data = localStorage.getItem("scoreData");
 
