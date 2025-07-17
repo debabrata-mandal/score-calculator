@@ -1353,11 +1353,11 @@
       sortedScores.forEach((score) => {
         // Formula: (Total of all scores - Player's score × Number of players) × Point value
         score.grossAmount =
-          (totalAllScores - score.total * numPlayers) * pointValue;
+          Math.round((totalAllScores - score.total * numPlayers) * pointValue);
 
         // GST is only paid by winners (those with positive gross amount)
         if (score.grossAmount > 0) {
-          score.gstPaid = (score.grossAmount * gstPercent) / 100;
+          score.gstPaid = Math.round((score.grossAmount * gstPercent) / 100);
           score.netAmount = score.grossAmount - score.gstPaid;
         } else {
           score.gstPaid = 0; // Losers don't pay GST
@@ -1441,15 +1441,9 @@
           }</td>
     <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 50px !important; font-size: 11px; font-weight: 600;">${score.total
           }</td>
-    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 80px !important; font-size: 11px; ${grossStyle}">₹${grossAmount.toFixed(
-            2
-          )}</td>
-    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 65px !important; font-size: 11px; ${gstStyle}">₹${gstPaid.toFixed(
-            2
-          )}</td>
-    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 80px !important; font-size: 11px; ${netStyle}">₹${netAmount.toFixed(
-            2
-          )}</td>
+    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 80px !important; font-size: 11px; ${grossStyle}">₹${grossAmount}</td>
+    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 65px !important; font-size: 11px; ${gstStyle}">₹${gstPaid}</td>
+    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 80px !important; font-size: 11px; ${netStyle}">₹${netAmount}</td>
   </tr>`;
       });
 
@@ -1458,9 +1452,7 @@
   <tfoot>
     <tr style="background-color: #e9ecef; font-weight: bold;">
       <td colspan="4" style="border: 1px solid #ccc; padding: 6px; text-align: right; font-size: 12px; color: #6c757d;">Total GST Collected:</td>
-      <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-size: 12px; color: #28a745; font-weight: bold;">₹${totalGstCollected.toFixed(
-        2
-      )}</td>
+      <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-size: 12px; color: #28a745; font-weight: bold;">₹${Math.round(totalGstCollected)}</td>
       <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-size: 12px; color: #6c757d;">-</td>
     </tr>
   </tfoot>
