@@ -1,662 +1,682 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>⭐ Rummy Score Master</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-        margin: 0;
-      }
-      .container {
-        max-width: 1000px;
-        margin: auto;
-      }
 
-      /* Dynamic header sizing */
+<head>
+  <meta charset="UTF-8" />
+  <title>⭐ Rummy Score Master</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    /* Dynamic header sizing */
+    h1 {
+      white-space: nowrap;
+      overflow: hidden;
+      font-size: clamp(1.2rem, 4vw, 2rem);
+      margin: 0 0 20px 0;
+      background: linear-gradient(135deg, #007bff, #28a745);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+    }
+
+    /* Section headers */
+    h2 {
+      color: #495057;
+      font-weight: 600;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #e9ecef;
+      padding-bottom: 5px;
+    }
+
+    /* Table headers with better colors */
+    table th {
+      background-color: #f8f9fa !important;
+      color: #495057 !important;
+      font-weight: 600;
+    }
+
+    /* Table container for horizontal scroll */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin-top: 0;
+      /* Changed from 10px to 0 */
+      width: 100%;
+      min-width: 800px;
+    }
+
+    /* First column (Player Name) - frozen */
+    table th:first-child,
+    table td:first-child {
+      position: sticky;
+      left: 0;
+      background-color: #fff;
+      z-index: 10;
+      min-width: 150px;
+      max-width: 150px;
+      width: 150px;
+    }
+
+    table th:first-child {
+      background-color: #f8f9fa;
+      z-index: 11;
+    }
+
+    th,
+    td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+      min-width: 60px;
+    }
+
+    /* Bigger inputs for better user experience */
+    input[type="number"] {
+      width: 60px;
+      padding: 6px;
+      font-size: 14px;
+      text-align: center;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      min-width: 120px;
+      padding: 6px;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    /* Input fields in tables - transparent styling */
+    table input[type="number"],
+    table input[type="text"] {
+      border: none;
+      background: transparent;
+      width: 100%;
+      padding: 4px;
+      font-size: 14px;
+    }
+
+    table input[type="number"] {
+      text-align: center;
+    }
+
+    .leaderboard,
+    .chart-container {
+      margin-top: 30px;
+    }
+
+    .controls {
+      margin-bottom: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      justify-content: flex-start;
+      /* Align items to the left */
+    }
+
+    button {
+      padding: 8px 16px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background-color: #c82333;
+    }
+
+    /* Special styling for the Start Play button */
+    .start-play-button {
+      padding: 12px 24px !important;
+      font-size: 16px !important;
+      font-weight: bold !important;
+      background-color: #007bff !important;
+      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3) !important;
+      transition: all 0.3s ease !important;
+    }
+
+    .start-play-button:hover {
+      background-color: #0056b3 !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 6px 12px rgba(0, 123, 255, 0.4) !important;
+    }
+
+    canvas {
+      max-width: 100%;
+      height: auto;
+    }
+
+    @media (max-width: 768px) {
       h1 {
-        white-space: nowrap;
-        overflow: hidden;
-        font-size: clamp(1.2rem, 4vw, 2rem);
-        margin: 0 0 20px 0;
-        background: linear-gradient(135deg, #007bff, #28a745);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-align: center;
+        font-size: clamp(1rem, 5vw, 1.5rem);
       }
 
-      /* Section headers */
-      h2 {
-        color: #495057;
-        font-weight: 600;
-        margin-bottom: 15px;
-        border-bottom: 2px solid #e9ecef;
-        padding-bottom: 5px;
-      }
-
-      /* Table headers with better colors */
-      table th {
-        background-color: #f8f9fa !important;
-        color: #495057 !important;
-        font-weight: 600;
-      }
-
-      /* Table container for horizontal scroll */
-      .table-container {
-        overflow-x: auto;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-      }
-
-      table {
-        border-collapse: collapse;
-        margin-top: 0; /* Changed from 10px to 0 */
-        width: 100%;
-        min-width: 800px;
-      }
-
-      /* First column (Player Name) - frozen */
+      /* First column smaller on mobile */
       table th:first-child,
       table td:first-child {
-        position: sticky;
-        left: 0;
-        background-color: #fff;
-        z-index: 10;
-        min-width: 150px;
-        max-width: 150px;
-        width: 150px;
-      }
-
-      table th:first-child {
-        background-color: #f8f9fa;
-        z-index: 11;
-      }
-
-      th,
-      td {
-        border: 1px solid #ccc;
-        padding: 8px;
-        text-align: center;
-        min-width: 60px;
-      }
-
-      /* Bigger inputs for better user experience */
-      input[type="number"] {
-        width: 60px;
-        padding: 6px;
-        font-size: 14px;
-        text-align: center;
-        border: 1px solid #ddd;
-        border-radius: 4px;
+        min-width: 120px;
+        max-width: 120px;
+        width: 120px;
       }
 
       input[type="text"] {
         width: 100%;
-        min-width: 120px;
-        padding: 6px;
-        font-size: 14px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
+        min-width: 100px;
+        font-size: 13px;
+        padding: 4px;
       }
 
-      /* Input fields in tables - transparent styling */
+      input[type="number"] {
+        width: 55px;
+        font-size: 12px;
+        padding: 4px;
+      }
+
+      th,
+      td {
+        padding: 4px;
+        font-size: 11px;
+        min-width: 50px;
+      }
+
       table input[type="number"],
       table input[type="text"] {
-        border: none;
-        background: transparent;
-        width: 100%;
-        padding: 4px;
-        font-size: 14px;
+        font-size: 12px;
+        padding: 2px;
       }
 
       table input[type="number"] {
-        text-align: center;
-      }
-
-      .leaderboard,
-      .chart-container {
-        margin-top: 30px;
+        min-width: 45px;
+        width: 100%;
       }
 
       .controls {
-        margin-bottom: 10px;
-        display: flex;
+        flex-direction: row;
+        /* Keep row direction instead of column */
         flex-wrap: wrap;
         align-items: center;
-        gap: 10px;
-        justify-content: flex-start; /* Align items to the left */
+        gap: 5px;
       }
 
-      button {
-        padding: 8px 16px;
-        background-color: #dc3545;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-      }
-
-      button:hover {
-        background-color: #c82333;
-      }
-
-      /* Special styling for the Start Play button */
-      .start-play-button {
-        padding: 12px 24px !important;
-        font-size: 16px !important;
-        font-weight: bold !important;
-        background-color: #007bff !important;
-        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3) !important;
-        transition: all 0.3s ease !important;
-      }
-
-      .start-play-button:hover {
-        background-color: #0056b3 !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 12px rgba(0, 123, 255, 0.4) !important;
-      }
-
-      canvas {
-        max-width: 100%;
-        height: auto;
-      }
-
-      @media (max-width: 768px) {
-        h1 {
-          font-size: clamp(1rem, 5vw, 1.5rem);
-        }
-
-        /* First column smaller on mobile */
-        table th:first-child,
-        table td:first-child {
-          min-width: 120px;
-          max-width: 120px;
-          width: 120px;
-        }
-
-        input[type="text"] {
-          width: 100%;
-          min-width: 100px;
-          font-size: 13px;
-          padding: 4px;
-        }
-
-        input[type="number"] {
-          width: 55px;
-          font-size: 12px;
-          padding: 4px;
-        }
-
-        th,
-        td {
-          padding: 4px;
-          font-size: 11px;
-          min-width: 50px;
-        }
-
-        table input[type="number"],
-        table input[type="text"] {
-          font-size: 12px;
-          padding: 2px;
-        }
-
-        table input[type="number"] {
-          min-width: 45px;
-          width: 100%;
-        }
-
-        .controls {
-          flex-direction: row; /* Keep row direction instead of column */
-          flex-wrap: wrap;
-          align-items: center;
-          gap: 5px;
-        }
-
-        .controls label {
-          width: auto; /* Changed from 100% to auto */
-          margin-bottom: 0; /* Changed from 5px to 0 */
-          white-space: nowrap; /* Prevent label from wrapping */
-        }
-
-        .controls input[type="number"] {
-          width: 70px !important;
-          font-size: 13px;
-        }
-
-        button {
-          font-size: 12px;
-          padding: 6px 12px;
-        }
-
-        .start-play-button {
-          padding: 10px 20px !important;
-          font-size: 15px !important;
-        }
-      }
-
-      /* Custom Modal Styles */
-      .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-      }
-
-      .modal-content {
-        background-color: #fefefe;
-        margin: 15% auto;
-        padding: 20px;
-        border: none;
-        border-radius: 8px;
-        width: 90%;
-        max-width: 400px;
-        text-align: center;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      }
-
-      .modal-buttons {
-        margin-top: 20px;
-        display: flex;
-        gap: 10px;
-        justify-content: center;
-      }
-
-      .modal-button {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-      }
-
-      .modal-button.confirm {
-        background-color: #dc3545;
-        color: white;
-      }
-
-      .modal-button.cancel {
-        background-color: #6c757d;
-        color: white;
-      }
-
-      .modal-button:hover {
-        opacity: 0.9;
-      }
-      .leaderboard-table,
-      .leaderboard-table * {
-        position: static !important;
-        left: auto !important;
-        z-index: auto !important;
-        background-color: transparent !important;
-      }
-
-      .leaderboard-table th:first-child,
-      .leaderboard-table td:first-child {
-        position: static !important;
-        left: auto !important;
-        background-color: transparent !important;
-        z-index: auto !important;
-        width: auto !important;
-        min-width: auto !important;
-        max-width: auto !important;
-      }
-
-      .leaderboard-table th:first-child {
-        background-color: #f8f9fa !important;
-      }
-
-      /* Color improvements */
-      /* Header with gradient */
-      h1 {
-        white-space: nowrap;
-        overflow: hidden;
-        font-size: clamp(1.2rem, 4vw, 2rem);
-        margin: 0 0 20px 0;
-        background: linear-gradient(135deg, #007bff, #28a745);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-align: center;
-      }
-
-      /* Section headers */
-      h2 {
-        color: #495057;
-        font-weight: 600;
-        margin-bottom: 15px;
-        border-bottom: 2px solid #e9ecef;
-        padding-bottom: 5px;
-      }
-
-      /* Table headers with better colors */
-      table th {
-        background-color: #f8f9fa !important;
-        color: #495057 !important;
-        font-weight: 600;
-      }
-
-      /* Player name inputs with subtle styling */
-      table input[type="text"] {
-        border: none;
-        background: transparent;
-        width: 100%;
-        padding: 4px;
-        font-size: 14px;
-        color: #212529;
-        font-weight: 500;
-      }
-
-      /* Score inputs with color coding */
-      table input[type="number"] {
-        border: none;
-        background: transparent;
-        width: 100%;
-        padding: 4px;
-        font-size: 14px;
-        text-align: center;
-        color: #495057;
-        font-weight: 500;
-      }
-
-      /* Color code score inputs based on value */
-      table input[type="number"][value="-1"] {
-        color: #6c757d; /* Gray for -1 values */
-        font-style: italic;
-      }
-
-      /* Leaderboard with better colors */
-      .leaderboard-table th {
-        background-color: #343a40 !important;
-        color: white !important;
-      }
-
-      .leaderboard-table td:first-child {
-        font-weight: bold;
-        color: #495057; /* Standard color for all ranks */
-      }
-
-      /* Player names in leaderboard */
-      .leaderboard-table td:nth-child(2) {
-        color: #495057;
-        font-weight: 500;
-      }
-
-      /* Scores in leaderboard with conditional colors */
-      .leaderboard-table td:last-child {
-        font-weight: 600;
-      }
-
-      /* Controls styling */
       .controls label {
-        color: #495057;
-        font-weight: 500;
+        width: auto;
+        /* Changed from 100% to auto */
+        margin-bottom: 0;
+        /* Changed from 5px to 0 */
+        white-space: nowrap;
+        /* Prevent label from wrapping */
       }
 
       .controls input[type="number"] {
-        border: 2px solid #e9ecef;
-        color: #495057;
-        font-weight: 500;
-        border-radius: 4px;
-        padding: 6px 8px;
+        width: 70px !important;
+        font-size: 13px;
       }
 
-      .controls input[type="number"]:focus {
-        border-color: #007bff;
-        outline: none;
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+      button {
+        font-size: 12px;
+        padding: 6px 12px;
       }
 
-      /* Add Player button with better styling */
-      .add-player-btn {
-        background: linear-gradient(135deg, #28a745, #20c997) !important;
-        border: none;
-        color: white;
-        font-weight: 600;
-        transition: all 0.3s ease;
+      .start-play-button {
+        padding: 10px 20px !important;
+        font-size: 15px !important;
+      }
+    }
+
+    /* Custom Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: none;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-buttons {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .modal-button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .modal-button.confirm {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .modal-button.cancel {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    .modal-button:hover {
+      opacity: 0.9;
+    }
+
+    .leaderboard-table,
+    .leaderboard-table * {
+      position: static !important;
+      left: auto !important;
+      z-index: auto !important;
+      background-color: transparent !important;
+    }
+
+    .leaderboard-table th:first-child,
+    .leaderboard-table td:first-child {
+      position: static !important;
+      left: auto !important;
+      background-color: transparent !important;
+      z-index: auto !important;
+      width: auto !important;
+      min-width: auto !important;
+      max-width: auto !important;
+    }
+
+    .leaderboard-table th:first-child {
+      background-color: #f8f9fa !important;
+    }
+
+    /* Color improvements */
+    /* Header with gradient */
+    h1 {
+      white-space: nowrap;
+      overflow: hidden;
+      font-size: clamp(1.2rem, 4vw, 2rem);
+      margin: 0 0 20px 0;
+      background: linear-gradient(135deg, #007bff, #28a745);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+    }
+
+    /* Section headers */
+    h2 {
+      color: #495057;
+      font-weight: 600;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #e9ecef;
+      padding-bottom: 5px;
+    }
+
+    /* Table headers with better colors */
+    table th {
+      background-color: #f8f9fa !important;
+      color: #495057 !important;
+      font-weight: 600;
+    }
+
+    /* Player name inputs with subtle styling */
+    table input[type="text"] {
+      border: none;
+      background: transparent;
+      width: 100%;
+      padding: 4px;
+      font-size: 14px;
+      color: #212529;
+      font-weight: 500;
+    }
+
+    /* Score inputs with color coding */
+    table input[type="number"] {
+      border: none;
+      background: transparent;
+      width: 100%;
+      padding: 4px;
+      font-size: 14px;
+      text-align: center;
+      color: #495057;
+      font-weight: 500;
+    }
+
+    /* Color code score inputs based on value */
+    table input[type="number"][value="-1"] {
+      color: #6c757d;
+      /* Gray for -1 values */
+      font-style: italic;
+    }
+
+    /* Leaderboard with better colors */
+    .leaderboard-table th {
+      background-color: #343a40 !important;
+      color: white !important;
+    }
+
+    .leaderboard-table td:first-child {
+      font-weight: bold;
+      color: #495057;
+      /* Standard color for all ranks */
+    }
+
+    /* Player names in leaderboard */
+    .leaderboard-table td:nth-child(2) {
+      color: #495057;
+      font-weight: 500;
+    }
+
+    /* Scores in leaderboard with conditional colors */
+    .leaderboard-table td:last-child {
+      font-weight: 600;
+    }
+
+    /* Controls styling */
+    .controls label {
+      color: #495057;
+      font-weight: 500;
+    }
+
+    .controls input[type="number"] {
+      border: 2px solid #e9ecef;
+      color: #495057;
+      font-weight: 500;
+      border-radius: 4px;
+      padding: 6px 8px;
+    }
+
+    .controls input[type="number"]:focus {
+      border-color: #007bff;
+      outline: none;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    /* Add Player button with better styling */
+    .add-player-btn {
+      background: linear-gradient(135deg, #28a745, #20c997) !important;
+      border: none;
+      color: white;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .add-player-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    }
+
+    /* Add these styles to your existing CSS */
+
+    /* Game ID Display styling */
+    #gameIdDisplay {
+      animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
       }
 
-      .add-player-btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #gameIdInput {
+      user-select: all;
+      /* Allow easy text selection */
+    }
+
+    #gameIdInput:hover {
+      background-color: #f8f9fa !important;
+      border-color: #0d47a1 !important;
+    }
+
+    #copyButton:hover {
+      background-color: #0d47a1;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(13, 71, 161, 0.3);
+    }
+
+    #copyButton.copied {
+      background-color: #4caf50 !important;
+      animation: pulse 0.6s ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
       }
 
-      /* Add these styles to your existing CSS */
+      50% {
+        transform: scale(1.05);
+      }
 
-      /* Game ID Display styling */
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    /* Mobile responsive for Game ID display */
+    @media (max-width: 768px) {
       #gameIdDisplay {
-        animation: slideIn 0.5s ease-out;
-      }
-
-      @keyframes slideIn {
-        from {
-          opacity: 0;
-          transform: translateY(-10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        margin: 10px 0;
+        padding: 10px;
       }
 
       #gameIdInput {
-        user-select: all; /* Allow easy text selection */
+        font-size: 16px;
+        min-width: 100px;
       }
 
-      #gameIdInput:hover {
-        background-color: #f8f9fa !important;
-        border-color: #0d47a1 !important;
+      #copyButton {
+        font-size: 12px;
+        padding: 6px 10px;
       }
+    }
 
-      #copyButton:hover {
-        background-color: #0d47a1;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(13, 71, 161, 0.3);
-      }
+    /* Update controls styling for better button alignment */
+    .controls {
+      margin-bottom: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      justify-content: flex-start;
+      /* Align items to the left */
+    }
 
-      #copyButton.copied {
-        background-color: #4caf50 !important;
-        animation: pulse 0.6s ease-in-out;
-      }
+    /* Make Start Play button same size as Load Game button when inline */
+    .controls .start-play-button {
+      padding: 8px 16px !important;
+      font-size: 14px !important;
+      font-weight: bold !important;
+      background-color: #007bff !important;
+      box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3) !important;
+      transition: all 0.3s ease !important;
+      margin: 0 !important;
+      /* Remove any margin */
+    }
 
-      @keyframes pulse {
-        0% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.05);
-        }
-        100% {
-          transform: scale(1);
-        }
-      }
+    .controls .start-play-button:hover {
+      background-color: #0056b3 !important;
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4) !important;
+    }
 
-      /* Mobile responsive for Game ID display */
-      @media (max-width: 768px) {
-        #gameIdDisplay {
-          margin: 10px 0;
-          padding: 10px;
-        }
+    /* Ensure buttons are same height */
+    .controls button {
+      padding: 8px 16px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      height: auto;
+      /* Let height be determined by padding */
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-        #gameIdInput {
-          font-size: 16px;
-          min-width: 100px;
-        }
-
-        #copyButton {
-          font-size: 12px;
-          padding: 6px 10px;
-        }
-      }
-
-      /* Update controls styling for better button alignment */
+    /* Mobile responsive adjustments */
+    @media (max-width: 768px) {
       .controls {
-        margin-bottom: 10px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+
+      .controls>div {
         display: flex;
-        flex-wrap: wrap;
+        align-items: center;
+        gap: 5px;
+        justify-content: space-between;
+      }
+
+      /* Stack buttons on mobile */
+      .controls button {
+        width: 100%;
+        margin-bottom: 5px;
+      }
+
+      .controls .start-play-button {
+        width: 100% !important;
+        padding: 10px 16px !important;
+        font-size: 14px !important;
+      }
+    }
+
+    /* Alternative mobile-friendly layout */
+    @media (max-width: 768px) {
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+
+      .controls>div {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        justify-content: space-between;
+        width: 100%;
+      }
+
+      /* Financial inputs group */
+      .controls div:nth-child(1) {
+        display: flex;
         align-items: center;
         gap: 10px;
-        justify-content: flex-start; /* Align items to the left */
+        flex-wrap: wrap;
+        width: 100%;
       }
 
-      /* Make Start Play button same size as Load Game button when inline */
-      .controls .start-play-button {
-        padding: 8px 16px !important;
-        font-size: 14px !important;
-        font-weight: bold !important;
-        background-color: #007bff !important;
-        box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3) !important;
-        transition: all 0.3s ease !important;
-        margin: 0 !important; /* Remove any margin */
+      /* Action buttons group */
+      .controls div:nth-child(2) {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        width: 100%;
+      }
+    }
+
+    /* Disabled button styling */
+    button:disabled {
+      background-color: #6c757d !important;
+      opacity: 0.6 !important;
+      cursor: not-allowed !important;
+      pointer-events: none;
+    }
+
+    button:disabled:hover {
+      background-color: #6c757d !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
       }
 
-      .controls .start-play-button:hover {
-        background-color: #0056b3 !important;
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4) !important;
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOutRight {
+      from {
+        transform: translateX(0);
+        opacity: 1;
       }
 
-      /* Ensure buttons are same height */
-      .controls button {
-        padding: 8px 16px;
-        background-color: #dc3545;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-        height: auto; /* Let height be determined by padding */
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+      to {
+        transform: translateX(100%);
+        opacity: 0;
       }
+    }
 
-      /* Mobile responsive adjustments */
-      @media (max-width: 768px) {
-        .controls {
-          flex-direction: column;
-          align-items: stretch;
-          gap: 8px;
-        }
-
-        .controls > div {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          justify-content: space-between;
-        }
-
-        /* Stack buttons on mobile */
-        .controls button {
-          width: 100%;
-          margin-bottom: 5px;
-        }
-
-        .controls .start-play-button {
-          width: 100% !important;
-          padding: 10px 16px !important;
-          font-size: 14px !important;
-        }
+    /* Mobile responsive for toast */
+    @media (max-width: 768px) {
+      #toast {
+        top: 10px !important;
+        right: 10px !important;
+        left: 10px !important;
+        max-width: none !important;
+        font-size: 13px !important;
       }
+    }
+  </style>
+</head>
 
-      /* Alternative mobile-friendly layout */
-      @media (max-width: 768px) {
-        .controls {
-          flex-direction: column;
-          align-items: stretch;
-          gap: 8px;
-        }
+<body>
+  <div class="container">
+    <h1>⭐ Rummy Score Master</h1>
 
-        .controls > div {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          justify-content: space-between;
-          width: 100%;
-        }
-
-        /* Financial inputs group */
-        .controls div:nth-child(1) {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          flex-wrap: wrap;
-          width: 100%;
-        }
-
-        /* Action buttons group */
-        .controls div:nth-child(2) {
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
-          width: 100%;
-        }
-      }
-
-      /* Disabled button styling */
-      button:disabled {
-        background-color: #6c757d !important;
-        opacity: 0.6 !important;
-        cursor: not-allowed !important;
-        pointer-events: none;
-      }
-
-      button:disabled:hover {
-        background-color: #6c757d !important;
-        transform: none !important;
-        box-shadow: none !important;
-      }
-      @keyframes slideInRight {
-        from {
-          transform: translateX(100%);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
-
-      @keyframes slideOutRight {
-        from {
-          transform: translateX(0);
-          opacity: 1;
-        }
-        to {
-          transform: translateX(100%);
-          opacity: 0;
-        }
-      }
-
-      /* Mobile responsive for toast */
-      @media (max-width: 768px) {
-        #toast {
-          top: 10px !important;
-          right: 10px !important;
-          left: 10px !important;
-          max-width: none !important;
-          font-size: 13px !important;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>⭐ Rummy Score Master</h1>
-
-      <!-- Move Game ID Display Section here - right after title -->
-      <!-- Update the Game ID Display Section to be cleaner -->
-      <div
-        id="gameIdDisplay"
-        style="
+    <!-- Move Game ID Display Section here - right after title -->
+    <!-- Update the Game ID Display Section to be cleaner -->
+    <div id="gameIdDisplay" style="
           text-align: center;
           margin: 15px 0;
           padding: 12px;
@@ -664,20 +684,15 @@
           border-radius: 8px;
           border: 2px solid #e1bee7;
           display: none;
-        "
-      >
-        <div
-          style="
+        ">
+      <div style="
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 20px;
-          "
-        >
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
-            <div
-              id="qrCodeContainer"
-              style="
+          ">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+          <div id="qrCodeContainer" style="
                 background: white;
                 border: 2px solid #1565c0;
                 border-radius: 6px;
@@ -687,14 +702,10 @@
                 justify-content: center;
                 min-width: 120px;
                 min-height: 50px;
-              "
-            ></div>
-            <div id="gameIdPinText" style="font-size: 15px; color: #333; margin-top: 2px;"></div>
-          </div>
-          <button
-            id="copyButton"
-            onclick="copyGameId()"
-            style="
+              "></div>
+          <div id="gameIdPinText" style="font-size: 15px; color: #333; margin-top: 2px;"></div>
+        </div>
+        <button id="copyButton" onclick="copyGameId()" style="
               background-color: #1565c0;
               color: white;
               border: none;
@@ -704,426 +715,404 @@
               font-size: 14px;
               font-weight: bold;
               transition: all 0.3s ease;
-            "
-          >
-            📋 Copy
-          </button>
-        </div>
-        <!-- QRCode.js CDN -->
-        <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+            ">
+          📋 Copy
+        </button>
+      </div>
+      <!-- QRCode.js CDN -->
+      <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    </div>
+
+    <!-- Controls section with aligned buttons -->
+    <div class="controls" style="margin-top: 10px">
+      <!-- Financial inputs group -->
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+        <label for="pointValue">Point Value: ₹</label>
+        <input type="number" id="pointValue" min="0" step="0.01" value="1.00" style="width: 80px"
+          onchange="saveData();" />
+
+        <label for="gstPercent">GST%: </label>
+        <input type="number" id="gstPercent" min="0" max="100" step="0.01" value="18.00" style="width: 80px"
+          onchange="saveData();" />
       </div>
 
-      <!-- Controls section with aligned buttons -->
-      <div class="controls" style="margin-top: 10px">
-        <!-- Financial inputs group -->
-        <div
-          style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap"
-        >
-          <label for="pointValue">Point Value: ₹</label>
-          <input
-            type="number"
-            id="pointValue"
-            min="0"
-            step="0.01"
-            value="1.00"
-            style="width: 80px"
-            onchange="saveData();"
-          />
-
-          <label for="gstPercent">GST%: </label>
-          <input
-            type="number"
-            id="gstPercent"
-            min="0"
-            max="100"
-            step="0.01"
-            value="18.00"
-            style="width: 80px"
-            onchange="saveData();"
-          />
-        </div>
-
-        <!-- Action buttons group -->
-        <div style="display: flex; gap: 10px; flex-wrap: wrap">
-          <button onclick="loadFromCloud()" style="background-color: #17a2b8">
-            📥 Load Game
-          </button>
-          <button class="start-play-button" onclick="startNewGame()">
-            🎮 Start Play
-          </button>
-          <button
-            id="closeGameButton"
-            onclick="confirmCloseGame()"
-            style="background-color: #dc3545; display: none"
-          >
-            🗑️ Close Game
-          </button>
-        </div>
-      </div>
-
-      <div id="scoreTableContainer"></div>
-      <div class="leaderboard" id="leaderboard"></div>
-      <div class="chart-container">
-        <canvas id="scoreChart"></canvas>
+      <!-- Action buttons group -->
+      <div style="display: flex; gap: 10px; flex-wrap: wrap">
+        <button onclick="loadFromCloud()" style="background-color: #17a2b8">
+          📥 Load Game
+        </button>
+        <button class="start-play-button" onclick="startNewGame()">
+          🎮 Start Play
+        </button>
+        <button id="closeGameButton" onclick="confirmCloseGame()" style="background-color: #dc3545; display: none">
+          🗑️ Close Game
+        </button>
       </div>
     </div>
-    <!-- Custom Confirmation Modal -->
-    <div id="confirmModal" class="modal">
-      <div class="modal-content">
-        <h3 id="modalTitle">⚠️ Confirm Action</h3>
-        <p id="modalMessage">Are you sure you want to proceed?</p>
-        <div class="modal-buttons">
-          <button class="modal-button confirm" onclick="confirmAction()">
-            Yes, Proceed
-          </button>
-          <button class="modal-button cancel" onclick="closeModal()">
-            Cancel
-          </button>
-        </div>
+
+    <div id="scoreTableContainer"></div>
+    <div class="leaderboard" id="leaderboard"></div>
+    <div class="chart-container">
+      <canvas id="scoreChart"></canvas>
+    </div>
+  </div>
+  <!-- Custom Confirmation Modal -->
+  <div id="confirmModal" class="modal">
+    <div class="modal-content">
+      <h3 id="modalTitle">⚠️ Confirm Action</h3>
+      <p id="modalMessage">Are you sure you want to proceed?</p>
+      <div class="modal-buttons">
+        <button class="modal-button confirm" onclick="confirmAction()">
+          Yes, Proceed
+        </button>
+        <button class="modal-button cancel" onclick="closeModal()">
+          Cancel
+        </button>
       </div>
     </div>
-    <!-- Add Firebase SDK before your existing script -->
-    <script type="module">
-      // Import Firebase modules
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-      import {
-        getFirestore,
-        doc,
-        setDoc,
-        getDoc,
-        serverTimestamp,
-      } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  </div>
+  <!-- Add Firebase SDK before your existing script -->
+  <script type="module">
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc,
+      serverTimestamp,
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-      // Your Firebase configuration (paste the config you copied from Step 1)
-      const firebaseConfig = {
-        apiKey: "AIzaSyD6vyITxs4RUKSZt5K6ZhfKqXavgO7CcYU",
-        authDomain: "rummy-score-master.firebaseapp.com",
-        projectId: "rummy-score-master",
-        storageBucket: "rummy-score-master.firebasestorage.app",
-        messagingSenderId: "740379545501",
-        appId: "1:740379545501:web:48fd959b916386299c2974",
-        measurementId: "G-5TVE05Q9Q5",
+    // Your Firebase configuration (paste the config you copied from Step 1)
+    const firebaseConfig = {
+      apiKey: "AIzaSyD6vyITxs4RUKSZt5K6ZhfKqXavgO7CcYU",
+      authDomain: "rummy-score-master.firebaseapp.com",
+      projectId: "rummy-score-master",
+      storageBucket: "rummy-score-master.firebasestorage.app",
+      messagingSenderId: "740379545501",
+      appId: "1:740379545501:web:48fd959b916386299c2974",
+      measurementId: "G-5TVE05Q9Q5",
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Make Firebase available globally
+    window.db = db;
+    window.firestore = { doc, setDoc, getDoc, serverTimestamp };
+
+    console.log("Firebase initialized successfully!");
+  </script>
+  <!-- Your existing script tag starts here -->
+  <script>
+    let chart;
+    let pendingAction = null;
+
+    function showModal(title, message, action) {
+      document.getElementById("modalTitle").textContent = title;
+      document.getElementById("modalMessage").textContent = message;
+      document.getElementById("confirmModal").style.display = "block";
+      pendingAction = action;
+    }
+
+    function closeModal() {
+      document.getElementById("confirmModal").style.display = "none";
+      pendingAction = null;
+    }
+
+    function confirmAction() {
+      if (pendingAction) {
+        pendingAction();
+      }
+      closeModal();
+    }
+
+    function saveData() {
+      // Get number of players from the actual table instead of input
+      const playerRows =
+        document.querySelectorAll('input[id^="name"]').length;
+      const pointValue =
+        parseFloat(document.getElementById("pointValue").value) || 1.0;
+      const gstPercent =
+        parseFloat(document.getElementById("gstPercent").value) || 18.0;
+
+      const data = {
+        numPlayers: playerRows,
+        pointValue,
+        gstPercent,
+        players: [],
       };
 
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
-
-      // Make Firebase available globally
-      window.db = db;
-      window.firestore = { doc, setDoc, getDoc, serverTimestamp };
-
-      console.log("Firebase initialized successfully!");
-    </script>
-    <!-- Your existing script tag starts here -->
-    <script>
-      let chart;
-      let pendingAction = null;
-
-      function showModal(title, message, action) {
-        document.getElementById("modalTitle").textContent = title;
-        document.getElementById("modalMessage").textContent = message;
-        document.getElementById("confirmModal").style.display = "block";
-        pendingAction = action;
-      }
-
-      function closeModal() {
-        document.getElementById("confirmModal").style.display = "none";
-        pendingAction = null;
-      }
-
-      function confirmAction() {
-        if (pendingAction) {
-          pendingAction();
-        }
-        closeModal();
-      }
-
-      function saveData() {
-        // Get number of players from the actual table instead of input
-        const playerRows =
-          document.querySelectorAll('input[id^="name"]').length;
-        const pointValue =
-          parseFloat(document.getElementById("pointValue").value) || 1.0;
-        const gstPercent =
-          parseFloat(document.getElementById("gstPercent").value) || 18.0;
-
-        const data = {
-          numPlayers: playerRows,
-          pointValue,
-          gstPercent,
-          players: [],
-        };
-
-        for (let i = 1; i <= playerRows; i++) {
-          const nameInput = document.getElementById(`name${i}`);
-          if (nameInput) {
-            const name = nameInput.value.trim();
-            const scores = [];
-            for (let j = 1; j <= 10; j++) {
-              const scoreInput = document.getElementById(`p${i}r${j}`);
-              const val = scoreInput ? parseInt(scoreInput.value) : -1;
-              scores.push(isNaN(val) ? -1 : val);
-            }
-            data.players.push({ name, scores });
+      for (let i = 1; i <= playerRows; i++) {
+        const nameInput = document.getElementById(`name${i}`);
+        if (nameInput) {
+          const name = nameInput.value.trim();
+          const scores = [];
+          for (let j = 1; j <= 10; j++) {
+            const scoreInput = document.getElementById(`p${i}r${j}`);
+            const val = scoreInput ? parseInt(scoreInput.value) : -1;
+            scores.push(isNaN(val) ? -1 : val);
           }
-        }
-        localStorage.setItem("scoreData", JSON.stringify(data));
-
-        // Add auto-save to cloud
-        autoSaveToCloud();
-      }
-
-      // Add function to disable game settings after start
-      function disableGameSettingsAfterStart() {
-        const gstInput = document.getElementById("gstPercent");
-        const pointValueInput = document.getElementById("pointValue");
-        const loadButton = document.querySelector(
-          'button[onclick="loadFromCloud()"]'
-        );
-        const startButton = document.querySelector(".start-play-button");
-        const closeButton = document.getElementById("closeGameButton");
-
-        if (gstInput) {
-          gstInput.disabled = true;
-          gstInput.style.opacity = "0.6";
-          gstInput.style.cursor = "not-allowed";
-          gstInput.title = "GST percentage cannot be changed after game starts";
-        }
-
-        // Disable Point Value input
-        if (pointValueInput) {
-          pointValueInput.disabled = true;
-          pointValueInput.style.opacity = "0.6";
-          pointValueInput.style.cursor = "not-allowed";
-          pointValueInput.title =
-            "Point value cannot be changed after game starts";
-        }
-
-        if (loadButton) {
-          loadButton.disabled = true;
-          loadButton.style.opacity = "0.6";
-          loadButton.style.cursor = "not-allowed";
-          loadButton.textContent = "📥 Load Game (Disabled)";
-          loadButton.title =
-            "Cannot load new game while current game is in progress";
-        }
-
-        // Disable Start Play button
-        if (startButton) {
-          startButton.disabled = true;
-          startButton.style.opacity = "0.6";
-          startButton.style.cursor = "not-allowed";
-          startButton.textContent = "🎮 Game In Progress";
-          startButton.title =
-            "Game is already in progress. Close game to start new one.";
-        }
-
-        // Show close game button
-        if (closeButton) {
-          closeButton.style.display = "inline-block";
+          data.players.push({ name, scores });
         }
       }
+      localStorage.setItem("scoreData", JSON.stringify(data));
 
-      // Add function to enable game settings (for new games)
-      function enableGameSettings() {
-        const gstInput = document.getElementById("gstPercent");
-        const pointValueInput = document.getElementById("pointValue");
-        const loadButton = document.querySelector(
-          'button[onclick="loadFromCloud()"]'
-        );
-        const startButton = document.querySelector(".start-play-button");
-        const closeButton = document.getElementById("closeGameButton");
+      // Add auto-save to cloud
+      autoSaveToCloud();
+    }
 
-        if (gstInput) {
-          gstInput.disabled = false;
-          gstInput.style.opacity = "1";
-          gstInput.style.cursor = "text";
-          gstInput.title = "";
-        }
+    // Add function to disable game settings after start
+    function disableGameSettingsAfterStart() {
+      const gstInput = document.getElementById("gstPercent");
+      const pointValueInput = document.getElementById("pointValue");
+      const loadButton = document.querySelector(
+        'button[onclick="loadFromCloud()"]'
+      );
+      const startButton = document.querySelector(".start-play-button");
+      const closeButton = document.getElementById("closeGameButton");
 
-        // Re-enable Point Value input
-        if (pointValueInput) {
-          pointValueInput.disabled = false;
-          pointValueInput.style.opacity = "1";
-          pointValueInput.style.cursor = "text";
-          pointValueInput.title = "";
-        }
-
-        if (loadButton) {
-          loadButton.disabled = false;
-          loadButton.style.opacity = "1";
-          loadButton.style.cursor = "pointer";
-          loadButton.textContent = "📥 Load Game";
-          loadButton.title = "";
-        }
-
-        // Re-enable Start Play button
-        if (startButton) {
-          startButton.disabled = false;
-          startButton.style.opacity = "1";
-          startButton.style.cursor = "pointer";
-          startButton.textContent = "🎮 Start Play";
-          startButton.title = "";
-        }
-
-        // Hide close game button
-        if (closeButton) {
-          closeButton.style.display = "none";
-        }
+      if (gstInput) {
+        gstInput.disabled = true;
+        gstInput.style.opacity = "0.6";
+        gstInput.style.cursor = "not-allowed";
+        gstInput.title = "GST percentage cannot be changed after game starts";
       }
 
-      function loadData() {
-        const saved = localStorage.getItem("scoreData");
-        if (!saved) {
-          // No saved data - enable settings
-          enableGameSettings();
-          return;
-        }
-
-        const data = JSON.parse(saved);
-
-        document.getElementById("pointValue").value = data.pointValue || 1.0;
-        document.getElementById("gstPercent").value = data.gstPercent || 18.0;
-
-        generateTable(data);
-
-        // Update Game ID display
-        updateGameIdDisplay();
-
-        // Disable settings since game is already started
-        disableGameSettingsAfterStart();
+      // Disable Point Value input
+      if (pointValueInput) {
+        pointValueInput.disabled = true;
+        pointValueInput.style.opacity = "0.6";
+        pointValueInput.style.cursor = "not-allowed";
+        pointValueInput.title =
+          "Point value cannot be changed after game starts";
       }
 
-      function startNewGame() {
-        // Check if Start Play button is already disabled
-        const startButton = document.querySelector(".start-play-button");
-        if (startButton && startButton.disabled) {
-          return; // Prevent action if button is disabled
-        }
+      if (loadButton) {
+        loadButton.disabled = true;
+        loadButton.style.opacity = "0.6";
+        loadButton.style.cursor = "not-allowed";
+        loadButton.textContent = "📥 Load Game (Disabled)";
+        loadButton.title =
+          "Cannot load new game while current game is in progress";
+      }
 
-        // Just start the game directly
-        localStorage.removeItem("scoreData");
-        localStorage.removeItem("gameId");
-        localStorage.removeItem("gamePin");
+      // Disable Start Play button
+      if (startButton) {
+        startButton.disabled = true;
+        startButton.style.opacity = "0.6";
+        startButton.style.cursor = "not-allowed";
+        startButton.textContent = "🎮 Game In Progress";
+        startButton.title =
+          "Game is already in progress. Close game to start new one.";
+      }
 
-        // Generate new Game ID
-        const gameId = Math.random().toString(36).substr(2, 9).toUpperCase();
-        localStorage.setItem("gameId", gameId);
+      // Show close game button
+      if (closeButton) {
+        closeButton.style.display = "inline-block";
+      }
+    }
 
-        // Generate a random 4-digit PIN (string, leading zeros allowed), never '0000'
-        let pin;
-        do {
-          pin = ("000" + Math.floor(Math.random() * 10000)).slice(-4);
-        } while (pin === "0000");
-        localStorage.setItem("gamePin", pin);
+    // Add function to enable game settings (for new games)
+    function enableGameSettings() {
+      const gstInput = document.getElementById("gstPercent");
+      const pointValueInput = document.getElementById("pointValue");
+      const loadButton = document.querySelector(
+        'button[onclick="loadFromCloud()"]'
+      );
+      const startButton = document.querySelector(".start-play-button");
+      const closeButton = document.getElementById("closeGameButton");
 
-        generateTable();
-        updateGameIdDisplay();
-        disableGameSettingsAfterStart();
+      if (gstInput) {
+        gstInput.disabled = false;
+        gstInput.style.opacity = "1";
+        gstInput.style.cursor = "text";
+        gstInput.title = "";
+      }
+
+      // Re-enable Point Value input
+      if (pointValueInput) {
+        pointValueInput.disabled = false;
+        pointValueInput.style.opacity = "1";
+        pointValueInput.style.cursor = "text";
+        pointValueInput.title = "";
+      }
+
+      if (loadButton) {
+        loadButton.disabled = false;
+        loadButton.style.opacity = "1";
+        loadButton.style.cursor = "pointer";
+        loadButton.textContent = "📥 Load Game";
+        loadButton.title = "";
+      }
+
+      // Re-enable Start Play button
+      if (startButton) {
+        startButton.disabled = false;
+        startButton.style.opacity = "1";
+        startButton.style.cursor = "pointer";
+        startButton.textContent = "🎮 Start Play";
+        startButton.title = "";
+      }
+
+      // Hide close game button
+      if (closeButton) {
+        closeButton.style.display = "none";
+      }
+    }
+
+    function loadData() {
+      const saved = localStorage.getItem("scoreData");
+      if (!saved) {
+        // No saved data - enable settings
+        enableGameSettings();
+        return;
+      }
+
+      const data = JSON.parse(saved);
+
+      document.getElementById("pointValue").value = data.pointValue || 1.0;
+      document.getElementById("gstPercent").value = data.gstPercent || 18.0;
+
+      generateTable(data);
+
+      // Update Game ID display
+      updateGameIdDisplay();
+
+      // Disable settings since game is already started
+      disableGameSettingsAfterStart();
+    }
+
+    function startNewGame() {
+      // Check if Start Play button is already disabled
+      const startButton = document.querySelector(".start-play-button");
+      if (startButton && startButton.disabled) {
+        return; // Prevent action if button is disabled
+      }
+
+      // Just start the game directly
+      localStorage.removeItem("scoreData");
+      localStorage.removeItem("gameId");
+      localStorage.removeItem("gamePin");
+
+      // Generate new Game ID
+      const gameId = Math.random().toString(36).substr(2, 9).toUpperCase();
+      localStorage.setItem("gameId", gameId);
+
+      // Generate a random 4-digit PIN (string, leading zeros allowed), never '0000'
+      let pin;
+      do {
+        pin = ("000" + Math.floor(Math.random() * 10000)).slice(-4);
+      } while (pin === "0000");
+      localStorage.setItem("gamePin", pin);
+
+      generateTable();
+      updateGameIdDisplay();
+      disableGameSettingsAfterStart();
+
+      // Save initial game state to cloud with PIN only (no device info)
+      saveInitialGameStateToCloud(pin);
+    }
+
+    // ...existing code...
+
+    // Add helper function to save initial game state to cloud with device info and PIN
+    async function saveInitialGameStateToCloud(pin) {
+      const gameId = localStorage.getItem("gameId");
+      const data = localStorage.getItem("scoreData");
+
+      // Only save if we have gameId and Firebase is ready
+      if (!gameId || !window.db) {
+        return; // Skip cloud save if no gameId or Firebase not ready
+      }
+
+      try {
+        // Parse existing data or create empty structure
+        const gameData = data
+          ? JSON.parse(data)
+          : {
+            numPlayers: 2,
+            pointValue:
+              parseFloat(document.getElementById("pointValue").value) ||
+              1.0,
+            gstPercent:
+              parseFloat(document.getElementById("gstPercent").value) ||
+              18.0,
+            players: [],
+          };
 
         // Save initial game state to cloud with PIN only (no device info)
-        saveInitialGameStateToCloud(pin);
+        await window.firestore.setDoc(
+          window.firestore.doc(window.db, "games", gameId),
+          {
+            data: gameData,
+            lastUpdated: window.firestore.serverTimestamp(),
+            version: "1.0",
+            pin: pin || localStorage.getItem("gamePin") || null,
+          }
+        );
+
+        console.log("Initial game state saved to cloud with PIN");
+      } catch (error) {
+        console.error("Failed to save initial game state to cloud:", error);
+        // Don't show error to user, just log it
+      }
+    }
+
+    function addPlayer() {
+      // Get current number of players from existing table
+      const currentPlayers =
+        document.querySelectorAll('input[id^="name"]').length;
+
+      if (currentPlayers >= 15) {
+        showModal(
+          "⚠️ Maximum Players Reached",
+          "Maximum 15 players allowed!",
+          null
+        );
+        return;
       }
 
-      // ...existing code...
+      // Save current data first
+      saveData();
 
-      // Add helper function to save initial game state to cloud with device info and PIN
-      async function saveInitialGameStateToCloud(pin) {
-        const gameId = localStorage.getItem("gameId");
-        const data = localStorage.getItem("scoreData");
+      // Get existing data and add one more player
+      const saved = localStorage.getItem("scoreData");
+      let savedData = null;
 
-        // Only save if we have gameId and Firebase is ready
-        if (!gameId || !window.db) {
-          return; // Skip cloud save if no gameId or Firebase not ready
-        }
-
-        try {
-          // Parse existing data or create empty structure
-          const gameData = data
-            ? JSON.parse(data)
-            : {
-                numPlayers: 2,
-                pointValue:
-                  parseFloat(document.getElementById("pointValue").value) ||
-                  1.0,
-                gstPercent:
-                  parseFloat(document.getElementById("gstPercent").value) ||
-                  18.0,
-                players: [],
-              };
-
-          // Save initial game state to cloud with PIN only (no device info)
-          await window.firestore.setDoc(
-            window.firestore.doc(window.db, "games", gameId),
-            {
-              data: gameData,
-              lastUpdated: window.firestore.serverTimestamp(),
-              version: "1.0",
-              pin: pin || localStorage.getItem("gamePin") || null,
-            }
-          );
-
-          console.log("Initial game state saved to cloud with PIN");
-        } catch (error) {
-          console.error("Failed to save initial game state to cloud:", error);
-          // Don't show error to user, just log it
-        }
+      if (saved) {
+        savedData = JSON.parse(saved);
+        // Increment the number of players
+        savedData.numPlayers = currentPlayers + 1;
       }
 
-      function addPlayer() {
-        // Get current number of players from existing table
-        const currentPlayers =
+      // Regenerate table with existing data preserved + 1 new player
+      generateTable(savedData);
+    }
+
+    // Update the generateTable function to include the Add Player button at the end
+    function generateTable(savedData = null) {
+      let numPlayers;
+
+      if (savedData && savedData.numPlayers) {
+        numPlayers = savedData.numPlayers;
+      } else {
+        // Get current players or default to 2
+        const existingPlayers =
           document.querySelectorAll('input[id^="name"]').length;
+        numPlayers = existingPlayers > 0 ? existingPlayers + 1 : 2;
+      }
 
-        if (currentPlayers >= 15) {
-          showModal(
-            "⚠️ Maximum Players Reached",
-            "Maximum 15 players allowed!",
-            null
-          );
-          return;
-        }
-
-        // Save current data first
-        saveData();
-
-        // Get existing data and add one more player
+      // Get existing data if not provided
+      if (!savedData) {
         const saved = localStorage.getItem("scoreData");
-        let savedData = null;
-
         if (saved) {
           savedData = JSON.parse(saved);
-          // Increment the number of players
-          savedData.numPlayers = currentPlayers + 1;
         }
-
-        // Regenerate table with existing data preserved + 1 new player
-        generateTable(savedData);
       }
 
-      // Update the generateTable function to include the Add Player button at the end
-      function generateTable(savedData = null) {
-        let numPlayers;
-
-        if (savedData && savedData.numPlayers) {
-          numPlayers = savedData.numPlayers;
-        } else {
-          // Get current players or default to 2
-          const existingPlayers =
-            document.querySelectorAll('input[id^="name"]').length;
-          numPlayers = existingPlayers > 0 ? existingPlayers + 1 : 2;
-        }
-
-        // Get existing data if not provided
-        if (!savedData) {
-          const saved = localStorage.getItem("scoreData");
-          if (saved) {
-            savedData = JSON.parse(saved);
-          }
-        }
-
-        let html = `
+      let html = `
 <h2>Score</h2>
 <div class="table-container">
   <table>
@@ -1131,147 +1120,147 @@
       <tr style="background-color: #f8f9fa;">
         <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Player Name</th>`;
 
-        for (let round = 1; round <= 10; round++) {
-          html += `<th style="border: 1px solid #ccc; padding: 8px; text-align: center;">R${round}</th>`;
-        }
-        html += `</tr></thead><tbody>`;
+      for (let round = 1; round <= 10; round++) {
+        html += `<th style="border: 1px solid #ccc; padding: 8px; text-align: center;">R${round}</th>`;
+      }
+      html += `</tr></thead><tbody>`;
 
-        for (let i = 1; i <= numPlayers; i++) {
-          const name =
-            savedData && savedData.players && savedData.players[i - 1]
-              ? savedData.players[i - 1].name
-              : `Player ${i}`;
+      for (let i = 1; i <= numPlayers; i++) {
+        const name =
+          savedData && savedData.players && savedData.players[i - 1]
+            ? savedData.players[i - 1].name
+            : `Player ${i}`;
 
-          html += `<tr><td style="border: 1px solid #ccc; padding: 8px;"><input type="text" id="name${i}" value="${name}" oninput="saveData(); calculateScores();" style="border: none; background: transparent; width: 100%; padding: 4px; font-size: 14px;"></td>`;
+        html += `<tr><td style="border: 1px solid #ccc; padding: 8px;"><input type="text" id="name${i}" value="${name}" oninput="saveData(); calculateScores();" style="border: none; background: transparent; width: 100%; padding: 4px; font-size: 14px;"></td>`;
 
-          for (let j = 1; j <= 10; j++) {
-            const val =
-              savedData &&
+        for (let j = 1; j <= 10; j++) {
+          const val =
+            savedData &&
               savedData.players &&
               savedData.players[i - 1] &&
               savedData.players[i - 1].scores
-                ? savedData.players[i - 1].scores[j - 1] !== undefined
-                  ? savedData.players[i - 1].scores[j - 1]
-                  : -1
-                : -1;
-            html += `<td style="border: 1px solid #ccc; padding: 8px; text-align: center; min-width: 60px;"><input type="number" id="p${i}r${j}" value="${val}" min="-1" max="100" oninput="saveData(); calculateScores(); colorScoreInputs();" style="border: none; background: transparent; width: 100%; text-align: center; padding: 4px; font-size: 14px; min-width: 50px;"></td>`;
-          }
-          html += "</tr>";
+              ? savedData.players[i - 1].scores[j - 1] !== undefined
+                ? savedData.players[i - 1].scores[j - 1]
+                : -1
+              : -1;
+          html += `<td style="border: 1px solid #ccc; padding: 8px; text-align: center; min-width: 60px;"><input type="number" id="p${i}r${j}" value="${val}" min="-1" max="100" oninput="saveData(); calculateScores(); colorScoreInputs();" style="border: none; background: transparent; width: 100%; text-align: center; padding: 4px; font-size: 14px; min-width: 50px;"></td>`;
         }
+        html += "</tr>";
+      }
 
-        html += "</tbody></table></div>";
+      html += "</tbody></table></div>";
 
-        // Add the "Add Player" button after the table
-        html += `
+      // Add the "Add Player" button after the table
+      html += `
 <div style="margin-top: 10px;">
   <button onclick="addPlayer()" class="add-player-btn" style="padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
     + Add Player
   </button>
 </div>`;
 
-        document.getElementById("scoreTableContainer").innerHTML = html;
+      document.getElementById("scoreTableContainer").innerHTML = html;
 
-        // Apply color coding to existing scores
-        colorScoreInputs();
+      // Apply color coding to existing scores
+      colorScoreInputs();
 
-        // Save the new state and calculate scores
-        saveData();
-        calculateScores();
+      // Save the new state and calculate scores
+      saveData();
+      calculateScores();
 
-        // Update Game ID display
-        updateGameIdDisplay();
-      }
+      // Update Game ID display
+      updateGameIdDisplay();
+    }
 
-      // Update the colorScoreInputs function with new thresholds
-      function colorScoreInputs() {
-        const numPlayers =
-          document.querySelectorAll('input[id^="name"]').length;
+    // Update the colorScoreInputs function with new thresholds
+    function colorScoreInputs() {
+      const numPlayers =
+        document.querySelectorAll('input[id^="name"]').length;
 
-        for (let i = 1; i <= numPlayers; i++) {
-          for (let j = 1; j <= 10; j++) {
-            const input = document.getElementById(`p${i}r${j}`);
-            if (input) {
-              const val = parseInt(input.value);
+      for (let i = 1; i <= numPlayers; i++) {
+        for (let j = 1; j <= 10; j++) {
+          const input = document.getElementById(`p${i}r${j}`);
+          if (input) {
+            const val = parseInt(input.value);
 
-              if (isNaN(val) || val === -1) {
-                input.style.color = "#6c757d"; // Gray for -1
-                input.style.fontStyle = "italic";
-              } else if (val < 40) {
-                input.style.color = "#28a745"; // Green for low scores (good)
-                input.style.fontStyle = "normal";
-              } else if (val >= 40 && val <= 60) {
-                input.style.color = "#ffc107"; // Yellow for medium scores
-                input.style.fontStyle = "normal";
-              } else {
-                input.style.color = "#dc3545"; // Red for high scores (bad)
-                input.style.fontStyle = "normal";
-              }
+            if (isNaN(val) || val === -1) {
+              input.style.color = "#6c757d"; // Gray for -1
+              input.style.fontStyle = "italic";
+            } else if (val < 40) {
+              input.style.color = "#28a745"; // Green for low scores (good)
+              input.style.fontStyle = "normal";
+            } else if (val >= 40 && val <= 60) {
+              input.style.color = "#ffc107"; // Yellow for medium scores
+              input.style.fontStyle = "normal";
+            } else {
+              input.style.color = "#dc3545"; // Red for high scores (bad)
+              input.style.fontStyle = "normal";
             }
           }
         }
       }
+    }
 
-      // Update the calculateScores function to remove settlement info from leaderboard
-      function calculateScores() {
-        // Get number of players from actual table
-        const numPlayers =
-          document.querySelectorAll('input[id^="name"]').length;
-        const scores = [];
-        const pointValue =
-          parseFloat(document.getElementById("pointValue").value) || 1.0;
-        const gstPercent =
-          parseFloat(document.getElementById("gstPercent").value) || 18.0;
+    // Update the calculateScores function to remove settlement info from leaderboard
+    function calculateScores() {
+      // Get number of players from actual table
+      const numPlayers =
+        document.querySelectorAll('input[id^="name"]').length;
+      const scores = [];
+      const pointValue =
+        parseFloat(document.getElementById("pointValue").value) || 1.0;
+      const gstPercent =
+        parseFloat(document.getElementById("gstPercent").value) || 18.0;
 
-        for (let i = 1; i <= numPlayers; i++) {
-          let total = 0;
-          for (let j = 1; j <= 10; j++) {
-            const scoreInput = document.getElementById(`p${i}r${j}`);
-            if (scoreInput) {
-              const val = parseInt(scoreInput.value);
-              total += isNaN(val) || val === -1 ? 0 : val;
-            }
+      for (let i = 1; i <= numPlayers; i++) {
+        let total = 0;
+        for (let j = 1; j <= 10; j++) {
+          const scoreInput = document.getElementById(`p${i}r${j}`);
+          if (scoreInput) {
+            const val = parseInt(scoreInput.value);
+            total += isNaN(val) || val === -1 ? 0 : val;
           }
-          const nameInput = document.getElementById(`name${i}`);
-          const name = nameInput ? nameInput.value.trim() : `Player ${i}`;
-          scores.push({ name, total });
         }
+        const nameInput = document.getElementById(`name${i}`);
+        const name = nameInput ? nameInput.value.trim() : `Player ${i}`;
+        scores.push({ name, total });
+      }
 
-        // Keep original order for chart
-        const originalOrderScores = [...scores];
+      // Keep original order for chart
+      const originalOrderScores = [...scores];
 
-        // Sort for leaderboard (low score wins)
-        const sortedScores = [...scores].sort((a, b) => a.total - b.total);
+      // Sort for leaderboard (low score wins)
+      const sortedScores = [...scores].sort((a, b) => a.total - b.total);
 
-        // Calculate total of all scores
-        const totalAllScores = sortedScores.reduce(
-          (sum, score) => sum + score.total,
-          0
-        );
+      // Calculate total of all scores
+      const totalAllScores = sortedScores.reduce(
+        (sum, score) => sum + score.total,
+        0
+      );
 
-        // Calculate gross amounts and GST using correct Rummy formula
-        sortedScores.forEach((score) => {
-          // Formula: (Total of all scores - Player's score × Number of players) × Point value
-          score.grossAmount =
-            (totalAllScores - score.total * numPlayers) * pointValue;
+      // Calculate gross amounts and GST using correct Rummy formula
+      sortedScores.forEach((score) => {
+        // Formula: (Total of all scores - Player's score × Number of players) × Point value
+        score.grossAmount =
+          (totalAllScores - score.total * numPlayers) * pointValue;
 
-          // GST is only paid by winners (those with positive gross amount)
-          if (score.grossAmount > 0) {
-            score.gstPaid = (score.grossAmount * gstPercent) / 100;
-            score.netAmount = score.grossAmount - score.gstPaid;
-          } else {
-            score.gstPaid = 0; // Losers don't pay GST
-            score.netAmount = score.grossAmount; // Same as gross for losers
-          }
-        });
+        // GST is only paid by winners (those with positive gross amount)
+        if (score.grossAmount > 0) {
+          score.gstPaid = (score.grossAmount * gstPercent) / 100;
+          score.netAmount = score.grossAmount - score.gstPaid;
+        } else {
+          score.gstPaid = 0; // Losers don't pay GST
+          score.netAmount = score.grossAmount; // Same as gross for losers
+        }
+      });
 
-        // Calculate total GST collected
-        const totalGstCollected = sortedScores.reduce(
-          (sum, score) => sum + score.gstPaid,
-          0
-        );
+      // Calculate total GST collected
+      const totalGstCollected = sortedScores.reduce(
+        (sum, score) => sum + score.gstPaid,
+        0
+      );
 
-        // Create leaderboard table WITHOUT settlement explanation
-        let leaderboardHtml = `
+      // Create leaderboard table WITHOUT settlement explanation
+      let leaderboardHtml = `
 <h2>Leaderboard & Settlement</h2>
 <table class="leaderboard-table" style="
   width: auto !important; 
@@ -1294,54 +1283,52 @@
   </thead>
   <tbody>`;
 
-        sortedScores.forEach((score, index) => {
-          // Add medal icons with rank numbers
-          let rankDisplay;
-          if (index === 0) {
-            rankDisplay = "🥇";
-          } else if (index === 1) {
-            rankDisplay = "🥈";
-          } else if (index === 2) {
-            rankDisplay = "🥉";
-          } else {
-            rankDisplay = `${index + 1}`;
-          }
+      sortedScores.forEach((score, index) => {
+        // Add medal icons with rank numbers
+        let rankDisplay;
+        if (index === 0) {
+          rankDisplay = "🥇";
+        } else if (index === 1) {
+          rankDisplay = "🥈";
+        } else if (index === 2) {
+          rankDisplay = "🥉";
+        } else {
+          rankDisplay = `${index + 1}`;
+        }
 
-          const grossAmount = score.grossAmount;
-          const gstPaid = score.gstPaid;
-          const netAmount = score.netAmount;
+        const grossAmount = score.grossAmount;
+        const gstPaid = score.gstPaid;
+        const netAmount = score.netAmount;
 
-          // Determine if this is a winner or loser for styling
-          const isWinner = grossAmount > 0;
-          const isLoser = grossAmount < 0;
+        // Determine if this is a winner or loser for styling
+        const isWinner = grossAmount > 0;
+        const isLoser = grossAmount < 0;
 
-          let grossStyle = "";
-          let gstStyle = "";
-          let netStyle = "";
+        let grossStyle = "";
+        let gstStyle = "";
+        let netStyle = "";
 
-          if (isWinner) {
-            grossStyle = "color: #28a745; font-weight: bold;"; // Green for receiving money
-            gstStyle = "color: #dc3545; font-weight: bold;"; // Red for GST paid
-            netStyle = "color: #28a745; font-weight: bold;"; // Green for net amount received
-          } else if (isLoser) {
-            grossStyle = "color: #dc3545; font-weight: bold;"; // Red for paying money
-            gstStyle = "color: #6c757d;"; // Gray for no GST
-            netStyle = "color: #dc3545; font-weight: bold;"; // Red for net amount paid
-          } else {
-            grossStyle = "color: #6c757d;"; // Gray for break-even
-            gstStyle = "color: #6c757d;"; // Gray for no GST
-            netStyle = "color: #6c757d;"; // Gray for break-even
-          }
+        if (isWinner) {
+          grossStyle = "color: #28a745; font-weight: bold;"; // Green for receiving money
+          gstStyle = "color: #dc3545; font-weight: bold;"; // Red for GST paid
+          netStyle = "color: #28a745; font-weight: bold;"; // Green for net amount received
+        } else if (isLoser) {
+          grossStyle = "color: #dc3545; font-weight: bold;"; // Red for paying money
+          gstStyle = "color: #6c757d;"; // Gray for no GST
+          netStyle = "color: #dc3545; font-weight: bold;"; // Red for net amount paid
+        } else {
+          grossStyle = "color: #6c757d;"; // Gray for break-even
+          gstStyle = "color: #6c757d;"; // Gray for no GST
+          netStyle = "color: #6c757d;"; // Gray for break-even
+        }
 
-          leaderboardHtml += `
+        leaderboardHtml += `
   <tr>
     <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-weight: bold; width: 50px !important; font-size: 11px;">${rankDisplay}</td>
-    <td style="border: 1px solid #ccc; padding: 6px; width: auto !important; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${
-      score.name
-    }</td>
-    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 50px !important; font-size: 11px; font-weight: 600;">${
-      score.total
-    }</td>
+    <td style="border: 1px solid #ccc; padding: 6px; width: auto !important; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${score.name
+          }</td>
+    <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 50px !important; font-size: 11px; font-weight: 600;">${score.total
+          }</td>
     <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 80px !important; font-size: 11px; ${grossStyle}">₹${grossAmount.toFixed(
             2
           )}</td>
@@ -1352,9 +1339,9 @@
             2
           )}</td>
   </tr>`;
-        });
+      });
 
-        leaderboardHtml += `
+      leaderboardHtml += `
   </tbody>
   <tfoot>
     <tr style="background-color: #e9ecef; font-weight: bold;">
@@ -1367,125 +1354,124 @@
   </tfoot>
 </table>`;
 
-        document.getElementById("leaderboard").innerHTML = leaderboardHtml;
-        updateChart(originalOrderScores); // Pass original order to chart
+      document.getElementById("leaderboard").innerHTML = leaderboardHtml;
+      updateChart(originalOrderScores); // Pass original order to chart
 
-        // Color code the leaderboard scores
-        sortedScores.forEach((score, index) => {
-          const scoreCell = document.querySelector(
-            `.leaderboard-table tbody tr:nth-child(${
-              index + 1
-            }) td:nth-child(3)`
-          );
-          if (scoreCell) {
-            if (score.total < 40) {
-              scoreCell.style.color = "#28a745"; // Green for good scores
-            } else if (score.total >= 40 && score.total <= 60) {
-              scoreCell.style.color = "#ffc107"; // Yellow for medium scores
-            } else {
-              scoreCell.style.color = "#dc3545"; // Red for high scores
-            }
-          }
-        });
-
-        // Add settlement explanation AFTER chart is updated
-        updateSettlementInfo(gstPercent, numPlayers, pointValue);
-      }
-
-      function updateChart(scores) {
-        const ctx = document.getElementById("scoreChart").getContext("2d");
-        const labels = scores.map((s) => s.name);
-        const data = scores.map((s) => s.total);
-
-        // Find min and max scores for relative coloring
-        const minScore = Math.min(...data);
-        const maxScore = Math.max(...data);
-        const range = maxScore - minScore;
-
-        const backgroundColors = data.map((score) => {
-          if (range === 0) {
-            // All scores are the same
-            return "rgb(128, 128, 128)"; // Gray
-          }
-
-          // Calculate relative position (0 = best, 1 = worst)
-          const position = (score - minScore) / range;
-
-          if (position <= 0.33) {
-            // Best third - Green shades (darker green for better scores)
-            const green = Math.round(255 - position * 0.33 * 100); // 255 to 155
-            return `rgb(0, ${green}, 0)`;
-          } else if (position <= 0.66) {
-            // Middle third - Yellow/Orange shades
-            const progress = (position - 0.33) / 0.33; // 0 to 1 within this range
-            const red = Math.round(255);
-            const green = Math.round(255 - progress * 127); // 255 to 128
-            return `rgb(${red}, ${green}, 0)`;
+      // Color code the leaderboard scores
+      sortedScores.forEach((score, index) => {
+        const scoreCell = document.querySelector(
+          `.leaderboard-table tbody tr:nth-child(${index + 1
+          }) td:nth-child(3)`
+        );
+        if (scoreCell) {
+          if (score.total < 40) {
+            scoreCell.style.color = "#28a745"; // Green for good scores
+          } else if (score.total >= 40 && score.total <= 60) {
+            scoreCell.style.color = "#ffc107"; // Yellow for medium scores
           } else {
-            // Worst third - Red shades (darker red for worse scores)
-            const progress = (position - 0.66) / 0.34; // 0 to 1 within this range
-            const red = Math.round(200 + progress * 55); // 200 to 255
-            return `rgb(${red}, 0, 0)`;
+            scoreCell.style.color = "#dc3545"; // Red for high scores
           }
-        });
+        }
+      });
 
-        if (chart) chart.destroy();
+      // Add settlement explanation AFTER chart is updated
+      updateSettlementInfo(gstPercent, numPlayers, pointValue);
+    }
 
-        chart = new Chart(ctx, {
-          type: "bar",
-          data: {
-            labels: labels,
-            datasets: [
-              {
-                label: "Total Score",
-                data: data,
-                backgroundColor: backgroundColors,
-                borderColor: "rgba(0,0,0,0.2)",
-                borderWidth: 1,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: {
-                display: false,
-              },
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-              },
-              x: {
-                // Removed title
-              },
-            },
-          },
-        });
+    function updateChart(scores) {
+      const ctx = document.getElementById("scoreChart").getContext("2d");
+      const labels = scores.map((s) => s.name);
+      const data = scores.map((s) => s.total);
 
-        // After chart is rendered, add settlement info
-        setTimeout(() => {
-          // Get current values for settlement info
-          const gstPercent =
-            parseFloat(document.getElementById("gstPercent").value) || 18.0;
-          const numPlayers =
-            document.querySelectorAll('input[id^="name"]').length;
-          const pointValue =
-            parseFloat(document.getElementById("pointValue").value) || 1.0;
-          updateSettlementInfo(gstPercent, numPlayers, pointValue);
-        }, 100);
-      }
+      // Find min and max scores for relative coloring
+      const minScore = Math.min(...data);
+      const maxScore = Math.max(...data);
+      const range = maxScore - minScore;
 
-      // New function to add settlement info after the chart
-      function updateSettlementInfo(gstPercent, numPlayers, pointValue) {
-        // Remove existing settlement info if any
-        const existingInfo = document.getElementById("settlementInfo");
-        if (existingInfo) {
-          existingInfo.remove();
+      const backgroundColors = data.map((score) => {
+        if (range === 0) {
+          // All scores are the same
+          return "rgb(128, 128, 128)"; // Gray
         }
 
-        // Create settlement explanation
-        const settlementHtml = `
+        // Calculate relative position (0 = best, 1 = worst)
+        const position = (score - minScore) / range;
+
+        if (position <= 0.33) {
+          // Best third - Green shades (darker green for better scores)
+          const green = Math.round(255 - position * 0.33 * 100); // 255 to 155
+          return `rgb(0, ${green}, 0)`;
+        } else if (position <= 0.66) {
+          // Middle third - Yellow/Orange shades
+          const progress = (position - 0.33) / 0.33; // 0 to 1 within this range
+          const red = Math.round(255);
+          const green = Math.round(255 - progress * 127); // 255 to 128
+          return `rgb(${red}, ${green}, 0)`;
+        } else {
+          // Worst third - Red shades (darker red for worse scores)
+          const progress = (position - 0.66) / 0.34; // 0 to 1 within this range
+          const red = Math.round(200 + progress * 55); // 200 to 255
+          return `rgb(${red}, 0, 0)`;
+        }
+      });
+
+      if (chart) chart.destroy();
+
+      chart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Total Score",
+              data: data,
+              backgroundColor: backgroundColors,
+              borderColor: "rgba(0,0,0,0.2)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false,
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
+            x: {
+              // Removed title
+            },
+          },
+        },
+      });
+
+      // After chart is rendered, add settlement info
+      setTimeout(() => {
+        // Get current values for settlement info
+        const gstPercent =
+          parseFloat(document.getElementById("gstPercent").value) || 18.0;
+        const numPlayers =
+          document.querySelectorAll('input[id^="name"]').length;
+        const pointValue =
+          parseFloat(document.getElementById("pointValue").value) || 1.0;
+        updateSettlementInfo(gstPercent, numPlayers, pointValue);
+      }, 100);
+    }
+
+    // New function to add settlement info after the chart
+    function updateSettlementInfo(gstPercent, numPlayers, pointValue) {
+      // Remove existing settlement info if any
+      const existingInfo = document.getElementById("settlementInfo");
+      if (existingInfo) {
+        existingInfo.remove();
+      }
+
+      // Create settlement explanation
+      const settlementHtml = `
 <div id="settlementInfo" style="margin-top: 30px; padding: 15px; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #007bff;">
   <h4 style="margin: 0 0 12px 0; color: #495057; font-size: 16px;">💡 How Settlement Works:</h4>
   <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #6c757d; line-height: 1.5;">
@@ -1501,445 +1487,446 @@
   </div>
 </div>`;
 
-        // Add after the chart container
-        const chartContainer = document.querySelector(".chart-container");
-        if (chartContainer) {
-          chartContainer.insertAdjacentHTML("afterend", settlementHtml);
-        }
+      // Add after the chart container
+      const chartContainer = document.querySelector(".chart-container");
+      if (chartContainer) {
+        chartContainer.insertAdjacentHTML("afterend", settlementHtml);
+      }
+    }
+
+    // Add these cloud functions after your existing functions
+
+    // Generate or get game ID
+    function getGameId() {
+      let gameId = localStorage.getItem("gameId");
+      if (!gameId) {
+        gameId = Math.random().toString(36).substr(2, 9).toUpperCase();
+        localStorage.setItem("gameId", gameId);
+      }
+      return gameId;
+    }
+
+    // Save to cloud
+    async function saveToCloud() {
+      if (!window.db) {
+        showToast(
+          "❌ Firebase Not Ready - Please refresh the page!",
+          "error"
+        );
+        return;
       }
 
-      // Add these cloud functions after your existing functions
+      const gameId = getGameId();
+      const data = localStorage.getItem("scoreData");
 
-      // Generate or get game ID
-      function getGameId() {
-        let gameId = localStorage.getItem("gameId");
-        if (!gameId) {
-          gameId = Math.random().toString(36).substr(2, 9).toUpperCase();
-          localStorage.setItem("gameId", gameId);
-        }
-        return gameId;
+      if (!data) {
+        showToast("⚠️ No game data to save to cloud!", "error");
+        return;
       }
 
-      // Save to cloud
-      async function saveToCloud() {
-        if (!window.db) {
-          showToast(
-            "❌ Firebase Not Ready - Please refresh the page!",
-            "error"
-          );
-          return;
-        }
-
-        const gameId = getGameId();
-        const data = localStorage.getItem("scoreData");
-
-        if (!data) {
-          showToast("⚠️ No game data to save to cloud!", "error");
-          return;
-        }
-
-        try {
-          const loadingToast = showToast(
-            "☁️ Saving game to cloud...",
-            "loading"
-          );
-
-          await window.firestore.setDoc(
-            window.firestore.doc(window.db, "games", gameId),
-            {
-              data: JSON.parse(data),
-              pin: localStorage.getItem("gamePin"),
-              lastUpdated: window.firestore.serverTimestamp(),
-              version: "1.0",
-            }
-          );
-
-          hideLoadingToast();
-          showToast(`✅ Game saved! ID: ${gameId}`, "success", 6000);
-        } catch (error) {
-          console.error("Save error:", error);
-          hideLoadingToast();
-          showToast(
-            "❌ Failed to save. Check your internet connection.",
-            "error"
-          );
-        }
-      }
-
-      // Load from cloud - without success popup
-      async function loadFromCloud() {
-        if (!window.db) {
-          showToast(
-            "❌ Firebase Not Ready - Please refresh the page!",
-            "error"
-          );
-          return;
-        }
-
-        const gameId = prompt("Enter Game ID to load game:");
-        if (!gameId) return;
-
-        const cleanGameId = gameId.trim().toUpperCase();
-
-        try {
-          showToast("📥 Loading game from cloud...", "loading");
-
-          const docSnap = await window.firestore.getDoc(
-            window.firestore.doc(window.db, "games", cleanGameId)
-          );
-
-          if (docSnap.exists()) {
-            const cloudData = docSnap.data();
-            localStorage.setItem("scoreData", JSON.stringify(cloudData.data));
-            localStorage.setItem("gameId", cleanGameId);
-
-            // Update point value and GST from cloud
-            document.getElementById("pointValue").value =
-              cloudData.data.pointValue || 1.0;
-            document.getElementById("gstPercent").value =
-              cloudData.data.gstPercent || 18.0;
-
-            loadData();
-
-            // Update Game ID display
-            updateGameIdDisplay();
-
-            // Show success toast
-            showToast("✅ Game loaded successfully!", "success");
-
-            // Optional: Show brief feedback in browser title
-            document.title = "⭐ Rummy Score Master (Game Loaded)";
-            setTimeout(() => (document.title = "⭐ Rummy Score Master"), 3000);
-          } else {
-            showToast(
-              "❌ Game ID not found. Please check and try again.",
-              "error"
-            );
-          }
-        } catch (error) {
-          console.error("Load error:", error);
-          showToast(
-            "❌ Failed to load game. Check your internet connection.",
-            "error"
-          );
-        }
-      }
-
-      // Auto-save to cloud (silent)
-      async function autoSaveToCloud() {
-        const gameId = localStorage.getItem("gameId");
-        if (!gameId || !window.db) return;
-
-        const data = localStorage.getItem("scoreData");
-        if (!data) return;
-
-        try {
-          await window.firestore.setDoc(
-            window.firestore.doc(window.db, "games", gameId),
-            {
-              data: JSON.parse(data),
-              pin: localStorage.getItem("gamePin"),
-              lastUpdated: window.firestore.serverTimestamp(),
-              version: "1.0",
-            }
-          );
-
-          // Show sync indicator briefly
-          document.title = "⭐ Rummy Score Master (Synced)";
-          setTimeout(() => (document.title = "⭐ Rummy Score Master"), 2000);
-        } catch (error) {
-          console.error("Auto-save failed:", error);
-        }
-      }
-
-      // Add modern toast notification system
-      function showToast(message, type = "info", duration = 4000) {
-        // Remove existing toast if any
-        const existingToast = document.getElementById("toast");
-        if (existingToast) {
-          existingToast.remove();
-        }
-
-        // Create toast element
-        const toast = document.createElement("div");
-        toast.id = "toast";
-        toast.textContent = message;
-
-        // Base styles
-        const baseStyles = {
-          position: "fixed",
-          top: "20px",
-          right: "20px",
-          padding: "12px 20px",
-          borderRadius: "8px",
-          color: "white",
-          fontWeight: "500",
-          fontSize: "14px",
-          zIndex: "9999",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          maxWidth: "350px",
-          wordWrap: "break-word",
-          animation: "slideInRight 0.3s ease-out",
-          fontFamily: "Arial, sans-serif",
-        };
-
-        // Type-specific styles
-        const typeStyles = {
-          loading: {
-            backgroundColor: "#17a2b8",
-            borderLeft: "4px solid #138496",
-          },
-          success: {
-            backgroundColor: "#28a745",
-            borderLeft: "4px solid #1e7e34",
-          },
-          error: {
-            backgroundColor: "#dc3545",
-            borderLeft: "4px solid #c82333",
-          },
-          info: {
-            backgroundColor: "#007bff",
-            borderLeft: "4px solid #0056b3",
-          },
-        };
-
-        // Apply styles
-        Object.assign(
-          toast.style,
-          baseStyles,
-          typeStyles[type] || typeStyles.info
+      try {
+        const loadingToast = showToast(
+          "☁️ Saving game to cloud...",
+          "loading"
         );
 
-        // Add loading spinner for loading type
-        if (type === "loading") {
-          const spinner = document.createElement("span");
-          spinner.innerHTML = "⏳ ";
-          spinner.style.marginRight = "8px";
-          toast.insertBefore(spinner, toast.firstChild);
-        }
-
-        // Add to document
-        document.body.appendChild(toast);
-
-        // Auto remove (except for loading type)
-        if (type !== "loading") {
-          setTimeout(() => {
-            if (toast.parentNode) {
-              toast.style.animation = "slideOutRight 0.3s ease-in";
-              setTimeout(() => toast.remove(), 300);
-            }
-          }, duration);
-        }
-
-        return toast;
-      }
-
-      // Helper function to hide loading toast
-      function hideLoadingToast() {
-        const toast = document.getElementById("toast");
-        if (toast) {
-          toast.style.animation = "slideOutRight 0.3s ease-in";
-          setTimeout(() => toast.remove(), 300);
-        }
-      }
-
-      // Add these functions to your existing script
-
-      // Function to update Game ID display
-      function updateGameIdDisplay() {
-        const gameId = localStorage.getItem("gameId");
-        const gamePin = localStorage.getItem("gamePin");
-        const display = document.getElementById("gameIdDisplay");
-        const qrContainer = document.getElementById("qrCodeContainer");
-        const gameIdPinText = document.getElementById("gameIdPinText");
-        // For copy function compatibility, keep a hidden input
-        let input = document.getElementById("gameIdInput");
-        if (!input) {
-          input = document.createElement("input");
-          input.type = "text";
-          input.id = "gameIdInput";
-          input.readOnly = true;
-          input.style.display = "none";
-          if (qrContainer && qrContainer.parentNode) {
-            qrContainer.parentNode.appendChild(input);
-          }
-        }
-        if (gameId) {
-          // Set value for copy function
-          input.value = gameId;
-          display.style.display = "block";
-          // Render QR code
-          if (qrContainer) {
-            qrContainer.innerHTML = "";
-            new QRCode(qrContainer, {
-              text: gameId,
-              width: 90,
-              height: 90,
-              colorDark: "#1565c0",
-              colorLight: "#ffffff",
-              correctLevel: QRCode.CorrectLevel.H,
-            });
-          }
-          if (gameIdPinText) {
-            gameIdPinText.textContent = `ID: ${gameId}   |   PIN: ${gamePin || ''}`;
-          }
-        } else {
-          display.style.display = "none";
-          if (qrContainer) qrContainer.innerHTML = "";
-          if (gameIdPinText) gameIdPinText.textContent = "";
-          input.value = "";
-        }
-      }
-
-      // Function to copy Game ID with subtle feedback (no popup)
-      function copyGameId() {
-        const gameIdInput = document.getElementById("gameIdInput");
-        const copyButton = document.getElementById("copyButton");
-        const gameId = gameIdInput.value;
-
-        if (!gameId) {
-          // Just change button text briefly instead of popup
-          copyButton.textContent = "❌ No ID";
-          setTimeout(() => {
-            copyButton.textContent = "📋 Copy";
-          }, 1500);
-          return;
-        }
-
-        // Copy to clipboard
-        navigator.clipboard
-          .writeText(gameId)
-          .then(() => {
-            // Visual feedback - just change the button
-            const originalText = copyButton.textContent;
-            copyButton.textContent = "✅ Copied!";
-            copyButton.classList.add("copied");
-
-            // Reset after 2 seconds
-            setTimeout(() => {
-              copyButton.textContent = originalText;
-              copyButton.classList.remove("copied");
-            }, 2000);
-          })
-          .catch(() => {
-            // Fallback for older browsers
-            gameIdInput.select();
-            document.execCommand("copy");
-
-            // Show feedback without popup
-            const originalText = copyButton.textContent;
-            copyButton.textContent = "✅ Copied!";
-            copyButton.classList.add("copied");
-
-            setTimeout(() => {
-              copyButton.textContent = originalText;
-              copyButton.classList.remove("copied");
-            }, 2000);
-          });
-      }
-
-      // Make Game ID input clickable for selection
-      document.addEventListener("DOMContentLoaded", function () {
-        const gameIdInput = document.getElementById("gameIdInput");
-        if (gameIdInput) {
-          gameIdInput.addEventListener("click", function () {
-            this.select();
-          });
-        }
-      });
-      window.onload = function () {
-        loadData();
-        updateGameIdDisplay();
-      };
-
-      // Add close game function that clears everything
-      async function closeGame() {
-        // First, save any unsaved data to cloud before clearing
-        await saveCurrentDataToCloud();
-
-        // Clear ALL localStorage data
-        localStorage.removeItem("scoreData");
-        localStorage.removeItem("gameId");
-        localStorage.removeItem("gamePin");
-        localStorage.clear(); // Remove any other related data
-
-        // Clear the game display
-        document.getElementById("scoreTableContainer").innerHTML = "";
-        document.getElementById("leaderboard").innerHTML = "";
-
-        // Clear chart
-        const canvas = document.getElementById("scoreChart");
-        const ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (chart) {
-          chart.destroy();
-          chart = null;
-        }
-
-        // Reset inputs to defaults
-        document.getElementById("pointValue").value = "1.00";
-        document.getElementById("gstPercent").value = "18.00";
-
-        // Hide Game ID display
-        const gameIdDisplay = document.getElementById("gameIdDisplay");
-        if (gameIdDisplay) {
-          gameIdDisplay.style.display = "none";
-        }
-
-        // Clear Game ID input
-        const gameIdInput = document.getElementById("gameIdInput");
-        if (gameIdInput) {
-          gameIdInput.value = "";
-        }
-
-        // Re-enable game settings
-        enableGameSettings();
-
-        // Reset page title
-        document.title = "⭐ Rummy Score Master";
-
-        // No modal needed - user can see the fresh state immediately
-      }
-
-      async function saveCurrentDataToCloud() {
-        const gameId = localStorage.getItem("gameId");
-        const data = localStorage.getItem("scoreData");
-
-        // Only save if we have both gameId and data, and Firebase is ready
-        if (!gameId || !data || !window.db) {
-          return; // Skip cloud save if no data or Firebase not ready
-        }
-
-        try {
-          // Parse existing data
-          const gameData = JSON.parse(data);
-
-          // Save current data to cloud (no device info)
-          const docRef = window.firestore.doc(window.db, "games", gameId);
-          await window.firestore.setDoc(docRef, {
-            data: gameData,
+        await window.firestore.setDoc(
+          window.firestore.doc(window.db, "games", gameId),
+          {
+            data: JSON.parse(data),
             pin: localStorage.getItem("gamePin"),
             lastUpdated: window.firestore.serverTimestamp(),
             version: "1.0",
-          });
-
-          console.log("Data saved to cloud");
-        } catch (error) {
-          console.error("Failed to save to cloud:", error);
-          // Don't show error to user, just log it
-        }
-      }
-
-      // Update confirmCloseGame message
-      function confirmCloseGame() {
-        showModal(
-          "🗑️ Clear Local Game Data",
-          "This will permanently delete all game data from your browser's local storage and reset the app. Any data saved to the cloud will remain safe. Continue?",
-          () => {
-            closeGame();
           }
         );
+
+        hideLoadingToast();
+        showToast(`✅ Game saved! ID: ${gameId}`, "success", 6000);
+      } catch (error) {
+        console.error("Save error:", error);
+        hideLoadingToast();
+        showToast(
+          "❌ Failed to save. Check your internet connection.",
+          "error"
+        );
       }
-    </script>
-  </body>
+    }
+
+    // Load from cloud - without success popup
+    async function loadFromCloud() {
+      if (!window.db) {
+        showToast(
+          "❌ Firebase Not Ready - Please refresh the page!",
+          "error"
+        );
+        return;
+      }
+
+      const gameId = prompt("Enter Game ID to load game:");
+      if (!gameId) return;
+
+      const cleanGameId = gameId.trim().toUpperCase();
+
+      try {
+        showToast("📥 Loading game from cloud...", "loading");
+
+        const docSnap = await window.firestore.getDoc(
+          window.firestore.doc(window.db, "games", cleanGameId)
+        );
+
+        if (docSnap.exists()) {
+          const cloudData = docSnap.data();
+          localStorage.setItem("scoreData", JSON.stringify(cloudData.data));
+          localStorage.setItem("gameId", cleanGameId);
+
+          // Update point value and GST from cloud
+          document.getElementById("pointValue").value =
+            cloudData.data.pointValue || 1.0;
+          document.getElementById("gstPercent").value =
+            cloudData.data.gstPercent || 18.0;
+
+          loadData();
+
+          // Update Game ID display
+          updateGameIdDisplay();
+
+          // Show success toast
+          showToast("✅ Game loaded successfully!", "success");
+
+          // Optional: Show brief feedback in browser title
+          document.title = "⭐ Rummy Score Master (Game Loaded)";
+          setTimeout(() => (document.title = "⭐ Rummy Score Master"), 3000);
+        } else {
+          showToast(
+            "❌ Game ID not found. Please check and try again.",
+            "error"
+          );
+        }
+      } catch (error) {
+        console.error("Load error:", error);
+        showToast(
+          "❌ Failed to load game. Check your internet connection.",
+          "error"
+        );
+      }
+    }
+
+    // Auto-save to cloud (silent)
+    async function autoSaveToCloud() {
+      const gameId = localStorage.getItem("gameId");
+      if (!gameId || !window.db) return;
+
+      const data = localStorage.getItem("scoreData");
+      if (!data) return;
+
+      try {
+        await window.firestore.setDoc(
+          window.firestore.doc(window.db, "games", gameId),
+          {
+            data: JSON.parse(data),
+            pin: localStorage.getItem("gamePin"),
+            lastUpdated: window.firestore.serverTimestamp(),
+            version: "1.0",
+          }
+        );
+
+        // Show sync indicator briefly
+        document.title = "⭐ Rummy Score Master (Synced)";
+        setTimeout(() => (document.title = "⭐ Rummy Score Master"), 2000);
+      } catch (error) {
+        console.error("Auto-save failed:", error);
+      }
+    }
+
+    // Add modern toast notification system
+    function showToast(message, type = "info", duration = 4000) {
+      // Remove existing toast if any
+      const existingToast = document.getElementById("toast");
+      if (existingToast) {
+        existingToast.remove();
+      }
+
+      // Create toast element
+      const toast = document.createElement("div");
+      toast.id = "toast";
+      toast.textContent = message;
+
+      // Base styles
+      const baseStyles = {
+        position: "fixed",
+        top: "20px",
+        right: "20px",
+        padding: "12px 20px",
+        borderRadius: "8px",
+        color: "white",
+        fontWeight: "500",
+        fontSize: "14px",
+        zIndex: "9999",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+        maxWidth: "350px",
+        wordWrap: "break-word",
+        animation: "slideInRight 0.3s ease-out",
+        fontFamily: "Arial, sans-serif",
+      };
+
+      // Type-specific styles
+      const typeStyles = {
+        loading: {
+          backgroundColor: "#17a2b8",
+          borderLeft: "4px solid #138496",
+        },
+        success: {
+          backgroundColor: "#28a745",
+          borderLeft: "4px solid #1e7e34",
+        },
+        error: {
+          backgroundColor: "#dc3545",
+          borderLeft: "4px solid #c82333",
+        },
+        info: {
+          backgroundColor: "#007bff",
+          borderLeft: "4px solid #0056b3",
+        },
+      };
+
+      // Apply styles
+      Object.assign(
+        toast.style,
+        baseStyles,
+        typeStyles[type] || typeStyles.info
+      );
+
+      // Add loading spinner for loading type
+      if (type === "loading") {
+        const spinner = document.createElement("span");
+        spinner.innerHTML = "⏳ ";
+        spinner.style.marginRight = "8px";
+        toast.insertBefore(spinner, toast.firstChild);
+      }
+
+      // Add to document
+      document.body.appendChild(toast);
+
+      // Auto remove (except for loading type)
+      if (type !== "loading") {
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.style.animation = "slideOutRight 0.3s ease-in";
+            setTimeout(() => toast.remove(), 300);
+          }
+        }, duration);
+      }
+
+      return toast;
+    }
+
+    // Helper function to hide loading toast
+    function hideLoadingToast() {
+      const toast = document.getElementById("toast");
+      if (toast) {
+        toast.style.animation = "slideOutRight 0.3s ease-in";
+        setTimeout(() => toast.remove(), 300);
+      }
+    }
+
+    // Add these functions to your existing script
+
+    // Function to update Game ID display
+    function updateGameIdDisplay() {
+      const gameId = localStorage.getItem("gameId");
+      const gamePin = localStorage.getItem("gamePin");
+      const display = document.getElementById("gameIdDisplay");
+      const qrContainer = document.getElementById("qrCodeContainer");
+      const gameIdPinText = document.getElementById("gameIdPinText");
+      // For copy function compatibility, keep a hidden input
+      let input = document.getElementById("gameIdInput");
+      if (!input) {
+        input = document.createElement("input");
+        input.type = "text";
+        input.id = "gameIdInput";
+        input.readOnly = true;
+        input.style.display = "none";
+        if (qrContainer && qrContainer.parentNode) {
+          qrContainer.parentNode.appendChild(input);
+        }
+      }
+      if (gameId) {
+        // Set value for copy function
+        input.value = gameId;
+        display.style.display = "block";
+        // Render QR code
+        if (qrContainer) {
+          qrContainer.innerHTML = "";
+          new QRCode(qrContainer, {
+            text: gameId,
+            width: 90,
+            height: 90,
+            colorDark: "#1565c0",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H,
+          });
+        }
+        if (gameIdPinText) {
+          gameIdPinText.textContent = `ID: ${gameId}   |   PIN: ${gamePin || ''}`;
+        }
+      } else {
+        display.style.display = "none";
+        if (qrContainer) qrContainer.innerHTML = "";
+        if (gameIdPinText) gameIdPinText.textContent = "";
+        input.value = "";
+      }
+    }
+
+    // Function to copy Game ID with subtle feedback (no popup)
+    function copyGameId() {
+      const gameIdInput = document.getElementById("gameIdInput");
+      const copyButton = document.getElementById("copyButton");
+      const gameId = gameIdInput.value;
+
+      if (!gameId) {
+        // Just change button text briefly instead of popup
+        copyButton.textContent = "❌ No ID";
+        setTimeout(() => {
+          copyButton.textContent = "📋 Copy";
+        }, 1500);
+        return;
+      }
+
+      // Copy to clipboard
+      navigator.clipboard
+        .writeText(gameId)
+        .then(() => {
+          // Visual feedback - just change the button
+          const originalText = copyButton.textContent;
+          copyButton.textContent = "✅ Copied!";
+          copyButton.classList.add("copied");
+
+          // Reset after 2 seconds
+          setTimeout(() => {
+            copyButton.textContent = originalText;
+            copyButton.classList.remove("copied");
+          }, 2000);
+        })
+        .catch(() => {
+          // Fallback for older browsers
+          gameIdInput.select();
+          document.execCommand("copy");
+
+          // Show feedback without popup
+          const originalText = copyButton.textContent;
+          copyButton.textContent = "✅ Copied!";
+          copyButton.classList.add("copied");
+
+          setTimeout(() => {
+            copyButton.textContent = originalText;
+            copyButton.classList.remove("copied");
+          }, 2000);
+        });
+    }
+
+    // Make Game ID input clickable for selection
+    document.addEventListener("DOMContentLoaded", function () {
+      const gameIdInput = document.getElementById("gameIdInput");
+      if (gameIdInput) {
+        gameIdInput.addEventListener("click", function () {
+          this.select();
+        });
+      }
+    });
+    window.onload = function () {
+      loadData();
+      updateGameIdDisplay();
+    };
+
+    // Add close game function that clears everything
+    async function closeGame() {
+      // First, save any unsaved data to cloud before clearing
+      await saveCurrentDataToCloud();
+
+      // Clear ALL localStorage data
+      localStorage.removeItem("scoreData");
+      localStorage.removeItem("gameId");
+      localStorage.removeItem("gamePin");
+      localStorage.clear(); // Remove any other related data
+
+      // Clear the game display
+      document.getElementById("scoreTableContainer").innerHTML = "";
+      document.getElementById("leaderboard").innerHTML = "";
+
+      // Clear chart
+      const canvas = document.getElementById("scoreChart");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (chart) {
+        chart.destroy();
+        chart = null;
+      }
+
+      // Reset inputs to defaults
+      document.getElementById("pointValue").value = "1.00";
+      document.getElementById("gstPercent").value = "18.00";
+
+      // Hide Game ID display
+      const gameIdDisplay = document.getElementById("gameIdDisplay");
+      if (gameIdDisplay) {
+        gameIdDisplay.style.display = "none";
+      }
+
+      // Clear Game ID input
+      const gameIdInput = document.getElementById("gameIdInput");
+      if (gameIdInput) {
+        gameIdInput.value = "";
+      }
+
+      // Re-enable game settings
+      enableGameSettings();
+
+      // Reset page title
+      document.title = "⭐ Rummy Score Master";
+
+      // No modal needed - user can see the fresh state immediately
+    }
+
+    async function saveCurrentDataToCloud() {
+      const gameId = localStorage.getItem("gameId");
+      const data = localStorage.getItem("scoreData");
+
+      // Only save if we have both gameId and data, and Firebase is ready
+      if (!gameId || !data || !window.db) {
+        return; // Skip cloud save if no data or Firebase not ready
+      }
+
+      try {
+        // Parse existing data
+        const gameData = JSON.parse(data);
+
+        // Save current data to cloud (no device info)
+        const docRef = window.firestore.doc(window.db, "games", gameId);
+        await window.firestore.setDoc(docRef, {
+          data: gameData,
+          pin: localStorage.getItem("gamePin"),
+          lastUpdated: window.firestore.serverTimestamp(),
+          version: "1.0",
+        });
+
+        console.log("Data saved to cloud");
+      } catch (error) {
+        console.error("Failed to save to cloud:", error);
+        // Don't show error to user, just log it
+      }
+    }
+
+    // Update confirmCloseGame message
+    function confirmCloseGame() {
+      showModal(
+        "🗑️ Clear Local Game Data",
+        "This will permanently delete all game data from your browser's local storage and reset the app. Any data saved to the cloud will remain safe. Continue?",
+        () => {
+          closeGame();
+        }
+      );
+    }
+  </script>
+</body>
+
 </html>
