@@ -796,21 +796,34 @@
             left: 0;
             right: 0;
             bottom: 0;
-            border: 2px solid #00ff00;
-            border-radius: 8px;
             pointer-events: none;
             display: flex;
             align-items: center;
             justify-content: center;
           ">
-            <div style="
-              width: 200px;
-              height: 200px;
-              border: 2px solid #00ff00;
-              border-radius: 8px;
+            <div id="scannerFrame" style="
+              width: 250px;
+              height: 250px;
+              border: 3px solid #00ff00;
+              border-radius: 12px;
               background: rgba(0, 255, 0, 0.1);
               animation: scannerPulse 2s infinite;
-            "></div>
+              position: relative;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <div style="
+                color: #00ff00;
+                font-size: 16px;
+                font-weight: bold;
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                text-align: center;
+                padding: 10px;
+              ">
+                📱 Position QR Code Here
+              </div>
+            </div>
           </div>
           <canvas id="qrScannerCanvas" style="display: none;"></canvas>
         </div>
@@ -818,7 +831,26 @@
           <p id="scannerStatus" style="color: #007bff; font-size: 14px; margin: 10px 0; font-weight: 500;">
             📷 Starting camera...
           </p>
-          <div style="display: flex; gap: 10px; justify-content: center;">
+          <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button id="switchCameraBtn" onclick="switchCamera()" style="
+              background-color: #17a2b8;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              padding: 8px 16px;
+              cursor: pointer;
+              font-size: 14px;
+              display: none;
+            ">🔄 Switch Camera</button>
+            <button onclick="manualEntry()" style="
+              background-color: #ffc107;
+              color: #212529;
+              border: none;
+              border-radius: 4px;
+              padding: 8px 16px;
+              cursor: pointer;
+              font-size: 14px;
+            ">⌨️ Manual Entry</button>
             <button onclick="closeQRScanner()" style="
               background-color: #6c757d;
               color: white;
@@ -1688,6 +1720,53 @@
     // QR Scanner variables
     let qrStream = null;
     let qrScanInterval = null;
+    let currentCamera = "environment"; // "environment" for back camera, "user" for front camera
+
+    // Manual entry function
+    function manualEntry() {
+      closeQRScanner();
+      const gameId = prompt("Enter Game ID to load game:");
+      if (gameId && gameId.trim()) {
+        loadGameById(gameId.trim().toUpperCase());
+      }
+    }
+
+    // Switch camera function
+    async function switchCamera() {
+      const switchBtn = document.getElementById("switchCameraBtn");
+      const statusText = document.getElementById("scannerStatus");
+      
+      // Disable button temporarily
+      switchBtn.disabled = true;
+      switchBtn.textContent = "🔄 Switching...";
+      
+      // Stop current stream
+      if (qrStream) {
+        qrStream.getTracks().forEach(track => track.stop());
+        qrStream = null;
+      }
+      
+      // Clear scanning interval
+      if (qrScanInterval) {
+        clearInterval(qrScanInterval);
+        qrScanInterval = null;
+      }
+      
+      // Switch camera
+      currentCamera = currentCamera === "environment" ? "user" : "environment";
+      
+      // Restart scanner with new camera
+      try {
+        await startQRScanner();
+        switchBtn.textContent = currentCamera === "environment" ? "📱 Front Camera" : "📹 Back Camera";
+      } catch (error) {
+        statusText.textContent = "❌ Failed to switch camera";
+        statusText.style.color = "#dc3545";
+        switchBtn.textContent = "🔄 Switch Camera";
+      }
+      
+      switchBtn.disabled = false;
+    }
 
     // Start QR Scanner
     async function startQRScanner() {
@@ -1704,7 +1783,7 @@
         // Request camera access
         qrStream = await navigator.mediaDevices.getUserMedia({ 
           video: { 
-            facingMode: "environment", // Use back camera if available
+            facingMode: currentCamera, // Use current camera setting
             width: { ideal: 1280 },
             height: { ideal: 720 }
           } 
@@ -1712,6 +1791,13 @@
         
         video.srcObject = qrStream;
         video.play();
+
+        // Show switch camera button once camera is working
+        const switchBtn = document.getElementById("switchCameraBtn");
+        if (switchBtn) {
+          switchBtn.style.display = "inline-block";
+          switchBtn.textContent = currentCamera === "environment" ? "📱 Front Camera" : "📹 Back Camera";
+        }
 
         // Update status
         statusText.textContent = "🔍 Scanning for QR code... Position it within the green frame";
@@ -1732,7 +1818,26 @@
               const code = jsQR(imageData.data, imageData.width, imageData.height);
               
               if (code && code.data) {
-                // QR code found!
+                // QR code found! Update visual feedback
+                const scannerFrame = document.getElementById("scannerFrame");
+                if (scannerFrame) {
+                  scannerFrame.style.borderColor = "#ffc107";
+                  scannerFrame.style.background = "rgba(255, 193, 7, 0.2)";
+                  scannerFrame.innerHTML = `
+                    <div style="
+                      color: #ffc107;
+                      font-size: 18px;
+                      font-weight: bold;
+                      text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                      text-align: center;
+                      padding: 10px;
+                    ">
+                      ✅ QR Code Found!<br>
+                      <small>Processing...</small>
+                    </div>
+                  `;
+                }
+                
                 statusText.textContent = "✅ QR Code detected! Loading game...";
                 statusText.style.color = "#28a745";
                 
@@ -1775,6 +1880,7 @@
     function closeQRScanner() {
       const video = document.getElementById("qrScannerVideo");
       const statusText = document.getElementById("scannerStatus");
+      const switchBtn = document.getElementById("switchCameraBtn");
       
       // Stop camera stream
       if (qrStream) {
@@ -1795,6 +1901,30 @@
       if (statusText) {
         statusText.textContent = "📷 Starting camera...";
         statusText.style.color = "#007bff";
+      }
+
+      // Hide switch camera button
+      if (switchBtn) {
+        switchBtn.style.display = "none";
+      }
+
+      // Reset scanner frame
+      const scannerFrame = document.getElementById("scannerFrame");
+      if (scannerFrame) {
+        scannerFrame.style.borderColor = "#00ff00";
+        scannerFrame.style.background = "rgba(0, 255, 0, 0.1)";
+        scannerFrame.innerHTML = `
+          <div style="
+            color: #00ff00;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            text-align: center;
+            padding: 10px;
+          ">
+            📱 Position QR Code Here
+          </div>
+        `;
       }
 
       // Close modal
