@@ -775,6 +775,46 @@
           </label>
         </div>
         
+        <!-- PIN Input Container (initially hidden) -->
+        <div id="pinContainer" style="
+          display: none;
+          margin: 15px 0;
+          padding: 15px;
+          background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+          border: 2px solid #ffc107;
+          border-radius: 8px;
+          text-align: center;
+        ">
+          <label for="pinInput" style="
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #856404;
+            font-size: 14px;
+          ">
+            🔐 Enter PIN for Edit Access:
+          </label>
+          <input type="password" id="pinInput" maxlength="4" placeholder="4-digit PIN" style="
+            width: 120px;
+            padding: 10px 8px;
+            text-align: center;
+            border: 2px solid #ffc107;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            background-color: white;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+          ">
+          <div id="pinMessage" style="
+            margin-top: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            min-height: 18px;
+            transition: all 0.3s ease;
+          "></div>
+        </div>
+        
         <div id="qrScannerContainer" style="
           position: relative;
           width: 100%;
@@ -1711,6 +1751,33 @@
       // Open QR scanner modal and automatically start camera
       document.getElementById("qrScannerModal").style.display = "block";
       
+      // Reset mode selection and PIN verification state
+      currentScanMode = "view";
+      isPINVerified = false;
+      
+      // Reset radio buttons to View Only as default
+      const viewRadio = document.querySelector('input[name="scanMode"][value="view"]');
+      if (viewRadio) {
+        viewRadio.checked = true;
+      }
+      
+      // Hide PIN container initially
+      const pinContainer = document.getElementById("pinContainer");
+      const pinInput = document.getElementById("pinInput");
+      const pinMessage = document.getElementById("pinMessage");
+      if (pinContainer) {
+        pinContainer.style.display = "none";
+      }
+      if (pinInput) {
+        pinInput.value = "";
+      }
+      if (pinMessage) {
+        pinMessage.textContent = "";
+      }
+      
+      // Clear any temporary game ID
+      window.tempGameId = null;
+      
       // Automatically start the camera
       setTimeout(() => {
         startQRScanner();
@@ -1722,12 +1789,166 @@
     let qrScanInterval = null;
     let currentCamera = "environment"; // "environment" for back camera, "user" for front camera
 
+    // Variables to store mode and PIN verification state
+    let currentScanMode = "view";
+    let isPINVerified = false;
+
+    // PIN validation function
+    async function validatePIN(enteredPIN) {
+      const pinMessage = document.getElementById("pinMessage");
+      const gameId = localStorage.getItem("gameId") || getCurrentGameIdFromScanner();
+      
+      if (!gameId) {
+        pinMessage.textContent = "⚠️ Please scan QR code first to get Game ID";
+        pinMessage.style.color = "#dc3545";
+        return;
+      }
+
+      if (!window.db) {
+        pinMessage.textContent = "❌ Database not ready. Please try again.";
+        pinMessage.style.color = "#dc3545";
+        return;
+      }
+
+      try {
+        pinMessage.textContent = "🔍 Verifying PIN...";
+        pinMessage.style.color = "#007bff";
+
+        // Fetch game data from cloud to get stored PIN
+        const docSnap = await window.firestore.getDoc(
+          window.firestore.doc(window.db, "games", gameId)
+        );
+
+        if (docSnap.exists()) {
+          const cloudData = docSnap.data();
+          const storedPIN = cloudData.pin;
+
+          if (storedPIN === enteredPIN) {
+            // PIN matches
+            pinMessage.textContent = "✅ PIN matched! You are in Edit Mode";
+            pinMessage.style.color = "#28a745";
+            isPINVerified = true;
+            currentScanMode = "edit";
+            
+            // Close scanner and load game in edit mode
+            setTimeout(() => {
+              closeQRScanner();
+              loadGameById(gameId, "edit");
+            }, 1000);
+          } else {
+            // PIN doesn't match
+            pinMessage.textContent = "❌ PIN not matched. Switching to View Mode";
+            pinMessage.style.color = "#dc3545";
+            isPINVerified = false;
+            currentScanMode = "view";
+            
+            // Switch to view mode radio button
+            const viewRadio = document.querySelector('input[name="scanMode"][value="view"]');
+            if (viewRadio) {
+              viewRadio.checked = true;
+            }
+            
+            // Hide PIN container after failed attempt
+            setTimeout(() => {
+              document.getElementById("pinContainer").style.display = "none";
+            }, 2000);
+          }
+        } else {
+          pinMessage.textContent = "❌ Game not found in cloud database";
+          pinMessage.style.color = "#dc3545";
+          isPINVerified = false;
+          currentScanMode = "view";
+        }
+      } catch (error) {
+        console.error("PIN validation error:", error);
+        pinMessage.textContent = "❌ PIN verification failed. Network error.";
+        pinMessage.style.color = "#dc3545";
+        isPINVerified = false;
+        currentScanMode = "view";
+      }
+    }
+
+    // Helper function to get current game ID from scanner context
+    function getCurrentGameIdFromScanner() {
+      // This will be set when QR code is scanned but before loading
+      return window.tempGameId || null;
+    }
+
     // Manual entry function
     function manualEntry() {
+      // Get the current selected mode before closing scanner
+      const selectedMode = document.querySelector('input[name="scanMode"]:checked').value;
+      
       closeQRScanner();
+      
       const gameId = prompt("Enter Game ID to load game:");
       if (gameId && gameId.trim()) {
-        loadGameById(gameId.trim().toUpperCase());
+        const cleanGameId = gameId.trim().toUpperCase();
+        
+        if (selectedMode === "view") {
+          // View mode - load directly
+          currentScanMode = "view";
+          isPINVerified = false;
+          loadGameById(cleanGameId, "view");
+        } else {
+          // Edit mode - prompt for PIN
+          const enteredPIN = prompt("Enter 4-digit PIN for Edit access:");
+          if (enteredPIN && enteredPIN.trim().length === 4) {
+            // Store game ID temporarily and validate PIN
+            window.tempGameId = cleanGameId;
+            validatePINAndLoad(cleanGameId, enteredPIN.trim());
+          } else if (enteredPIN !== null) {
+            // User entered invalid PIN format
+            showToast("❌ Invalid PIN format. Please enter a 4-digit PIN.", "error");
+          }
+          // If user cancelled PIN prompt, do nothing
+        }
+      }
+    }
+
+    // Helper function for manual entry PIN validation
+    async function validatePINAndLoad(gameId, enteredPIN) {
+      if (!window.db) {
+        showToast("❌ Database not ready. Please try again.", "error");
+        return;
+      }
+
+      try {
+        showToast("🔍 Verifying PIN...", "loading");
+
+        const docSnap = await window.firestore.getDoc(
+          window.firestore.doc(window.db, "games", gameId)
+        );
+
+        if (docSnap.exists()) {
+          const cloudData = docSnap.data();
+          const storedPIN = cloudData.pin;
+
+          if (storedPIN === enteredPIN) {
+            // PIN matches
+            isPINVerified = true;
+            currentScanMode = "edit";
+            hideLoadingToast();
+            loadGameById(gameId, "edit");
+          } else {
+            // PIN doesn't match
+            hideLoadingToast();
+            showToast("❌ PIN not matched. Loading in View Only mode instead.", "error", 6000);
+            isPINVerified = false;
+            currentScanMode = "view";
+            loadGameById(gameId, "view");
+          }
+        } else {
+          hideLoadingToast();
+          showToast("❌ Game not found in cloud database", "error");
+        }
+      } catch (error) {
+        console.error("PIN validation error:", error);
+        hideLoadingToast();
+        showToast("❌ PIN verification failed. Loading in View Only mode.", "error", 6000);
+        isPINVerified = false;
+        currentScanMode = "view";
+        loadGameById(gameId, "view");
       }
     }
 
@@ -1838,21 +2059,47 @@
                   `;
                 }
                 
-                statusText.textContent = "✅ QR Code detected! Loading game...";
-                statusText.style.color = "#28a745";
-                
-                // Check which mode is selected and show appropriate toast
+                // Get the selected mode
                 const selectedMode = document.querySelector('input[name="scanMode"]:checked').value;
                 const gameId = code.data.trim().toUpperCase();
                 
-                if (selectedMode === "view") {
-                  showToast(`👁️ Scanning in View Only mode - Game ID: ${gameId}`, "info", 4000);
-                } else {
-                  showToast(`✏️ Scanning in Edit mode - Game ID: ${gameId}`, "info", 4000);
-                }
+                // Store the game ID temporarily for PIN validation
+                window.tempGameId = gameId;
                 
-                closeQRScanner();
-                loadGameById(gameId);
+                if (selectedMode === "view") {
+                  // View mode - no PIN required
+                  statusText.textContent = "✅ QR Code detected! Loading in View Only mode...";
+                  statusText.style.color = "#28a745";
+                  showToast(`👁️ Loading in View Only mode - Game ID: ${gameId}`, "info", 4000);
+                  currentScanMode = "view";
+                  isPINVerified = false;
+                  closeQRScanner();
+                  loadGameById(gameId);
+                } else {
+                  // Edit mode - PIN verification required
+                  statusText.textContent = "✅ QR Code detected! Please verify PIN for Edit access...";
+                  statusText.style.color = "#ffc107";
+                  
+                  // Stop scanning since we found the QR code
+                  clearInterval(qrScanInterval);
+                  qrScanInterval = null;
+                  
+                  // Show PIN message and focus on PIN input
+                  const pinInput = document.getElementById("pinInput");
+                  const pinMessage = document.getElementById("pinMessage");
+                  
+                  if (pinMessage) {
+                    pinMessage.textContent = `🔐 Enter PIN for Game ID: ${gameId}`;
+                    pinMessage.style.color = "#007bff";
+                  }
+                  
+                  if (pinInput) {
+                    pinInput.focus();
+                    pinInput.select();
+                  }
+                  
+                  showToast(`🔐 QR Code found! Enter PIN to access Edit mode`, "info", 6000);
+                }
               }
             }
           }, 300); // Check every 300ms
@@ -1932,7 +2179,7 @@
     }
 
     // Load game by ID (extracted from original loadFromCloud function)
-    async function loadGameById(gameId) {
+    async function loadGameById(gameId, mode = currentScanMode) {
       if (!gameId) return;
 
       try {
@@ -1958,12 +2205,21 @@
           // Update Game ID display
           updateGameIdDisplay();
 
-          // Show success toast
-          showToast(`✅ Game loaded successfully! ID: ${gameId}`, "success");
+          // Show success toast based on mode
+          if (mode === "edit" && isPINVerified) {
+            showToast(`✅ Game loaded in Edit Mode! ID: ${gameId}`, "success", 5000);
+            // Optional: Show edit mode indicator in title
+            document.title = "⭐ Rummy Score Master (Edit Mode)";
+            setTimeout(() => (document.title = "⭐ Rummy Score Master"), 5000);
+          } else {
+            showToast(`👁️ Game loaded in View Only Mode! ID: ${gameId}`, "info", 5000);
+            // Optional: Show view mode indicator in title
+            document.title = "⭐ Rummy Score Master (View Only)";
+            setTimeout(() => (document.title = "⭐ Rummy Score Master"), 5000);
+          }
 
-          // Optional: Show brief feedback in browser title
-          document.title = "⭐ Rummy Score Master (Game Loaded)";
-          setTimeout(() => (document.title = "⭐ Rummy Score Master"), 3000);
+          // Clear temporary game ID
+          window.tempGameId = null;
         } else {
           showToast(
             "❌ Game ID not found. Please check and try again.",
@@ -2191,6 +2447,54 @@
       if (gameIdInput) {
         gameIdInput.addEventListener("click", function () {
           this.select();
+        });
+      }
+
+      // Handle scan mode radio button changes
+      const modeRadios = document.querySelectorAll('input[name="scanMode"]');
+      const pinContainer = document.getElementById("pinContainer");
+      const pinInput = document.getElementById("pinInput");
+      const pinMessage = document.getElementById("pinMessage");
+
+      modeRadios.forEach(radio => {
+        radio.addEventListener("change", function() {
+          if (this.value === "edit") {
+            // Show PIN container for edit mode
+            pinContainer.style.display = "block";
+            pinMessage.textContent = "";
+            pinMessage.style.color = "#856404";
+            pinInput.value = "";
+            pinInput.focus();
+          } else {
+            // Hide PIN container for view mode
+            pinContainer.style.display = "none";
+            pinMessage.textContent = "👁️ View Only Mode - No PIN required";
+            pinMessage.style.color = "#28a745";
+          }
+        });
+      });
+
+      // Handle PIN input for real-time validation
+      if (pinInput) {
+        pinInput.addEventListener("input", function() {
+          // Only allow numeric input
+          this.value = this.value.replace(/[^0-9]/g, '');
+          
+          // Clear any previous message
+          pinMessage.textContent = "";
+          pinMessage.style.color = "#856404";
+          
+          // If PIN is complete (4 digits), validate it
+          if (this.value.length === 4) {
+            setTimeout(() => validatePIN(this.value), 300); // Small delay for better UX
+          }
+        });
+
+        // Handle Enter key on PIN input
+        pinInput.addEventListener("keypress", function(e) {
+          if (e.key === "Enter" && this.value.length === 4) {
+            validatePIN(this.value);
+          }
         });
       }
 
