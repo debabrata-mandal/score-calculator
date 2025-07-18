@@ -1697,6 +1697,86 @@
       const numPlayers =
         document.querySelectorAll('input[id^="name"]').length;
 
+      // First, reset all column borders
+      for (let j = 1; j <= 10; j++) {
+        const headerCell = document.querySelector(`table th:nth-child(${j + 1})`);
+        if (headerCell) {
+          headerCell.style.border = "1px solid #ccc";
+        }
+        
+        for (let i = 1; i <= numPlayers; i++) {
+          const cell = document.querySelector(`table tbody tr:nth-child(${i}) td:nth-child(${j + 1})`);
+          if (cell) {
+            cell.style.border = "1px solid #ccc";
+          }
+        }
+      }
+
+      // Check each round for negative values and apply styling
+      for (let j = 1; j <= 10; j++) {
+        let hasNegativeValue = false;
+        let hasPositiveValue = false;
+        let allValidScores = true;
+        
+        // Check if any player has negative score and if all have positive scores in this round
+        for (let i = 1; i <= numPlayers; i++) {
+          const input = document.getElementById(`p${i}r${j}`);
+          if (input) {
+            const val = parseInt(input.value);
+            if (!isNaN(val)) {
+              if (val < 0 || val === -1) {
+                hasNegativeValue = true;
+              } else if (val > 0) {
+                hasPositiveValue = true;
+              }
+            } else {
+              // Empty or invalid value - treat as negative
+              hasNegativeValue = true;
+              allValidScores = false;
+            }
+          } else {
+            // No input element - treat as negative
+            hasNegativeValue = true;
+            allValidScores = false;
+          }
+        }
+        
+        // Apply border styling based on round status
+        const headerCell = document.querySelector(`table th:nth-child(${j + 1})`);
+        
+        if (hasNegativeValue) {
+          // Red border for rounds with negative scores
+          if (headerCell) {
+            headerCell.style.border = "2px solid #dc3545";
+            headerCell.style.borderRadius = "4px";
+          }
+          
+          for (let i = 1; i <= numPlayers; i++) {
+            const cell = document.querySelector(`table tbody tr:nth-child(${i}) td:nth-child(${j + 1})`);
+            if (cell) {
+              cell.style.border = "2px solid #dc3545";
+              cell.style.borderRadius = "4px";
+            }
+          }
+        } else if (hasPositiveValue && allValidScores) {
+          // Green border for rounds where all players have positive scores
+          if (headerCell) {
+            headerCell.style.border = "2px solid #28a745";
+            headerCell.style.borderRadius = "4px";
+          }
+          
+          for (let i = 1; i <= numPlayers; i++) {
+            const cell = document.querySelector(`table tbody tr:nth-child(${i}) td:nth-child(${j + 1})`);
+            if (cell) {
+              cell.style.border = "2px solid #28a745";
+              cell.style.borderRadius = "4px";
+            }
+          }
+        }
+        // If neither condition is met, the default border (already set above) remains
+      }
+
+      // Apply individual cell color coding
       for (let i = 1; i <= numPlayers; i++) {
         for (let j = 1; j <= 10; j++) {
           const input = document.getElementById(`p${i}r${j}`);
@@ -1706,15 +1786,22 @@
             if (isNaN(val) || val === -1) {
               input.style.color = "#6c757d"; // Gray for -1
               input.style.fontStyle = "italic";
+            } else if (val < 0) {
+              input.style.color = "#dc3545"; // Red for negative scores
+              input.style.fontStyle = "normal";
+              input.style.fontWeight = "bold";
             } else if (val < 40) {
               input.style.color = "#28a745"; // Green for low scores (good)
               input.style.fontStyle = "normal";
+              input.style.fontWeight = "normal";
             } else if (val >= 40 && val <= 60) {
               input.style.color = "#ffc107"; // Yellow for medium scores
               input.style.fontStyle = "normal";
+              input.style.fontWeight = "normal";
             } else {
               input.style.color = "#dc3545"; // Red for high scores (bad)
               input.style.fontStyle = "normal";
+              input.style.fontWeight = "normal";
             }
           }
         }
