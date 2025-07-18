@@ -681,6 +681,112 @@
         max-width: none !important;
         font-size: 13px !important;
       }
+
+      /* Game Setup Section Mobile Styles */
+      .controls {
+        margin-top: 10px;
+        padding: 0 5px; /* Add horizontal padding to prevent cutoff */
+      }
+
+      /* Game Setup Group - Mobile */
+      .controls > div:first-child {
+        padding: 12px !important;
+        margin-bottom: 8px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      .controls > div:first-child h3 {
+        font-size: 14px !important;
+        margin-bottom: 10px !important;
+        text-align: center !important;
+        width: 100% !important;
+      }
+
+      /* Financial Settings - Mobile: Stack vertically with better alignment */
+      .controls > div:first-child > div:first-child {
+        flex-direction: column !important;
+        gap: 10px !important;
+        margin-bottom: 12px !important;
+        align-items: stretch !important;
+        width: 100% !important;
+      }
+
+      /* Individual input groups - Mobile: Consistent width and alignment */
+      .controls > div:first-child > div:first-child > div {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        width: 100% !important;
+        padding: 10px 15px !important;
+        background: rgba(255, 255, 255, 0.8) !important;
+        border-radius: 6px !important;
+        border: 1px solid #dee2e6 !important;
+        box-sizing: border-box !important;
+      }
+
+      .controls > div:first-child > div:first-child > div label {
+        font-size: 14px !important;
+        margin: 0 !important;
+        flex-shrink: 0 !important;
+        font-weight: 600 !important;
+        color: #495057 !important;
+        width: auto !important;
+        text-align: left !important;
+      }
+
+      .controls > div:first-child > div:first-child > div span {
+        font-size: 14px !important;
+        margin: 0 !important;
+        font-weight: 600 !important;
+        color: #495057 !important;
+      }
+
+      .controls > div:first-child > div:first-child > div input {
+        width: 100px !important;
+        padding: 8px 12px !important;
+        font-size: 16px !important;
+        margin: 0 !important;
+        flex-shrink: 0 !important;
+        text-align: center !important;
+        border: 2px solid #ced4da !important;
+        border-radius: 4px !important;
+        font-weight: 600 !important;
+      }
+
+      /* Start Game Button - Mobile */
+      .controls > div:first-child > div:last-child {
+        text-align: center !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+      }
+
+      .controls > div:first-child > div:last-child button {
+        padding: 12px 20px !important;
+        font-size: 15px !important;
+        width: 100% !important;
+        max-width: 280px !important;
+        margin: 0 auto !important;
+      }
+
+      /* Game Setup Start Button - Mobile Full Width */
+      .start-play-button {
+        width: 100% !important;
+      }
+
+      /* Game Management Actions - Mobile */
+      .controls > div:last-child {
+        flex-direction: column !important;
+        gap: 8px !important;
+      }
+
+      .controls > div:last-child button {
+        width: 100% !important;
+        padding: 12px 18px !important;
+        font-size: 14px !important;
+      }
     }
   </style>
 </head>
@@ -905,28 +1011,66 @@
       </div>
     </div>
 
-    <!-- Controls section with aligned buttons -->
+    <!-- Game Setup Section -->
     <div class="controls" style="margin-top: 10px">
-      <!-- Financial inputs group -->
-      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
-        <label for="pointValue">Point Value: ₹</label>
-        <input type="number" id="pointValue" min="0" step="0.01" value="1.00" style="width: 80px"
-          onchange="saveData();" />
-
-        <label for="gstPercent">GST%: </label>
-        <input type="number" id="gstPercent" min="0" max="100" step="0.01" value="18.00" style="width: 80px"
-          onchange="saveData();" />
+      <!-- Game Setup Group -->
+      <div style="
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 15px;
+        border-radius: 8px;
+        border: 2px solid #dee2e6;
+        margin-bottom: 10px;
+      ">
+        <h3 style="
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          color: #495057;
+          text-align: center;
+        ">🎮 Game Setup</h3>
+        
+        <!-- Financial Settings -->
+        <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px">
+          <div style="display: flex; align-items: center; gap: 8px; min-width: 180px">
+            <label for="pointValue" style="font-weight: 600; color: #495057; white-space: nowrap; width: 100px; text-align: right">Point Value:</label>
+            <span style="font-weight: 600; color: #495057; width: 12px; text-align: center">₹</span>
+            <input type="number" id="pointValue" min="0" step="0.01" value="1.00" style="width: 80px; padding: 6px; border: 2px solid #ced4da; border-radius: 4px; text-align: center; font-weight: 600"
+              onchange="saveData();" />
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 8px; min-width: 180px">
+            <label for="gstPercent" style="font-weight: 600; color: #495057; white-space: nowrap; width: 100px; text-align: right">GST Value:</label>
+            <span style="font-weight: 600; color: #495057; width: 12px; text-align: center">%</span>
+            <input type="number" id="gstPercent" min="0" max="100" step="0.01" value="18.00" style="width: 80px; padding: 6px; border: 2px solid #ced4da; border-radius: 4px; text-align: center; font-weight: 600"
+              onchange="saveData();" />
+          </div>
+        </div>
+        
+        <!-- Start Game Button -->
+        <div style="text-align: center">
+          <button class="start-play-button" onclick="startNewGame()" style="
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(40, 167, 69, 0.3);
+            transition: all 0.3s ease;
+          " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(40, 167, 69, 0.4)'" 
+             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(40, 167, 69, 0.3)'">
+            🎮 Start New Game
+          </button>
+        </div>
       </div>
 
-      <!-- Action buttons group -->
-      <div style="display: flex; gap: 10px; flex-wrap: wrap">
-        <button onclick="loadFromCloud()" style="background-color: #17a2b8">
-          � Scan QR / Load Game
+      <!-- Game Management Actions -->
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center">
+        <button onclick="loadFromCloud()" style="background-color: #17a2b8; padding: 10px 18px; border-radius: 6px; font-weight: 600">
+          📱 Scan QR / Load Game
         </button>
-        <button class="start-play-button" onclick="startNewGame()">
-          🎮 Start Play
-        </button>
-        <button id="closeGameButton" onclick="confirmCloseGame()" style="background-color: #dc3545; display: none">
+        <button id="closeGameButton" onclick="confirmCloseGame()" style="background-color: #dc3545; display: none; padding: 10px 18px; border-radius: 6px; font-weight: 600">
           🗑️ Close Game
         </button>
       </div>
