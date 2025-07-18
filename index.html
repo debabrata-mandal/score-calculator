@@ -841,6 +841,33 @@
       .controls div[style*="text-align: center"] .start-play-button {
         margin: 0 auto !important;
       }
+
+      /* Game Management Section - Mobile */
+      #gameManagementSection {
+        padding: 12px !important;
+        margin-bottom: 10px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      #gameManagementSection h3 {
+        font-size: 14px !important;
+        margin-bottom: 10px !important;
+        text-align: center !important;
+        width: 100% !important;
+      }
+
+      #gameManagementSection > div:first-child {
+        justify-content: center !important;
+      }
+
+      #gameManagementSection button {
+        width: 100% !important;
+        max-width: 280px !important;
+        padding: 12px 18px !important;
+        font-size: 14px !important;
+        margin: 0 auto !important;
+      }
     }
   </style>
 </head>
@@ -1098,22 +1125,6 @@
              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(23, 162, 184, 0.3)'">
             📱 Scan QR / Load Game
           </button>
-          <button id="closeGameButton" onclick="confirmCloseGame()" style="
-            background: linear-gradient(135deg, #dc3545, #c82333);
-            color: white;
-            padding: 10px 18px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-            box-shadow: 0 3px 8px rgba(220, 53, 69, 0.3);
-            transition: all 0.3s ease;
-            display: none;
-          " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(220, 53, 69, 0.4)'" 
-             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(220, 53, 69, 0.3)'">
-            🗑️ Close Game
-          </button>
         </div>
         
         <!-- Load Game Helper Text -->
@@ -1188,6 +1199,46 @@
             <li><strong>Start Game:</strong> Creates a new game with QR code for sharing</li>
           </ul>
         </div>
+      </div>
+    </div>
+
+    <!-- Game Management Section (appears only when game is active) -->
+    <div id="gameManagementSection" style="
+      background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+      padding: 15px;
+      border-radius: 8px;
+      border: 2px solid #ffc107;
+      margin-bottom: 10px;
+      display: none;
+    ">
+      <h3 style="
+        margin: 0 0 12px 0;
+        font-size: 16px;
+        color: #856404;
+        text-align: center;
+      ">⚙️ Game Management</h3>
+      
+      <div style="display: flex; justify-content: center; margin-bottom: 12px">
+        <button id="closeGameButton" onclick="confirmCloseGame()" style="
+          background: linear-gradient(135deg, #dc3545, #c82333);
+          color: white;
+          padding: 10px 18px;
+          border: none;
+          border-radius: 6px;
+          font-weight: 600;
+          cursor: pointer;
+          font-size: 14px;
+          box-shadow: 0 3px 8px rgba(220, 53, 69, 0.3);
+          transition: all 0.3s ease;
+        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(220, 53, 69, 0.4)'" 
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(220, 53, 69, 0.3)'">
+          🗑️ Close Game
+        </button>
+      </div>
+      
+      <!-- Game Management Helper Text -->
+      <div style="margin-top: 12px; padding: 8px; background-color: #fff8e1; border-radius: 6px; border-left: 4px solid #ffc107; text-align: center;">
+        <p style="margin: 0; font-size: 12px; color: #856404; font-weight: 500;">End current game and return to setup screen</p>
       </div>
     </div>
 
@@ -1357,9 +1408,10 @@
           "Game is already in progress. Close game to start new one.";
       }
 
-      // Show close game button
-      if (closeButton) {
-        closeButton.style.display = "inline-block";
+      // Show Game Management section
+      const gameManagementSection = document.getElementById("gameManagementSection");
+      if (gameManagementSection) {
+        gameManagementSection.style.display = "block";
       }
     }
 
@@ -1405,9 +1457,10 @@
         startButton.title = "";
       }
 
-      // Hide close game button
-      if (closeButton) {
-        closeButton.style.display = "none";
+      // Hide Game Management section
+      const gameManagementSection = document.getElementById("gameManagementSection");
+      if (gameManagementSection) {
+        gameManagementSection.style.display = "none";
       }
     }
 
