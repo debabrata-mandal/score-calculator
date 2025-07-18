@@ -247,6 +247,13 @@
         width: 100%;
       }
 
+      /* Mobile styles for delete buttons */
+      button[onclick^="deletePlayer"] {
+        padding: 2px 4px !important;
+        font-size: 10px !important;
+        min-width: 35px !important;
+      }
+
       .controls {
         flex-direction: row;
         /* Keep row direction instead of column */
@@ -1618,6 +1625,65 @@
       generateTable(savedData);
     }
 
+    function deletePlayer(playerIndex) {
+      // Prevent deleting players in view-only mode
+      if (isViewOnlyMode) {
+        showToast("❌ Cannot delete players in View Only mode", "error");
+        return;
+      }
+
+      // Get current number of players
+      const currentPlayers = document.querySelectorAll('input[id^="name"]').length;
+
+      if (currentPlayers <= 2) {
+        showModal(
+          "⚠️ Minimum Players Required",
+          "At least 2 players are required to play the game!",
+          null
+        );
+        return;
+      }
+
+      // Get player name for confirmation
+      const nameInput = document.getElementById(`name${playerIndex}`);
+      const playerName = nameInput ? nameInput.value.trim() || `Player ${playerIndex}` : `Player ${playerIndex}`;
+
+      // Show confirmation modal
+      showModal(
+        "🗑️ Delete Player",
+        `Are you sure you want to delete "${playerName}"? This action cannot be undone.`,
+        () => {
+          performDeletePlayer(playerIndex);
+        }
+      );
+    }
+
+    function performDeletePlayer(playerIndex) {
+      // Save current data first
+      saveData();
+
+      // Get existing data
+      const saved = localStorage.getItem("scoreData");
+      if (!saved) return;
+
+      const savedData = JSON.parse(saved);
+      
+      // Remove the player from the data
+      if (savedData.players && savedData.players.length > playerIndex - 1) {
+        savedData.players.splice(playerIndex - 1, 1);
+        savedData.numPlayers = savedData.players.length;
+      }
+
+      // Update localStorage with new data
+      localStorage.setItem("scoreData", JSON.stringify(savedData));
+
+      // Regenerate table with updated data
+      generateTable(savedData);
+
+      // Show success message
+      showToast(`✅ Player deleted successfully`, "success", 3000);
+    }
+
     // Update the generateTable function to include the Add Player button at the end
     function generateTable(savedData = null) {
       let numPlayers;
@@ -1684,6 +1750,26 @@
           </div>
         </th>`;
       }
+      
+      // Add delete column header
+      html += `<th style="
+        border: 1px solid #495057; 
+        padding: 12px 8px; 
+        text-align: center; 
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        font-weight: 700;
+        font-size: 12px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        position: relative;
+        min-width: 60px;
+      ">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+          <span style="font-size: 14px;">🗑️</span>
+          <span>Delete</span>
+        </div>
+      </th>`;
+      
       html += `</tr></thead><tbody>`;
 
       for (let i = 1; i <= numPlayers; i++) {
@@ -1706,6 +1792,27 @@
               : -1;
           html += `<td style="border: 1px solid #ccc; padding: 8px; text-align: center; min-width: 60px;"><input type="number" id="p${i}r${j}" value="${val}" min="-1" max="100" style="border: none; background: transparent; width: 100%; text-align: center; padding: 4px; font-size: 14px; min-width: 50px;"></td>`;
         }
+        
+        // Add delete button cell
+        html += `<td style="border: 1px solid #ccc; padding: 8px; text-align: center; min-width: 60px;">
+          <button onclick="deletePlayer(${i})" style="
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            min-width: 45px;
+          " onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 2px 4px rgba(220, 53, 69, 0.4)'" 
+             onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'"
+             title="Delete ${name}">
+            🗑️
+          </button>
+        </td>`;
+        
         html += "</tr>";
       }
 
@@ -2823,6 +2930,18 @@
         addPlayerBtn.textContent = "👁️ View Only - Add Player Disabled";
       }
 
+      // Disable all Delete Player buttons
+      const deleteButtons = document.querySelectorAll('button[onclick^="deletePlayer"]');
+      deleteButtons.forEach(button => {
+        button.disabled = true;
+        button.style.backgroundColor = "#6c757d";
+        button.style.color = "#ffffff";
+        button.style.cursor = "not-allowed";
+        button.style.opacity = "0.6";
+        button.title = "View Only Mode - Cannot delete players";
+        button.textContent = "🔒";
+      });
+
       // Disable Point Value and GST inputs
       const pointValueInput = document.getElementById("pointValue");
       const gstInput = document.getElementById("gstPercent");
@@ -2881,6 +3000,18 @@
         addPlayerBtn.title = "";
         addPlayerBtn.textContent = "+ Add Player";
       }
+
+      // Enable all Delete Player buttons
+      const deleteButtons = document.querySelectorAll('button[onclick^="deletePlayer"]');
+      deleteButtons.forEach(button => {
+        button.disabled = false;
+        button.style.backgroundColor = "";
+        button.style.color = "";
+        button.style.cursor = "";
+        button.style.opacity = "";
+        button.title = "";
+        button.textContent = "🗑️";
+      });
 
       // Keep Point Value and GST inputs disabled if game is already started
       // (they should only be enabled for new games)
