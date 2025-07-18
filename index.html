@@ -1211,13 +1211,6 @@
       margin-bottom: 10px;
       display: none;
     ">
-      <h3 style="
-        margin: 0 0 12px 0;
-        font-size: 16px;
-        color: #856404;
-        text-align: center;
-      ">⚙️ Game Management</h3>
-      
       <div style="display: flex; justify-content: center; margin-bottom: 12px">
         <button id="closeGameButton" onclick="confirmCloseGame()" style="
           background: linear-gradient(135deg, #dc3545, #c82333);
@@ -1365,47 +1358,16 @@
 
     // Add function to disable game settings after start
     function disableGameSettingsAfterStart() {
-      const gstInput = document.getElementById("gstPercent");
-      const pointValueInput = document.getElementById("pointValue");
-      const loadButton = document.querySelector(
-        'button[onclick="loadFromCloud()"]'
-      );
-      const startButton = document.querySelector(".start-play-button");
-      const closeButton = document.getElementById("closeGameButton");
-
-      if (gstInput) {
-        gstInput.disabled = true;
-        gstInput.style.opacity = "0.6";
-        gstInput.style.cursor = "not-allowed";
-        gstInput.title = "GST percentage cannot be changed after game starts";
+      // Hide Load Game and Game Setup sections entirely
+      const loadGameSection = document.querySelector('.controls > div:first-child');
+      const gameSetupSection = document.querySelector('.controls > div:nth-child(2)');
+      
+      if (loadGameSection) {
+        loadGameSection.style.display = "none";
       }
-
-      // Disable Point Value input
-      if (pointValueInput) {
-        pointValueInput.disabled = true;
-        pointValueInput.style.opacity = "0.6";
-        pointValueInput.style.cursor = "not-allowed";
-        pointValueInput.title =
-          "Point value cannot be changed after game starts";
-      }
-
-      if (loadButton) {
-        loadButton.disabled = true;
-        loadButton.style.opacity = "0.6";
-        loadButton.style.cursor = "not-allowed";
-        loadButton.textContent = "� Scan QR / Load Game (Disabled)";
-        loadButton.title =
-          "Cannot load new game while current game is in progress";
-      }
-
-      // Disable Start Play button
-      if (startButton) {
-        startButton.disabled = true;
-        startButton.style.opacity = "0.6";
-        startButton.style.cursor = "not-allowed";
-        startButton.textContent = "🎮 Game In Progress";
-        startButton.title =
-          "Game is already in progress. Close game to start new one.";
+      
+      if (gameSetupSection) {
+        gameSetupSection.style.display = "none";
       }
 
       // Show Game Management section
@@ -1417,44 +1379,16 @@
 
     // Add function to enable game settings (for new games)
     function enableGameSettings() {
-      const gstInput = document.getElementById("gstPercent");
-      const pointValueInput = document.getElementById("pointValue");
-      const loadButton = document.querySelector(
-        'button[onclick="loadFromCloud()"]'
-      );
-      const startButton = document.querySelector(".start-play-button");
-      const closeButton = document.getElementById("closeGameButton");
-
-      if (gstInput) {
-        gstInput.disabled = false;
-        gstInput.style.opacity = "1";
-        gstInput.style.cursor = "text";
-        gstInput.title = "";
+      // Show Load Game and Game Setup sections
+      const loadGameSection = document.querySelector('.controls > div:first-child');
+      const gameSetupSection = document.querySelector('.controls > div:nth-child(2)');
+      
+      if (loadGameSection) {
+        loadGameSection.style.display = "block";
       }
-
-      // Re-enable Point Value input
-      if (pointValueInput) {
-        pointValueInput.disabled = false;
-        pointValueInput.style.opacity = "1";
-        pointValueInput.style.cursor = "text";
-        pointValueInput.title = "";
-      }
-
-      if (loadButton) {
-        loadButton.disabled = false;
-        loadButton.style.opacity = "1";
-        loadButton.style.cursor = "pointer";
-        loadButton.textContent = "� Scan QR / Load Game";
-        loadButton.title = "";
-      }
-
-      // Re-enable Start Play button
-      if (startButton) {
-        startButton.disabled = false;
-        startButton.style.opacity = "1";
-        startButton.style.cursor = "pointer";
-        startButton.textContent = "🎮 Start Play";
-        startButton.title = "";
+      
+      if (gameSetupSection) {
+        gameSetupSection.style.display = "block";
       }
 
       // Hide Game Management section
@@ -1849,6 +1783,9 @@
       // Create leaderboard table WITHOUT settlement explanation
       let leaderboardHtml = `
 <h2>Leaderboard & Settlement</h2>
+<div style="text-align: left; margin-bottom: 10px;">
+  <span style="font-size: 12px; color: #6c757d; font-weight: normal;">₹${pointValue}/point, ${gstPercent}% GST</span>
+</div>
 <table class="leaderboard-table" style="
   width: auto !important; 
   min-width: auto !important; 
