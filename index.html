@@ -690,12 +690,26 @@
 
       /* Load Game Section - Mobile */
       .controls > div:first-child {
-        flex-direction: column !important;
-        gap: 8px !important;
+        padding: 12px !important;
         margin-bottom: 15px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
       }
 
-      .controls > div:first-child button {
+      .controls > div:first-child h3 {
+        font-size: 14px !important;
+        margin-bottom: 10px !important;
+        text-align: center !important;
+        width: 100% !important;
+      }
+
+      .controls > div:first-child > div:first-child {
+        flex-direction: column !important;
+        gap: 8px !important;
+        margin-bottom: 12px !important;
+      }
+
+      .controls > div:first-child > div:first-child button {
         width: 100% !important;
         padding: 12px 18px !important;
         font-size: 14px !important;
@@ -705,7 +719,7 @@
         transition: all 0.3s ease !important;
       }
 
-      .controls > div:first-child button:hover {
+      .controls > div:first-child > div:first-child button:hover {
         transform: translateY(-1px) !important;
         box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3) !important;
       }
@@ -777,25 +791,55 @@
       }
 
       /* Start Game Button - Mobile */
-      .controls > div:nth-child(2) > div:last-child {
+      .controls > div:nth-child(2) > div:nth-child(2) {
         text-align: center !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+        margin-top: 8px !important;
+      }
+
+      .controls > div:nth-child(2) > div:nth-child(2) button {
+        padding: 12px 20px !important;
+        font-size: 15px !important;
+        width: 100% !important;
+        max-width: 280px !important;
+        margin: 0 auto !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+      }
+
+      /* Target the actual Start Game button container */
+      .controls > div:nth-child(2) > div[style*="text-align: center"] {
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
         width: 100% !important;
       }
 
-      .controls > div:nth-child(2) > div:last-child button {
-        padding: 12px 20px !important;
-        font-size: 15px !important;
+      /* Game Setup Start Button - Mobile Full Width and Centered */
+      .start-play-button {
         width: 100% !important;
         max-width: 280px !important;
         margin: 0 auto !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center !important;
       }
 
-      /* Game Setup Start Button - Mobile Full Width */
-      .start-play-button {
+      /* Additional mobile centering for Start Game button */
+      .controls div[style*="text-align: center"] {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
         width: 100% !important;
+      }
+
+      .controls div[style*="text-align: center"] .start-play-button {
+        margin: 0 auto !important;
       }
     }
   </style>
@@ -1024,38 +1068,64 @@
     <!-- Game Setup Section -->
     <div class="controls" style="margin-top: 10px">
       <!-- Load Game Section -->
-      <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px">
-        <button onclick="loadFromCloud()" style="
-          background: linear-gradient(135deg, #17a2b8, #20c997);
-          color: white;
-          padding: 10px 18px;
-          border: none;
-          border-radius: 6px;
-          font-weight: 600;
-          cursor: pointer;
-          font-size: 14px;
-          box-shadow: 0 3px 8px rgba(23, 162, 184, 0.3);
-          transition: all 0.3s ease;
-        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(23, 162, 184, 0.4)'" 
-           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(23, 162, 184, 0.3)'">
-          📱 Scan QR / Load Game
-        </button>
-        <button id="closeGameButton" onclick="confirmCloseGame()" style="
-          background: linear-gradient(135deg, #dc3545, #c82333);
-          color: white;
-          padding: 10px 18px;
-          border: none;
-          border-radius: 6px;
-          font-weight: 600;
-          cursor: pointer;
-          font-size: 14px;
-          box-shadow: 0 3px 8px rgba(220, 53, 69, 0.3);
-          transition: all 0.3s ease;
-          display: none;
-        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(220, 53, 69, 0.4)'" 
-           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(220, 53, 69, 0.3)'">
-          🗑️ Close Game
-        </button>
+      <div style="
+        background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+        padding: 15px;
+        border-radius: 8px;
+        border: 2px solid #e1bee7;
+        margin-bottom: 15px;
+      ">
+        <h3 style="
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          color: #4a148c;
+          text-align: center;
+        ">📱 Load Existing Game</h3>
+        
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px">
+          <button onclick="loadFromCloud()" style="
+            background: linear-gradient(135deg, #17a2b8, #20c997);
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 3px 8px rgba(23, 162, 184, 0.3);
+            transition: all 0.3s ease;
+          " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(23, 162, 184, 0.4)'" 
+             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(23, 162, 184, 0.3)'">
+            📱 Scan QR / Load Game
+          </button>
+          <button id="closeGameButton" onclick="confirmCloseGame()" style="
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 3px 8px rgba(220, 53, 69, 0.3);
+            transition: all 0.3s ease;
+            display: none;
+          " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(220, 53, 69, 0.4)'" 
+             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(220, 53, 69, 0.3)'">
+            🗑️ Close Game
+          </button>
+        </div>
+        
+        <!-- Load Game Helper Text -->
+        <div style="margin-top: 12px; padding: 12px; background-color: #e8f4f8; border-radius: 6px; border-left: 4px solid #17a2b8;">
+          <h4 style="margin: 0 0 8px 0; color: #0c5460; font-size: 14px;">💡 Load Game Guide:</h4>
+          <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: #0c5460; line-height: 1.4;">
+            <li><strong>Scan QR:</strong> Use your phone camera to scan QR code from another device</li>
+            <li><strong>Manual Entry:</strong> Enter Game ID directly if you have it</li>
+            <li><strong>View Mode:</strong> Join as spectator to watch the game</li>
+            <li><strong>Edit Mode:</strong> Join with PIN to participate and make changes</li>
+          </ul>
+        </div>
       </div>
 
       <!-- Game Setup Group -->
@@ -1107,6 +1177,16 @@
              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(40, 167, 69, 0.3)'">
             🎮 Start New Game
           </button>
+        </div>
+        
+        <!-- Game Setup Helper Text -->
+        <div id="gameSetupInfo" style="margin-top: 15px; padding: 12px; background-color: #e8f5e8; border-radius: 6px; border-left: 4px solid #28a745;">
+          <h4 style="margin: 0 0 8px 0; color: #155724; font-size: 14px;">💡 Game Setup Guide:</h4>
+          <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: #155724; line-height: 1.4;">
+            <li><strong>Point Value:</strong> Amount each point is worth</li>
+            <li><strong>GST Value:</strong> Tax percentage on winnings</li>
+            <li><strong>Start Game:</strong> Creates a new game with QR code for sharing</li>
+          </ul>
         </div>
       </div>
     </div>
