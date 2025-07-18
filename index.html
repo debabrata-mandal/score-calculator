@@ -1526,10 +1526,7 @@
       localStorage.setItem("gamePin", pin);
       console.log("Generated PIN for new game:", pin);
 
-      // Initialize game with 2 players having random numbers
-      const player1RandomNumber = generateRandomNumber([]);
-      const player2RandomNumber = generateRandomNumber([player1RandomNumber]);
-      
+      // Initialize game with 2 players WITHOUT random numbers (since only 2 players)
       const initialGameData = {
         numPlayers: 2,
         pointValue: parseFloat(document.getElementById("pointValue").value) || 1.0,
@@ -1538,23 +1535,20 @@
           {
             name: "Player 1",
             scores: Array(10).fill(-1),
-            randomNumber: player1RandomNumber
+            randomNumber: null // No random number for initial 2 players
           },
           {
             name: "Player 2",
             scores: Array(10).fill(-1),
-            randomNumber: player2RandomNumber
+            randomNumber: null // No random number for initial 2 players
           }
         ]
       };
-
-      // Sort players by random number before saving
-      initialGameData.players = sortPlayersByRandomNumber(initialGameData.players);
       
       // Save to localStorage
       localStorage.setItem("scoreData", JSON.stringify(initialGameData));
       
-      console.log(`Game initialized with random numbers: Player 1 (#${player1RandomNumber}), Player 2 (#${player2RandomNumber})`);
+      console.log(`Game initialized with 2 players (no random numbers assigned)`);
 
       generateTable(initialGameData);
       updateGameIdDisplay();
@@ -1647,10 +1641,12 @@
     // Add helper function to sort players by random number
     function sortPlayersByRandomNumber(players) {
       return players.sort((a, b) => {
-        // Players without random numbers go to the end
+        // If both players don't have random numbers, keep original order
         if (!a.randomNumber && !b.randomNumber) return 0;
+        // Players without random numbers go to the end
         if (!a.randomNumber) return 1;
         if (!b.randomNumber) return -1;
+        // Sort by random number (lowest to highest)
         return a.randomNumber - b.randomNumber;
       });
     }
@@ -1684,15 +1680,39 @@
 
       if (saved) {
         savedData = JSON.parse(saved);
-        // Get existing random numbers to avoid duplicates
-        const existingNumbers = getExistingRandomNumbers(savedData);
         
-        // Generate random number for the new player
-        const newRandomNumber = generateRandomNumber(existingNumbers);
+        // Check if we need to assign random numbers (only when going from 2 to 3+ players)
+        const newPlayerCount = currentPlayers + 1;
+        let newRandomNumber = null;
         
-        // Add new player with random number
+        if (newPlayerCount > 2) {
+          // First time adding a 3rd player - assign random numbers to all players
+          if (currentPlayers === 2) {
+            // Assign random numbers to existing 2 players first
+            const existingNumbers = [];
+            savedData.players.forEach(player => {
+              if (!player.randomNumber) {
+                player.randomNumber = generateRandomNumber(existingNumbers);
+                existingNumbers.push(player.randomNumber);
+              }
+            });
+            console.log("Assigned random numbers to existing 2 players when adding 3rd player");
+          }
+          
+          // Get existing random numbers to avoid duplicates
+          const existingNumbers = getExistingRandomNumbers(savedData);
+          
+          // Generate random number for the new player
+          newRandomNumber = generateRandomNumber(existingNumbers);
+          
+          console.log(`New player added with random number: ${newRandomNumber}`);
+        } else {
+          console.log(`New player added without random number (only ${newPlayerCount} players)`);
+        }
+        
+        // Add new player
         const newPlayer = {
-          name: `Player ${currentPlayers + 1}`,
+          name: `Player ${newPlayerCount}`,
           scores: Array(10).fill(-1),
           randomNumber: newRandomNumber
         };
@@ -1700,10 +1720,10 @@
         savedData.players.push(newPlayer);
         savedData.numPlayers = savedData.players.length;
         
-        // Sort players by random number
-        savedData.players = sortPlayersByRandomNumber(savedData.players);
-        
-        console.log(`New player added with random number: ${newRandomNumber}`);
+        // Sort players by random number only if we have random numbers
+        if (newPlayerCount > 2) {
+          savedData.players = sortPlayersByRandomNumber(savedData.players);
+        }
       } else {
         // If no saved data, create new structure
         savedData = {
@@ -1713,14 +1733,11 @@
           players: []
         };
         
-        // Add new player with random number
-        const existingNumbers = [];
-        const newRandomNumber = generateRandomNumber(existingNumbers);
-        
+        // Add new player without random number (since it's likely the first or second player)
         savedData.players.push({
           name: `Player ${currentPlayers + 1}`,
           scores: Array(10).fill(-1),
-          randomNumber: newRandomNumber
+          randomNumber: null
         });
       }
 
@@ -1776,19 +1793,33 @@
       
       // Remove the player from the data (playerIndex is 1-based, but we need to find by current display order)
       if (savedData.players && savedData.players.length >= playerIndex) {
-        // Get the current sorted order
-        const sortedPlayers = sortPlayersByRandomNumber(savedData.players);
-        const playerToDelete = sortedPlayers[playerIndex - 1];
+        // Get the current sorted order only if we have more than 2 players
+        if (savedData.players.length > 2) {
+          const sortedPlayers = sortPlayersByRandomNumber(savedData.players);
+          const playerToDelete = sortedPlayers[playerIndex - 1];
+          
+          // Find and remove this player from the original array
+          const originalIndex = savedData.players.findIndex(p => 
+            (p.randomNumber && p.randomNumber === playerToDelete.randomNumber) || 
+            (p.name === playerToDelete.name && p.scores.join(',') === playerToDelete.scores.join(','))
+          );
+          
+          if (originalIndex !== -1) {
+            savedData.players.splice(originalIndex, 1);
+          }
+        } else {
+          // For 2 players or less, simple removal by index
+          savedData.players.splice(playerIndex - 1, 1);
+        }
         
-        // Find and remove this player from the original array
-        const originalIndex = savedData.players.findIndex(p => 
-          p.randomNumber === playerToDelete.randomNumber || 
-          (p.name === playerToDelete.name && p.scores.join(',') === playerToDelete.scores.join(','))
-        );
+        savedData.numPlayers = savedData.players.length;
         
-        if (originalIndex !== -1) {
-          savedData.players.splice(originalIndex, 1);
-          savedData.numPlayers = savedData.players.length;
+        // If we're back to 2 players, remove random numbers
+        if (savedData.numPlayers === 2) {
+          savedData.players.forEach(player => {
+            player.randomNumber = null;
+          });
+          console.log("Removed random numbers - back to 2 players");
         }
       }
 
@@ -1818,37 +1849,41 @@
           numPlayers = data.numPlayers || 2;
           playersData = data.players || [];
         } else {
-          // Default to 2 players with random numbers for new games
+          // Default to 2 players WITHOUT random numbers
           numPlayers = 2;
-          const existingNumbers = [];
           
           playersData = [
             {
               name: "Player 1",
               scores: Array(10).fill(-1),
-              randomNumber: generateRandomNumber(existingNumbers)
+              randomNumber: null // No random number for 2 players
+            },
+            {
+              name: "Player 2", 
+              scores: Array(10).fill(-1),
+              randomNumber: null // No random number for 2 players
             }
           ];
-          
-          playersData.push({
-            name: "Player 2", 
-            scores: Array(10).fill(-1),
-            randomNumber: generateRandomNumber([playersData[0].randomNumber])
-          });
         }
       }
 
-      // Ensure all players have random numbers (for backward compatibility)
-      const existingNumbers = getExistingRandomNumbers({ players: playersData });
-      playersData.forEach(player => {
-        if (!player.randomNumber) {
-          player.randomNumber = generateRandomNumber(existingNumbers);
-          existingNumbers.push(player.randomNumber);
-        }
-      });
+      // Only assign random numbers if more than 2 players AND for backward compatibility
+      if (numPlayers > 2) {
+        const existingNumbers = getExistingRandomNumbers({ players: playersData });
+        playersData.forEach(player => {
+          if (!player.randomNumber) {
+            player.randomNumber = generateRandomNumber(existingNumbers);
+            existingNumbers.push(player.randomNumber);
+          }
+        });
 
-      // Sort players by random number (lowest to highest)
-      playersData = sortPlayersByRandomNumber(playersData);
+        // Sort players by random number only when there are more than 2 players
+        playersData = sortPlayersByRandomNumber(playersData);
+      }
+
+      // Determine header text and whether to show random numbers
+      const showRandomNumbers = numPlayers > 2;
+      const headerText = showRandomNumbers ? "Player (#)" : "Player";
 
       let html = `
 <h2>Score</h2>
@@ -1872,7 +1907,7 @@
         ">
           <div style="display: flex; align-items: center; gap: 6px;">
             <span>👤</span>
-            <span>Player (#)</span>
+            <span>${headerText}</span>
           </div>
         </th>`;
 
@@ -1930,9 +1965,14 @@
         html += `<tr><td style="border: 1px solid #ccc; padding: 8px;">
           <input type="text" id="name${i}" value="${name}" 
                  data-random-number="${randomNumber}"
-                 style="border: none; background: transparent; width: 100%; padding: 4px; font-size: 14px;">
-          <div style="font-size: 10px; color: #6c757d; text-align: center; margin-top: 2px; font-weight: 600;">#${randomNumber}</div>
-        </td>`;
+                 style="border: none; background: transparent; width: 100%; padding: 4px; font-size: 14px;">`;
+        
+        // Only show random number if there are more than 2 players AND the player has a random number
+        if (showRandomNumbers && randomNumber) {
+          html += `<div style="font-size: 10px; color: #6c757d; text-align: center; margin-top: 2px; font-weight: 600;">#${randomNumber}</div>`;
+        }
+        
+        html += `</td>`;
 
         for (let j = 1; j <= 10; j++) {
           const val = playerData.scores && playerData.scores[j - 1] !== undefined 
@@ -2287,7 +2327,7 @@
   <tr>
     <td style="border: 1px solid #ccc; padding: 6px; text-align: center; font-weight: bold; width: 50px !important; font-size: 11px;">${rankDisplay}</td>
     <td style="border: 1px solid #ccc; padding: 6px; width: auto !important; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-      ${score.name}${score.randomNumber ? ` <span style="color: #6c757d; font-size: 10px;">(#${score.randomNumber})</span>` : ''}
+      ${score.name}${score.randomNumber && numPlayers > 2 ? ` <span style="color: #6c757d; font-size: 10px;">(#${score.randomNumber})</span>` : ''}
     </td>
     <td style="border: 1px solid #ccc; padding: 6px; text-align: center; width: 50px !important; font-size: 11px; font-weight: 600;">${score.total
           }</td>
