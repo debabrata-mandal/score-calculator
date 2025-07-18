@@ -40,11 +40,27 @@
       padding-bottom: 5px;
     }
 
-    /* Table headers with better colors */
+    /* Table headers with better colors and enhanced styling */
     table th {
-      background-color: #f8f9fa !important;
-      color: #495057 !important;
-      font-weight: 600;
+      background: linear-gradient(135deg, #007bff, #0056b3) !important;
+      color: white !important;
+      font-weight: 700;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      border: 1px solid #495057 !important;
+      transition: all 0.3s ease;
+    }
+
+    /* First column header special styling */
+    table th:first-child {
+      background: linear-gradient(135deg, #6c757d, #495057) !important;
+      color: white !important;
+      font-weight: 700;
+    }
+
+    /* Header hover effects */
+    table th:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
     }
 
     /* Table container for horizontal scroll */
@@ -72,11 +88,16 @@
       min-width: 150px;
       max-width: 150px;
       width: 150px;
+      box-shadow: 2px 0 4px rgba(0,0,0,0.1);
     }
 
     table th:first-child {
-      background-color: #f8f9fa;
+      background: linear-gradient(135deg, #6c757d, #495057) !important;
+      color: white !important;
+      font-weight: 700;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3) !important;
       z-index: 11;
+      box-shadow: 2px 0 4px rgba(0,0,0,0.1);
     }
 
     th,
@@ -181,6 +202,18 @@
         min-width: 120px;
         max-width: 120px;
         width: 120px;
+        position: sticky;
+        left: 0;
+        z-index: 10;
+      }
+
+      table th:first-child {
+        background: linear-gradient(135deg, #6c757d, #495057) !important;
+        color: white !important;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3) !important;
+        z-index: 11;
+        box-shadow: 2px 0 4px rgba(0,0,0,0.1);
       }
 
       input[type="text"] {
@@ -346,11 +379,20 @@
       padding-bottom: 5px;
     }
 
-    /* Table headers with better colors */
+    /* Table headers with better colors and enhanced styling (duplicate for specificity) */
     table th {
-      background-color: #f8f9fa !important;
-      color: #495057 !important;
-      font-weight: 600;
+      background: linear-gradient(135deg, #007bff, #0056b3) !important;
+      color: white !important;
+      font-weight: 700;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      border: 1px solid #495057 !important;
+    }
+
+    /* First column header special styling */
+    table th:first-child {
+      background: linear-gradient(135deg, #6c757d, #495057) !important;
+      color: white !important;
+      font-weight: 700;
     }
 
     /* Player name inputs with subtle styling */
@@ -1602,11 +1644,45 @@
 <div class="table-container">
   <table>
     <thead>
-      <tr style="background-color: #f8f9fa;">
-        <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">Player Name</th>`;
+      <tr style="background: linear-gradient(135deg, #343a40, #495057); box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <th style="
+          border: 1px solid #495057; 
+          padding: 12px 8px; 
+          text-align: left; 
+          background: linear-gradient(135deg, #6c757d, #495057);
+          color: white;
+          font-weight: 700;
+          font-size: 14px;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+          position: sticky;
+          left: 0;
+          z-index: 11;
+          box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+        ">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span>👤</span>
+            <span>Player Name</span>
+          </div>
+        </th>`;
 
       for (let round = 1; round <= 10; round++) {
-        html += `<th style="border: 1px solid #ccc; padding: 8px; text-align: center;">R${round}</th>`;
+        html += `<th style="
+          border: 1px solid #495057; 
+          padding: 12px 8px; 
+          text-align: center; 
+          background: linear-gradient(135deg, #007bff, #0056b3);
+          color: white;
+          font-weight: 700;
+          font-size: 13px;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+          position: relative;
+          min-width: 70px;
+        ">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+            <span style="font-size: 16px;">🎯</span>
+            <span>Round ${round}</span>
+          </div>
+        </th>`;
       }
       html += `</tr></thead><tbody>`;
 
@@ -1692,22 +1768,30 @@
       });
     }
 
-    // Update the colorScoreInputs function with new thresholds
+    // Update the colorScoreInputs function with column-wide border highlighting
     function colorScoreInputs() {
       const numPlayers =
         document.querySelectorAll('input[id^="name"]').length;
 
-      // First, reset all column borders
+      // First, reset all column borders and remove any existing column classes
       for (let j = 1; j <= 10; j++) {
         const headerCell = document.querySelector(`table th:nth-child(${j + 1})`);
         if (headerCell) {
           headerCell.style.border = "1px solid #ccc";
+          headerCell.style.borderLeft = "1px solid #ccc";
+          headerCell.style.borderRight = "1px solid #ccc";
+          headerCell.style.borderTop = "1px solid #ccc";
+          headerCell.style.borderBottom = "1px solid #ccc";
         }
         
         for (let i = 1; i <= numPlayers; i++) {
           const cell = document.querySelector(`table tbody tr:nth-child(${i}) td:nth-child(${j + 1})`);
           if (cell) {
             cell.style.border = "1px solid #ccc";
+            cell.style.borderLeft = "1px solid #ccc";
+            cell.style.borderRight = "1px solid #ccc";
+            cell.style.borderTop = "1px solid #ccc";
+            cell.style.borderBottom = "1px solid #ccc";
           }
         }
       }
@@ -1715,10 +1799,10 @@
       // Check each round for negative values and apply styling
       for (let j = 1; j <= 10; j++) {
         let hasNegativeValue = false;
-        let hasPositiveValue = false;
+        let hasValidNonNegativeValue = false;
         let allValidScores = true;
         
-        // Check if any player has negative score and if all have positive scores in this round
+        // Check if any player has negative score and if all have non-negative scores in this round
         for (let i = 1; i <= numPlayers; i++) {
           const input = document.getElementById(`p${i}r${j}`);
           if (input) {
@@ -1726,8 +1810,8 @@
             if (!isNaN(val)) {
               if (val < 0 || val === -1) {
                 hasNegativeValue = true;
-              } else if (val > 0) {
-                hasPositiveValue = true;
+              } else if (val >= 0) {
+                hasValidNonNegativeValue = true;
               }
             } else {
               // Empty or invalid value - treat as negative
@@ -1741,35 +1825,45 @@
           }
         }
         
-        // Apply border styling based on round status
+        // Apply column-wide border styling based on round status
         const headerCell = document.querySelector(`table th:nth-child(${j + 1})`);
         
         if (hasNegativeValue) {
-          // Red border for rounds with negative scores
+          // Red outside border for rounds with negative scores
           if (headerCell) {
-            headerCell.style.border = "2px solid #dc3545";
-            headerCell.style.borderRadius = "4px";
+            headerCell.style.borderLeft = "3px solid #dc3545";
+            headerCell.style.borderRight = "3px solid #dc3545";
+            headerCell.style.borderTop = "3px solid #dc3545";
           }
           
           for (let i = 1; i <= numPlayers; i++) {
             const cell = document.querySelector(`table tbody tr:nth-child(${i}) td:nth-child(${j + 1})`);
             if (cell) {
-              cell.style.border = "2px solid #dc3545";
-              cell.style.borderRadius = "4px";
+              cell.style.borderLeft = "3px solid #dc3545";
+              cell.style.borderRight = "3px solid #dc3545";
+              // Apply bottom border only to the last row
+              if (i === numPlayers) {
+                cell.style.borderBottom = "3px solid #dc3545";
+              }
             }
           }
-        } else if (hasPositiveValue && allValidScores) {
-          // Green border for rounds where all players have positive scores
+        } else if (hasValidNonNegativeValue && allValidScores) {
+          // Green outside border for rounds where all players have non-negative scores (including zero)
           if (headerCell) {
-            headerCell.style.border = "2px solid #28a745";
-            headerCell.style.borderRadius = "4px";
+            headerCell.style.borderLeft = "3px solid #28a745";
+            headerCell.style.borderRight = "3px solid #28a745";
+            headerCell.style.borderTop = "3px solid #28a745";
           }
           
           for (let i = 1; i <= numPlayers; i++) {
             const cell = document.querySelector(`table tbody tr:nth-child(${i}) td:nth-child(${j + 1})`);
             if (cell) {
-              cell.style.border = "2px solid #28a745";
-              cell.style.borderRadius = "4px";
+              cell.style.borderLeft = "3px solid #28a745";
+              cell.style.borderRight = "3px solid #28a745";
+              // Apply bottom border only to the last row
+              if (i === numPlayers) {
+                cell.style.borderBottom = "3px solid #28a745";
+              }
             }
           }
         }
