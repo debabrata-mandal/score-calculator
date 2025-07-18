@@ -688,15 +688,37 @@
         padding: 0 5px; /* Add horizontal padding to prevent cutoff */
       }
 
-      /* Game Setup Group - Mobile */
+      /* Load Game Section - Mobile */
       .controls > div:first-child {
+        flex-direction: column !important;
+        gap: 8px !important;
+        margin-bottom: 15px !important;
+      }
+
+      .controls > div:first-child button {
+        width: 100% !important;
+        padding: 12px 18px !important;
+        font-size: 14px !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2) !important;
+        transition: all 0.3s ease !important;
+      }
+
+      .controls > div:first-child button:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3) !important;
+      }
+
+      /* Game Setup Group - Mobile */
+      .controls > div:nth-child(2) {
         padding: 12px !important;
         margin-bottom: 8px !important;
         width: 100% !important;
         box-sizing: border-box !important;
       }
 
-      .controls > div:first-child h3 {
+      .controls > div:nth-child(2) h3 {
         font-size: 14px !important;
         margin-bottom: 10px !important;
         text-align: center !important;
@@ -704,7 +726,7 @@
       }
 
       /* Financial Settings - Mobile: Stack vertically with better alignment */
-      .controls > div:first-child > div:first-child {
+      .controls > div:nth-child(2) > div:first-child {
         flex-direction: column !important;
         gap: 10px !important;
         margin-bottom: 12px !important;
@@ -713,7 +735,7 @@
       }
 
       /* Individual input groups - Mobile: Consistent width and alignment */
-      .controls > div:first-child > div:first-child > div {
+      .controls > div:nth-child(2) > div:first-child > div {
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
@@ -725,7 +747,7 @@
         box-sizing: border-box !important;
       }
 
-      .controls > div:first-child > div:first-child > div label {
+      .controls > div:nth-child(2) > div:first-child > div label {
         font-size: 14px !important;
         margin: 0 !important;
         flex-shrink: 0 !important;
@@ -735,14 +757,14 @@
         text-align: left !important;
       }
 
-      .controls > div:first-child > div:first-child > div span {
+      .controls > div:nth-child(2) > div:first-child > div span {
         font-size: 14px !important;
         margin: 0 !important;
         font-weight: 600 !important;
         color: #495057 !important;
       }
 
-      .controls > div:first-child > div:first-child > div input {
+      .controls > div:nth-child(2) > div:first-child > div input {
         width: 100px !important;
         padding: 8px 12px !important;
         font-size: 16px !important;
@@ -755,7 +777,7 @@
       }
 
       /* Start Game Button - Mobile */
-      .controls > div:first-child > div:last-child {
+      .controls > div:nth-child(2) > div:last-child {
         text-align: center !important;
         display: flex !important;
         justify-content: center !important;
@@ -763,7 +785,7 @@
         width: 100% !important;
       }
 
-      .controls > div:first-child > div:last-child button {
+      .controls > div:nth-child(2) > div:last-child button {
         padding: 12px 20px !important;
         font-size: 15px !important;
         width: 100% !important;
@@ -774,18 +796,6 @@
       /* Game Setup Start Button - Mobile Full Width */
       .start-play-button {
         width: 100% !important;
-      }
-
-      /* Game Management Actions - Mobile */
-      .controls > div:last-child {
-        flex-direction: column !important;
-        gap: 8px !important;
-      }
-
-      .controls > div:last-child button {
-        width: 100% !important;
-        padding: 12px 18px !important;
-        font-size: 14px !important;
       }
     }
   </style>
@@ -1013,6 +1023,41 @@
 
     <!-- Game Setup Section -->
     <div class="controls" style="margin-top: 10px">
+      <!-- Load Game Section -->
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px">
+        <button onclick="loadFromCloud()" style="
+          background: linear-gradient(135deg, #17a2b8, #20c997);
+          color: white;
+          padding: 10px 18px;
+          border: none;
+          border-radius: 6px;
+          font-weight: 600;
+          cursor: pointer;
+          font-size: 14px;
+          box-shadow: 0 3px 8px rgba(23, 162, 184, 0.3);
+          transition: all 0.3s ease;
+        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(23, 162, 184, 0.4)'" 
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(23, 162, 184, 0.3)'">
+          📱 Scan QR / Load Game
+        </button>
+        <button id="closeGameButton" onclick="confirmCloseGame()" style="
+          background: linear-gradient(135deg, #dc3545, #c82333);
+          color: white;
+          padding: 10px 18px;
+          border: none;
+          border-radius: 6px;
+          font-weight: 600;
+          cursor: pointer;
+          font-size: 14px;
+          box-shadow: 0 3px 8px rgba(220, 53, 69, 0.3);
+          transition: all 0.3s ease;
+          display: none;
+        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(220, 53, 69, 0.4)'" 
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(220, 53, 69, 0.3)'">
+          🗑️ Close Game
+        </button>
+      </div>
+
       <!-- Game Setup Group -->
       <div style="
         background: linear-gradient(135deg, #f8f9fa, #e9ecef);
@@ -1063,16 +1108,6 @@
             🎮 Start New Game
           </button>
         </div>
-      </div>
-
-      <!-- Game Management Actions -->
-      <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center">
-        <button onclick="loadFromCloud()" style="background-color: #17a2b8; padding: 10px 18px; border-radius: 6px; font-weight: 600">
-          📱 Scan QR / Load Game
-        </button>
-        <button id="closeGameButton" onclick="confirmCloseGame()" style="background-color: #dc3545; display: none; padding: 10px 18px; border-radius: 6px; font-weight: 600">
-          🗑️ Close Game
-        </button>
       </div>
     </div>
 
