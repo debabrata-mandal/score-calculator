@@ -12,7 +12,7 @@
   <meta http-equiv="Expires" content="0" />
   
   <!-- Version for cache busting - Update this with each deployment -->
-  <meta name="app-version" content="v1.2.3" />
+  <meta name="app-version" content="v1.2.4" />
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
@@ -761,6 +761,38 @@
       }
     }
 
+    /* New player row highlight animation */
+    @keyframes newPlayerHighlight {
+      0% {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        transform: scale(1.02);
+        box-shadow: 0 0 20px rgba(40, 167, 69, 0.6);
+      }
+      50% {
+        background: linear-gradient(135deg, #17a2b8, #20c997);
+        transform: scale(1.01);
+        box-shadow: 0 0 15px rgba(23, 162, 184, 0.4);
+      }
+      100% {
+        background: transparent;
+        transform: scale(1);
+        box-shadow: none;
+      }
+    }
+
+    /* Class for newly added player rows */
+    .new-player-row {
+      animation: newPlayerHighlight 2s ease-out;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+
+    /* Ensure the first column (name) also gets highlighted */
+    .new-player-row td:first-child {
+      background: inherit !important;
+      border-radius: 4px 0 0 4px;
+    }
+
     /* Mobile responsive for toast */
     @media (max-width: 768px) {
       #toast {
@@ -1372,7 +1404,7 @@
   <!-- Your existing script tag starts here -->
   <script>
     // Version management and auto-update functionality
-    const CURRENT_VERSION = "v1.2.3"; // Update this with each deployment
+    const CURRENT_VERSION = "v1.2.4"; // Update this with each deployment
     
     // Check for updates every 5 minutes
     let updateCheckInterval = null;
@@ -1880,6 +1912,7 @@
       // Get existing data and add one more player
       const saved = localStorage.getItem("scoreData");
       let savedData = null;
+      let newPlayerName = `Player ${currentPlayers + 1}`;
 
       if (saved) {
         savedData = JSON.parse(saved);
@@ -1915,7 +1948,7 @@
         
         // Add new player
         const newPlayer = {
-          name: `Player ${newPlayerCount}`,
+          name: newPlayerName,
           scores: Array(10).fill(-1),
           randomNumber: newRandomNumber
         };
@@ -1926,6 +1959,15 @@
         // Sort players by random number only if we have random numbers
         if (newPlayerCount > 2) {
           savedData.players = sortPlayersByRandomNumber(savedData.players);
+          // Find the new player's position after sorting
+          const newPlayerIndex = savedData.players.findIndex(p => p.name === newPlayerName);
+          if (newPlayerIndex !== -1) {
+            // Store which row should be animated (1-based index)
+            window.newPlayerRowIndex = newPlayerIndex + 1;
+          }
+        } else {
+          // For 2 or fewer players, the new player is always at the end
+          window.newPlayerRowIndex = savedData.players.length;
         }
       } else {
         // If no saved data, create new structure
@@ -1938,10 +1980,13 @@
         
         // Add new player without random number (since it's likely the first or second player)
         savedData.players.push({
-          name: `Player ${currentPlayers + 1}`,
+          name: newPlayerName,
           scores: Array(10).fill(-1),
           randomNumber: null
         });
+        
+        // Store which row should be animated
+        window.newPlayerRowIndex = savedData.players.length;
       }
 
       // Update localStorage
@@ -1949,6 +1994,50 @@
 
       // Regenerate table with existing data preserved + new player (should save since this is user action)
       generateTable(savedData, true);
+      
+      // Apply animation to the new player row after table generation
+      setTimeout(() => {
+        animateNewPlayerRow();
+      }, 100);
+    }
+
+    // Function to animate the newly added player row
+    function animateNewPlayerRow() {
+      if (window.newPlayerRowIndex) {
+        // Find the table row for the new player (nth-child is 1-based, +1 for header row)
+        const tableBody = document.querySelector('#scoreTableContainer tbody');
+        if (tableBody) {
+          const newRow = tableBody.querySelector(`tr:nth-child(${window.newPlayerRowIndex})`);
+          if (newRow) {
+            // Add the animation class
+            newRow.classList.add('new-player-row');
+            
+            // Scroll the new row into view smoothly
+            newRow.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center',
+              inline: 'nearest'
+            });
+            
+            // Remove the animation class after animation completes
+            setTimeout(() => {
+              newRow.classList.remove('new-player-row');
+            }, 2000);
+            
+            // Focus on the name input of the new player
+            const nameInput = newRow.querySelector('input[type="text"]');
+            if (nameInput) {
+              setTimeout(() => {
+                nameInput.focus();
+                nameInput.select(); // Select all text for easy editing
+              }, 500);
+            }
+          }
+        }
+        
+        // Clear the stored index
+        window.newPlayerRowIndex = null;
+      }
     }
 
     function deletePlayer(playerIndex) {
