@@ -3110,16 +3110,10 @@
         input.title = "View Only Mode - Editing disabled";
       });
 
-      // Disable Add Player button
+      // Hide Add Player button
       const addPlayerBtn = document.querySelector('.add-player-btn');
       if (addPlayerBtn) {
-        addPlayerBtn.disabled = true;
-        addPlayerBtn.style.backgroundColor = "#6c757d";
-        addPlayerBtn.style.color = "#ffffff";
-        addPlayerBtn.style.cursor = "not-allowed";
-        addPlayerBtn.style.opacity = "0.6";
-        addPlayerBtn.title = "View Only Mode - Cannot add players";
-        addPlayerBtn.textContent = "👁️ View Only - Add Player Disabled";
+        addPlayerBtn.style.display = "none";
       }
 
       // Disable all Delete Player buttons
@@ -3181,16 +3175,10 @@
         input.title = "";
       });
 
-      // Enable Add Player button
+      // Show Add Player button
       const addPlayerBtn = document.querySelector('.add-player-btn');
       if (addPlayerBtn) {
-        addPlayerBtn.disabled = false;
-        addPlayerBtn.style.backgroundColor = "";
-        addPlayerBtn.style.color = "";
-        addPlayerBtn.style.cursor = "";
-        addPlayerBtn.style.opacity = "";
-        addPlayerBtn.title = "";
-        addPlayerBtn.textContent = "+ Add Player";
+        addPlayerBtn.style.display = "";
       }
 
       // Enable all Delete Player buttons
