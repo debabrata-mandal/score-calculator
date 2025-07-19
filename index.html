@@ -1465,7 +1465,7 @@
       document.getElementById("pointValue").value = data.pointValue || 1.0;
       document.getElementById("gstPercent").value = data.gstPercent || 18.0;
 
-      generateTable(data);
+      generateTable(data, false); // Don't save when loading existing data
 
       // Update Game ID display
       updateGameIdDisplay();
@@ -1550,7 +1550,7 @@
       
       console.log(`Game initialized with 2 players (no random numbers assigned)`);
 
-      generateTable(initialGameData);
+      generateTable(initialGameData, true); // Should save since this is creating new game
       updateGameIdDisplay();
       disableGameSettingsAfterStart();
 
@@ -1744,8 +1744,8 @@
       // Update localStorage
       localStorage.setItem("scoreData", JSON.stringify(savedData));
 
-      // Regenerate table with existing data preserved + new player
-      generateTable(savedData);
+      // Regenerate table with existing data preserved + new player (should save since this is user action)
+      generateTable(savedData, true);
     }
 
     function deletePlayer(playerIndex) {
@@ -1826,15 +1826,15 @@
       // Update localStorage with new data
       localStorage.setItem("scoreData", JSON.stringify(savedData));
 
-      // Regenerate table with updated data
-      generateTable(savedData);
+      // Regenerate table with updated data (should save since this is user action)
+      generateTable(savedData, true);
 
       // Show success message
       showToast(`✅ Player deleted successfully`, "success", 3000);
     }
 
     // Update the generateTable function to include the Add Player button at the end
-    function generateTable(savedData = null) {
+    function generateTable(savedData = null, shouldSave = true) {
       let numPlayers;
       let playersData = [];
 
@@ -2029,8 +2029,10 @@
         applyViewOnlyRestrictions();
       }
 
-      // Save the new state and calculate scores
-      saveData();
+      // Save the new state and calculate scores (only if shouldSave is true)
+      if (shouldSave !== false) {
+        saveData();
+      }
       calculateScores();
 
       // Update Game ID display
