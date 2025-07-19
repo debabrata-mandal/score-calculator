@@ -5,7 +5,47 @@
   <meta charset="UTF-8" />
   <title>⭐ Rummy Score Master</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Cache Control Headers -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  
+  <!-- Version for cache busting - Update this with each deployment -->
+  <meta name="app-version" content="v1.2.1" />
+  
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Register Service Worker for cache management -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      // Simple service worker registration for cache control
+      const swCode = `
+        const CACHE_NAME = 'rummy-score-v1.2.1';
+        
+        self.addEventListener('fetch', (event) => {
+          // Don't cache the main HTML file - always fetch fresh
+          if (event.request.url.includes('.html') || event.request.url === self.registration.scope) {
+            event.respondWith(
+              fetch(event.request, {
+                cache: 'no-cache',
+                headers: {
+                  'Cache-Control': 'no-cache, no-store, must-revalidate'
+                }
+              })
+            );
+          }
+        });
+      `;
+      
+      const blob = new Blob([swCode], { type: 'application/javascript' });
+      const swUrl = URL.createObjectURL(blob);
+      
+      navigator.serviceWorker.register(swUrl)
+        .then(() => console.log('Service Worker registered for cache control'))
+        .catch(() => console.log('Service Worker registration failed (this is normal on some browsers)'));
+    }
+  </script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -1331,6 +1371,180 @@
   <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
   <!-- Your existing script tag starts here -->
   <script>
+    // Version management and auto-update functionality
+    const CURRENT_VERSION = "v1.2.1"; // Update this with each deployment
+    
+    // Check for updates every 5 minutes
+    let updateCheckInterval = null;
+    
+    function startUpdateChecker() {
+      // Clear any existing interval
+      if (updateCheckInterval) {
+        clearInterval(updateCheckInterval);
+      }
+      
+      // Check for updates every 5 minutes (300000 ms)
+      updateCheckInterval = setInterval(() => {
+        checkForUpdates();
+      }, 300000);
+      
+      // Also check immediately on page load (after 10 seconds)
+      setTimeout(() => {
+        checkForUpdates();
+      }, 10000);
+    }
+    
+    async function checkForUpdates() {
+      try {
+        // Fetch the current page with cache-busting parameter
+        const response = await fetch(window.location.href + '?_cb=' + Date.now(), {
+          method: 'HEAD', // Use HEAD to just check headers, not download full content
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
+        });
+        
+        if (response.ok) {
+          // Try to get version from server (this is a simple approach)
+          // In a real deployment, you might have a separate endpoint for version checking
+          const fullResponse = await fetch(window.location.href + '?_cb=' + Date.now(), {
+            cache: 'no-cache'
+          });
+          
+          const htmlContent = await fullResponse.text();
+          const versionMatch = htmlContent.match(/name="app-version"\s+content="([^"]+)"/);
+          
+          if (versionMatch) {
+            const serverVersion = versionMatch[1];
+            
+            if (serverVersion !== CURRENT_VERSION) {
+              console.log(`Update detected: ${CURRENT_VERSION} -> ${serverVersion}`);
+              showUpdateNotification(serverVersion);
+            }
+          }
+        }
+      } catch (error) {
+        console.log('Update check failed (this is normal if offline):', error);
+        // Silently fail - don't bother users with network errors
+      }
+    }
+    
+    function showUpdateNotification(newVersion) {
+      // Stop checking for more updates
+      if (updateCheckInterval) {
+        clearInterval(updateCheckInterval);
+        updateCheckInterval = null;
+      }
+      
+      // Show a prominent update notification
+      const updateBanner = document.createElement('div');
+      updateBanner.id = 'updateBanner';
+      updateBanner.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #ff6b35, #f7931e);
+        color: white;
+        padding: 12px 20px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 14px;
+        z-index: 10000;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        animation: slideDown 0.3s ease-out;
+      `;
+      
+      updateBanner.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
+          <span>🚀 New version available (${newVersion})! Click to update.</span>
+          <button onclick="forceReload()" style="
+            background: white;
+            color: #ff6b35;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+          ">
+            Update Now
+          </button>
+          <button onclick="dismissUpdate()" style="
+            background: transparent;
+            color: white;
+            border: 1px solid white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+          ">
+            Later
+          </button>
+        </div>
+      `;
+      
+      // Add CSS animation
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes slideDown {
+          from { transform: translateY(-100%); }
+          to { transform: translateY(0); }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      document.body.appendChild(updateBanner);
+      
+      // Auto-update after 30 seconds if user doesn't respond
+      setTimeout(() => {
+        if (document.getElementById('updateBanner')) {
+          forceReload();
+        }
+      }, 30000);
+    }
+    
+    function forceReload() {
+      // Save current game state before reloading
+      if (typeof saveCurrentDataToCloud === 'function' && !isViewOnlyMode) {
+        saveCurrentDataToCloud().finally(() => {
+          performReload();
+        });
+      } else {
+        performReload();
+      }
+    }
+    
+    function performReload() {
+      // Add cache-busting parameters and reload
+      const url = new URL(window.location);
+      url.searchParams.set('_cb', Date.now());
+      url.searchParams.set('_v', Date.now());
+      
+      // Show loading state
+      showToast("🔄 Updating app to latest version...", "loading", 2000);
+      
+      setTimeout(() => {
+        window.location.href = url.toString();
+      }, 1000);
+    }
+    
+    function dismissUpdate() {
+      const banner = document.getElementById('updateBanner');
+      if (banner) {
+        banner.style.animation = 'slideUp 0.3s ease-in';
+        setTimeout(() => banner.remove(), 300);
+      }
+      
+      // Restart update checker in 15 minutes
+      setTimeout(() => {
+        startUpdateChecker();
+      }, 900000); // 15 minutes
+    }
+
     let chart;
     let pendingAction = null;
 
@@ -3633,6 +3847,9 @@
     window.onload = function () {
       loadData();
       updateGameIdDisplay();
+      
+      // Start checking for app updates
+      startUpdateChecker();
     };
 
     // Add close game function that clears everything
