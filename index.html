@@ -890,40 +890,62 @@
       .controls div[style*="text-align: center"] .start-play-button {
         margin: 0 auto !important;
       }
-
-      /* Game Management Section - Mobile */
-      #gameManagementSection {
-        padding: 12px !important;
-        margin-bottom: 10px !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-      }
-
-      #gameManagementSection h3 {
-        font-size: 14px !important;
-        margin-bottom: 10px !important;
-        text-align: center !important;
-        width: 100% !important;
-      }
-
-      #gameManagementSection > div:first-child {
-        justify-content: center !important;
-      }
-
-      #gameManagementSection button {
-        width: 100% !important;
-        max-width: 280px !important;
-        padding: 12px 18px !important;
-        font-size: 14px !important;
-        margin: 0 auto !important;
-      }
     }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <h1>⭐ Rummy Score Master</h1>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 10px;">
+      <h1 style="margin: 0;">⭐ Rummy Score Master</h1>
+      
+      <!-- Action buttons container -->
+      <div id="titleActionButtons" style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <!-- Close Game button (shown when game is active) -->
+        <button id="closeGameIconBtn" onclick="confirmCloseGame()" style="
+          background: linear-gradient(135deg, #dc3545, #c82333);
+          color: white;
+          border: none;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          cursor: pointer;
+          font-size: 16px;
+          font-weight: 600;
+          display: none;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+        " onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 8px rgba(220, 53, 69, 0.4)'" 
+           onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 4px rgba(220, 53, 69, 0.3)'"
+           title="End current game and return to setup">
+          🗑️
+        </button>
+        
+        <!-- Refresh Data button (shown in view-only mode) -->
+        <button id="refreshIconBtn" onclick="refreshGameData()" style="
+          background: linear-gradient(135deg, #17a2b8, #138496);
+          color: white;
+          border: none;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          cursor: pointer;
+          font-size: 16px;
+          font-weight: 600;
+          display: none;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 4px rgba(23, 162, 184, 0.3);
+        " onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 8px rgba(23, 162, 184, 0.4)'" 
+           onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 4px rgba(23, 162, 184, 0.3)'"
+           title="Refresh latest data from cloud">
+          🔄
+        </button>
+      </div>
+    </div>
 
     <!-- Move Game ID Display Section here - right after title -->
     <!-- Update the Game ID Display Section to be cleaner -->
@@ -1251,39 +1273,6 @@
       </div>
     </div>
 
-    <!-- Game Management Section (appears only when game is active) -->
-    <div id="gameManagementSection" style="
-      background: linear-gradient(135deg, #fff3cd, #ffeaa7);
-      padding: 15px;
-      border-radius: 8px;
-      border: 2px solid #ffc107;
-      margin-bottom: 10px;
-      display: none;
-    ">
-      <div style="display: flex; justify-content: center; margin-bottom: 12px">
-        <button id="closeGameButton" onclick="confirmCloseGame()" style="
-          background: linear-gradient(135deg, #dc3545, #c82333);
-          color: white;
-          padding: 10px 18px;
-          border: none;
-          border-radius: 6px;
-          font-weight: 600;
-          cursor: pointer;
-          font-size: 14px;
-          box-shadow: 0 3px 8px rgba(220, 53, 69, 0.3);
-          transition: all 0.3s ease;
-        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(220, 53, 69, 0.4)'" 
-           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(220, 53, 69, 0.3)'">
-          🗑️ Close Game
-        </button>
-      </div>
-      
-      <!-- Game Management Helper Text -->
-      <div style="margin-top: 12px; padding: 8px; background-color: #fff8e1; border-radius: 6px; border-left: 4px solid #ffc107; text-align: center;">
-        <p style="margin: 0; font-size: 12px; color: #856404; font-weight: 500;">End current game and return to setup screen</p>
-      </div>
-    </div>
-
     <div id="scoreTableContainer"></div>
     <div class="leaderboard" id="leaderboard"></div>
     <div class="chart-container">
@@ -1421,10 +1410,10 @@
         gameSetupSection.style.display = "none";
       }
 
-      // Show Game Management section
-      const gameManagementSection = document.getElementById("gameManagementSection");
-      if (gameManagementSection) {
-        gameManagementSection.style.display = "block";
+      // Show Close Game icon button
+      const closeGameIconBtn = document.getElementById("closeGameIconBtn");
+      if (closeGameIconBtn) {
+        closeGameIconBtn.style.display = "flex";
       }
     }
 
@@ -1442,10 +1431,10 @@
         gameSetupSection.style.display = "block";
       }
 
-      // Hide Game Management section
-      const gameManagementSection = document.getElementById("gameManagementSection");
-      if (gameManagementSection) {
-        gameManagementSection.style.display = "none";
+      // Hide Close Game icon button
+      const closeGameIconBtn = document.getElementById("closeGameIconBtn");
+      if (closeGameIconBtn) {
+        closeGameIconBtn.style.display = "none";
       }
     }
 
@@ -3263,63 +3252,22 @@
 
     // Function to add refresh button for view-only mode
     function addRefreshButtonForViewMode() {
-      // Remove existing refresh button if any
-      removeRefreshButtonForViewMode();
-
       const gameId = localStorage.getItem("gameId");
       if (!gameId) return; // No game ID, no refresh needed
 
-      // Find the controls section to add the refresh button
-      const controlsDiv = document.querySelector('.controls');
-      if (controlsDiv) {
-        // Create refresh button container
-        const refreshContainer = document.createElement('div');
-        refreshContainer.id = 'refreshButtonContainer';
-        refreshContainer.style.cssText = `
-          margin-top: 10px;
-          text-align: center;
-          padding: 10px;
-          background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
-          border-radius: 8px;
-          border: 2px solid #17a2b8;
-        `;
-
-        refreshContainer.innerHTML = `
-          <button id="refreshDataBtn" onclick="refreshGameData()" style="
-            background: linear-gradient(135deg, #17a2b8, #138496);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 2px 4px rgba(23, 162, 184, 0.3);
-            transition: all 0.3s ease;
-          " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(23, 162, 184, 0.4)'" 
-             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(23, 162, 184, 0.3)'">
-            🔄 Refresh Latest Data
-          </button>
-          <div style="
-            margin-top: 8px;
-            font-size: 12px;
-            color: #6c757d;
-            font-style: italic;
-          ">
-            Click to fetch the latest game data from cloud
-          </div>
-        `;
-
-        // Insert after controls section
-        controlsDiv.insertAdjacentElement('afterend', refreshContainer);
+      // Show refresh icon button
+      const refreshIconBtn = document.getElementById("refreshIconBtn");
+      if (refreshIconBtn) {
+        refreshIconBtn.style.display = "flex";
       }
     }
 
     // Function to remove refresh button
     function removeRefreshButtonForViewMode() {
-      const refreshContainer = document.getElementById('refreshButtonContainer');
-      if (refreshContainer) {
-        refreshContainer.remove();
+      // Hide refresh icon button
+      const refreshIconBtn = document.getElementById("refreshIconBtn");
+      if (refreshIconBtn) {
+        refreshIconBtn.style.display = "none";
       }
     }
 
@@ -3337,12 +3285,13 @@
       }
 
       try {
-        // Show loading state
-        const refreshBtn = document.getElementById("refreshDataBtn");
-        const originalText = refreshBtn.innerHTML;
-        refreshBtn.disabled = true;
-        refreshBtn.innerHTML = "🔄 Refreshing...";
-        refreshBtn.style.opacity = "0.7";
+        // Show loading state on icon button
+        const refreshBtn = document.getElementById("refreshIconBtn");
+        if (refreshBtn) {
+          refreshBtn.disabled = true;
+          refreshBtn.innerHTML = "⏳";
+          refreshBtn.style.opacity = "0.7";
+        }
 
         showToast("🔄 Refreshing game data...", "loading");
 
@@ -3372,9 +3321,11 @@
         }
 
         // Restore button state
-        refreshBtn.disabled = false;
-        refreshBtn.innerHTML = originalText;
-        refreshBtn.style.opacity = "1";
+        if (refreshBtn) {
+          refreshBtn.disabled = false;
+          refreshBtn.innerHTML = "🔄";
+          refreshBtn.style.opacity = "1";
+        }
 
       } catch (error) {
         console.error("Refresh error:", error);
@@ -3382,10 +3333,10 @@
         showToast("❌ Failed to refresh data. Check your internet connection.", "error");
 
         // Restore button state
-        const refreshBtn = document.getElementById("refreshDataBtn");
+        const refreshBtn = document.getElementById("refreshIconBtn");
         if (refreshBtn) {
           refreshBtn.disabled = false;
-          refreshBtn.innerHTML = "🔄 Refresh Latest Data";
+          refreshBtn.innerHTML = "🔄";
           refreshBtn.style.opacity = "1";
         }
       }
