@@ -12,7 +12,7 @@
   <meta http-equiv="Expires" content="0" />
   
   <!-- Version for cache busting - Update this with each deployment -->
-  <meta name="app-version" content="v2.0.0" />
+  <meta name="app-version" content="v2.0.1" />
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
@@ -1405,7 +1405,7 @@
   <!-- Your existing script tag starts here -->
   <script>
     // Version management and auto-update functionality
-    const CURRENT_VERSION = "v2.0.0"; // Update this with each deployment
+    const CURRENT_VERSION = "v2.0.1"; // Update this with each deployment
     
     // Check for updates every 5 minutes
     let updateCheckInterval = null;
@@ -2321,7 +2321,26 @@
   </button>
 </div>`;
 
+      // Save current scroll position before updating table
+      const tableContainer = document.querySelector('.table-container');
+      let savedScrollLeft = 0;
+      let savedScrollTop = 0;
+      
+      if (tableContainer) {
+        savedScrollLeft = tableContainer.scrollLeft;
+        savedScrollTop = tableContainer.scrollTop;
+      }
+
       document.getElementById("scoreTableContainer").innerHTML = html;
+
+      // Restore scroll position after table update
+      setTimeout(() => {
+        const newTableContainer = document.querySelector('.table-container');
+        if (newTableContainer && (savedScrollLeft > 0 || savedScrollTop > 0)) {
+          newTableContainer.scrollLeft = savedScrollLeft;
+          newTableContainer.scrollTop = savedScrollTop;
+        }
+      }, 0);
 
       // Add event listeners to inputs (only if not in view-only mode)
       if (!isViewOnlyMode) {
