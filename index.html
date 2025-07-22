@@ -978,21 +978,23 @@
           background: linear-gradient(135deg, #dc3545, #c82333);
           color: white;
           border: none;
-          border-radius: 50%;
-          width: 40px;
-          height: 40px;
+          border-radius: 8px;
+          width: 36px;
+          height: 36px;
           cursor: pointer;
-          font-size: 16px;
-          font-weight: 600;
+          font-size: 14px;
+          font-weight: 700;
           display: none;
           align-items: center;
           justify-content: center;
           transition: all 0.3s ease;
-          box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
-        " onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 8px rgba(220, 53, 69, 0.4)'" 
-           onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 4px rgba(220, 53, 69, 0.3)'"
+          box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
+          font-family: Arial, sans-serif;
+          line-height: 1;
+        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(220, 53, 69, 0.4)'" 
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 6px rgba(220, 53, 69, 0.3)'"
            title="End current game and return to setup">
-          ✖️
+          ×
         </button>
       </div>
     </div>
