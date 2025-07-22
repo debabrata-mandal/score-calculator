@@ -12,7 +12,7 @@
   <meta http-equiv="Expires" content="0" />
   
   <!-- Version for cache busting - Update this with each deployment -->
-  <meta name="app-version" content="v2.0.8" />
+  <meta name="app-version" content="v2.0.9" />
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
@@ -994,28 +994,6 @@
            title="End current game and return to setup">
           ✖️
         </button>
-        
-        <!-- Refresh Data button (shown in view-only mode) -->
-        <button id="refreshIconBtn" onclick="refreshGameData()" style="
-          background: linear-gradient(135deg, #17a2b8, #138496);
-          color: white;
-          border: none;
-          border-radius: 50%;
-          width: 40px;
-          height: 40px;
-          cursor: pointer;
-          font-size: 16px;
-          font-weight: 600;
-          display: none;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.3s ease;
-          box-shadow: 0 2px 4px rgba(23, 162, 184, 0.3);
-        " onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 8px rgba(23, 162, 184, 0.4)'" 
-           onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 4px rgba(23, 162, 184, 0.3)'"
-           title="Refresh latest data from cloud">
-          🔄
-        </button>
       </div>
     </div>
 
@@ -1405,7 +1383,7 @@
   <!-- Your existing script tag starts here -->
   <script>
     // Version management and auto-update functionality
-    const CURRENT_VERSION = "v2.0.8"; // Update this with each deployment
+    const CURRENT_VERSION = "v2.0.9"; // Update this with each deployment
     
     // Check for updates every 5 minutes
     let updateCheckInterval = null;
@@ -3576,9 +3554,6 @@
         gstInput.title = "View Only Mode - Settings cannot be changed";
       }
 
-      // Add refresh button for view-only mode
-      addRefreshButtonForViewMode();
-
       // Add visual indicator for view-only mode
       addViewOnlyIndicator();
     }
@@ -3648,8 +3623,6 @@
       // Remove view-only indicator
       removeViewOnlyIndicator();
 
-      // Remove refresh button
-      removeRefreshButtonForViewMode();
     }
 
     // Function to add visual indicator for view-only mode
@@ -3688,105 +3661,6 @@
       const indicator = document.getElementById('viewOnlyIndicator');
       if (indicator) {
         indicator.remove();
-      }
-    }
-
-    // Function to add refresh button for view-only mode
-    function addRefreshButtonForViewMode() {
-      const gameId = localStorage.getItem("gameId");
-      if (!gameId) return; // No game ID, no refresh needed
-
-      // Show refresh icon button
-      const refreshIconBtn = document.getElementById("refreshIconBtn");
-      if (refreshIconBtn) {
-        refreshIconBtn.style.display = "flex";
-      }
-    }
-
-    // Function to remove refresh button
-    function removeRefreshButtonForViewMode() {
-      // Hide refresh icon button
-      const refreshIconBtn = document.getElementById("refreshIconBtn");
-      if (refreshIconBtn) {
-        refreshIconBtn.style.display = "none";
-      }
-    }
-
-    // Function to refresh game data from cloud
-    async function refreshGameData() {
-      const gameId = localStorage.getItem("gameId");
-      if (!gameId) {
-        showToast("❌ No game ID found to refresh", "error");
-        return;
-      }
-
-      if (!window.db) {
-        showToast("❌ Database not ready. Please try again.", "error");
-        return;
-      }
-
-      try {
-        // Show loading state on icon button
-        const refreshBtn = document.getElementById("refreshIconBtn");
-        if (refreshBtn) {
-          refreshBtn.disabled = true;
-          refreshBtn.innerHTML = "⏳";
-          refreshBtn.style.opacity = "0.7";
-        }
-
-        showToast("🔄 Refreshing game data...", "loading");
-
-        // Load game data from gameData collection
-        const gameDataSnap = await window.firestore.getDoc(
-          window.firestore.doc(window.db, "gameData", gameId)
-        );
-
-        if (gameDataSnap.exists()) {
-          const cloudData = gameDataSnap.data();
-          localStorage.setItem("scoreData", JSON.stringify(cloudData.data));
-
-          // Update point value and GST from cloud
-          document.getElementById("pointValue").value =
-            cloudData.data.pointValue || 1.0;
-          document.getElementById("gstPercent").value =
-            cloudData.data.gstPercent || 18.0;
-
-          // Reload the table and calculations
-          loadData();
-
-          hideLoadingToast();
-          showToast("✅ Game data refreshed successfully!", "success", 4000);
-          
-          // Restart real-time listener if in view-only mode
-          if (isViewOnlyMode) {
-            startRealtimeListener(gameId);
-          }
-        } else {
-          hideLoadingToast();
-          showToast("❌ Game data not found in cloud", "error");
-        }
-
-        // Restore button state
-        if (refreshBtn) {
-          refreshBtn.disabled = false;
-          // Restore appropriate icon based on real-time status
-          updateRefreshButtonForRealtime(isViewOnlyMode && realtimeListener);
-          refreshBtn.style.opacity = "1";
-        }
-
-      } catch (error) {
-        console.error("Refresh error:", error);
-        hideLoadingToast();
-        showToast("❌ Failed to refresh data. Check your internet connection.", "error");
-
-        // Restore button state
-        const refreshBtn = document.getElementById("refreshIconBtn");
-        if (refreshBtn) {
-          refreshBtn.disabled = false;
-          // Restore appropriate icon based on real-time status
-          updateRefreshButtonForRealtime(isViewOnlyMode && realtimeListener);
-          refreshBtn.style.opacity = "1";
-        }
       }
     }
 
@@ -3888,8 +3762,6 @@
           }
         });
 
-        // Update refresh button to show real-time status
-        updateRefreshButtonForRealtime(true);
         
       } catch (error) {
         console.error("Failed to start real-time listener:", error);
@@ -3902,9 +3774,6 @@
         realtimeListener(); // Call the unsubscribe function
         realtimeListener = null;
         lastKnownUpdateTime = null;
-        
-        // Update refresh button to show manual status
-        updateRefreshButtonForRealtime(false);
       }
     }
 
@@ -3935,19 +3804,6 @@
         notification.style.animation = "slideOutRight 0.3s ease-in";
         setTimeout(() => notification.remove(), 300);
       }, 2000);
-    }
-
-    function updateRefreshButtonForRealtime(isRealtime) {
-      const refreshBtn = document.getElementById("refreshIconBtn");
-      if (refreshBtn && isViewOnlyMode) {
-        if (isRealtime) {
-          refreshBtn.title = "Real-time updates active - Click for manual refresh";
-          refreshBtn.innerHTML = "🟢"; // Green dot to indicate real-time
-        } else {
-          refreshBtn.title = "Refresh latest data from cloud";
-          refreshBtn.innerHTML = "🔄"; // Regular refresh icon
-        }
-      }
     }
 
     // Add modern toast notification system
