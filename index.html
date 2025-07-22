@@ -12,7 +12,7 @@
   <meta http-equiv="Expires" content="0" />
   
   <!-- Version for cache busting - Update this with each deployment -->
-  <meta name="app-version" content="v2.0.10" />
+  <meta name="app-version" content="v2.0.11" />
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
@@ -1282,14 +1282,14 @@
           <div style="display: flex; align-items: center; gap: 8px; min-width: 180px">
             <label for="pointValue" style="font-weight: 600; color: #495057; white-space: nowrap; width: 100px; text-align: right">Point Value:</label>
             <span style="font-weight: 600; color: #495057; width: 12px; text-align: center">₹</span>
-            <input type="number" id="pointValue" min="0" step="0.01" value="1.00" style="width: 80px; padding: 6px; border: 2px solid #ced4da; border-radius: 4px; text-align: center; font-weight: 600"
+            <input type="number" id="pointValue" min="0" step="0.01" value="0.15" style="width: 80px; padding: 6px; border: 2px solid #ced4da; border-radius: 4px; text-align: center; font-weight: 600"
               onchange="saveData();" />
           </div>
           
           <div style="display: flex; align-items: center; gap: 8px; min-width: 180px">
             <label for="gstPercent" style="font-weight: 600; color: #495057; white-space: nowrap; width: 100px; text-align: right">GST Value:</label>
             <span style="font-weight: 600; color: #495057; width: 12px; text-align: center">%</span>
-            <input type="number" id="gstPercent" min="0" max="100" step="0.01" value="18.00" style="width: 80px; padding: 6px; border: 2px solid #ced4da; border-radius: 4px; text-align: center; font-weight: 600"
+            <input type="number" id="gstPercent" min="0" max="100" step="0.01" value="25.00" style="width: 80px; padding: 6px; border: 2px solid #ced4da; border-radius: 4px; text-align: center; font-weight: 600"
               onchange="saveData();" />
           </div>
         </div>
@@ -1385,7 +1385,7 @@
   <!-- Your existing script tag starts here -->
   <script>
     // Version management and auto-update functionality
-    const CURRENT_VERSION = "v2.0.10"; // Update this with each deployment
+    const CURRENT_VERSION = "v2.0.11"; // Update this with each deployment
     
     // Check for updates every 5 minutes
     let updateCheckInterval = null;
@@ -1595,9 +1595,9 @@
       const playerRows =
         document.querySelectorAll('input[id^="name"]').length;
       const pointValue =
-        parseFloat(document.getElementById("pointValue").value) || 1.0;
+        parseFloat(document.getElementById("pointValue").value) || 0.15;
       const gstPercent =
-        parseFloat(document.getElementById("gstPercent").value) || 18.0;
+        parseFloat(document.getElementById("gstPercent").value) || 25.0;
 
       const data = {
         numPlayers: playerRows,
@@ -1682,8 +1682,8 @@
 
       const data = JSON.parse(saved);
 
-      document.getElementById("pointValue").value = data.pointValue || 1.0;
-      document.getElementById("gstPercent").value = data.gstPercent || 18.0;
+      document.getElementById("pointValue").value = data.pointValue || 0.15;
+      document.getElementById("gstPercent").value = data.gstPercent || 25.0;
 
       generateTable(data, false); // Don't save when loading existing data
 
@@ -1759,8 +1759,8 @@
       // Initialize game with 2 players WITHOUT random numbers (since only 2 players)
       const initialGameData = {
         numPlayers: 2,
-        pointValue: parseFloat(document.getElementById("pointValue").value) || 1.0,
-        gstPercent: parseFloat(document.getElementById("gstPercent").value) || 18.0,
+        pointValue: parseFloat(document.getElementById("pointValue").value) || 0.15,
+        gstPercent: parseFloat(document.getElementById("gstPercent").value) || 25.0,
         players: [
           {
             name: "Player 1",
@@ -1968,8 +1968,8 @@
         // If no saved data, create new structure
         savedData = {
           numPlayers: currentPlayers + 1,
-          pointValue: parseFloat(document.getElementById("pointValue").value) || 1.0,
-          gstPercent: parseFloat(document.getElementById("gstPercent").value) || 18.0,
+          pointValue: parseFloat(document.getElementById("pointValue").value) || 0.15,
+          gstPercent: parseFloat(document.getElementById("gstPercent").value) || 25.0,
           players: []
         };
         
@@ -2538,9 +2538,9 @@
         document.querySelectorAll('input[id^="name"]').length;
       const scores = [];
       const pointValue =
-        parseFloat(document.getElementById("pointValue").value) || 1.0;
+        parseFloat(document.getElementById("pointValue").value) || 0.15;
       const gstPercent =
-        parseFloat(document.getElementById("gstPercent").value) || 18.0;
+        parseFloat(document.getElementById("gstPercent").value) || 25.0;
 
       for (let i = 1; i <= numPlayers; i++) {
         let total = 0;
@@ -2859,7 +2859,7 @@
         const numPlayers =
           document.querySelectorAll('input[id^="name"]').length;
         const pointValue =
-          parseFloat(document.getElementById("pointValue").value) || 1.0;
+          parseFloat(document.getElementById("pointValue").value) || 0.15;
         updateSettlementInfo(gstPercent, numPlayers, pointValue);
       }, 100);
     }
