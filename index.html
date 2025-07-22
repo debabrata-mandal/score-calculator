@@ -12,7 +12,7 @@
   <meta http-equiv="Expires" content="0" />
   
   <!-- Version for cache busting - Update this with each deployment -->
-  <meta name="app-version" content="v2.0.1" />
+  <meta name="app-version" content="v2.0.4" />
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
@@ -1405,7 +1405,7 @@
   <!-- Your existing script tag starts here -->
   <script>
     // Version management and auto-update functionality
-    const CURRENT_VERSION = "v2.0.1"; // Update this with each deployment
+    const CURRENT_VERSION = "v2.0.4"; // Update this with each deployment
     
     // Check for updates every 5 minutes
     let updateCheckInterval = null;
@@ -2588,9 +2588,67 @@
       // Create leaderboard table WITHOUT settlement explanation
       let leaderboardHtml = `
 <h2>Leaderboard & Settlement</h2>
-<div style="text-align: left; margin-bottom: 10px;">
-  <span style="font-size: 12px; color: #6c757d; font-weight: normal;">₹${pointValue}/point, ${gstPercent}% GST</span>
+<div style="
+  text-align: center; 
+  margin-bottom: 15px; 
+  padding: 12px 16px; 
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #fff3e0 100%); 
+  border-radius: 12px; 
+  border: 2px solid #e1bee7;
+  box-shadow: 0 4px 12px rgba(161, 136, 205, 0.2);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(161, 136, 205, 0.25)'" 
+   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(161, 136, 205, 0.2)'">
+  <div style="
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: shimmer 3s ease-in-out infinite;
+    pointer-events: none;
+  "></div>
+  <div style="position: relative; z-index: 1;">
+    <div style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+      <div style="
+        display: flex; 
+        align-items: center; 
+        gap: 6px;
+        background: rgba(255,255,255,0.6);
+        padding: 6px 12px;
+        border-radius: 20px;
+        border: 1px solid rgba(74, 20, 140, 0.2);
+      ">
+        <span style="font-size: 18px;">💰</span>
+        <span style="font-size: 16px; color: #4a148c; font-weight: 700;">₹${pointValue}</span>
+        <span style="font-size: 13px; color: #6a1b9a; font-weight: 500;">/point</span>
+      </div>
+      <div style="
+        display: flex; 
+        align-items: center; 
+        gap: 6px;
+        background: rgba(255,255,255,0.6);
+        padding: 6px 12px;
+        border-radius: 20px;
+        border: 1px solid rgba(74, 20, 140, 0.2);
+      ">
+        <span style="font-size: 18px;">📊</span>
+        <span style="font-size: 16px; color: #4a148c; font-weight: 700;">${gstPercent}%</span>
+        <span style="font-size: 13px; color: #6a1b9a; font-weight: 500;">GST</span>
+      </div>
+    </div>
+  </div>
 </div>
+<style>
+@keyframes shimmer {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+  100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+}
+</style>
 <table class="leaderboard-table" style="
   width: auto !important; 
   min-width: auto !important; 
