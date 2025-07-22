@@ -12,7 +12,7 @@
   <meta http-equiv="Expires" content="0" />
   
   <!-- Version for cache busting - Update this with each deployment -->
-  <meta name="app-version" content="v2.0.9" />
+  <meta name="app-version" content="v2.0.10" />
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
@@ -1385,7 +1385,7 @@
   <!-- Your existing script tag starts here -->
   <script>
     // Version management and auto-update functionality
-    const CURRENT_VERSION = "v2.0.9"; // Update this with each deployment
+    const CURRENT_VERSION = "v2.0.10"; // Update this with each deployment
     
     // Check for updates every 5 minutes
     let updateCheckInterval = null;
@@ -4084,7 +4084,6 @@
       // Reset view-only mode
       isViewOnlyMode = false;
       removeViewOnlyIndicator();
-      removeRefreshButtonForViewMode();
 
       // Stop real-time listener
       stopRealtimeListener();
