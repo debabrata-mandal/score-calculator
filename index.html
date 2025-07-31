@@ -1323,6 +1323,76 @@
           </ul>
         </div>
       </div>
+
+      <!-- WhatsApp Integration Section -->
+      <div id="whatsappSection" style="
+        background: linear-gradient(135deg, #25d366, #128c7e);
+        padding: 15px;
+        border-radius: 8px;
+        border: 2px solid #128c7e;
+        margin-bottom: 10px;
+        display: none;
+      ">
+        <h3 style="
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          color: white;
+          text-align: center;
+        ">📱 WhatsApp Integration</h3>
+        
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px">
+          <button onclick="postRoundResultsToWhatsApp()" style="
+            background: linear-gradient(135deg, #25d366, #128c7e);
+            color: white;
+            padding: 10px 18px;
+            border: 2px solid white;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 3px 8px rgba(37, 211, 102, 0.3);
+            transition: all 0.3s ease;
+          " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(37, 211, 102, 0.4)'" 
+             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(37, 211, 102, 0.3)'">
+            📱 Post Round Results to WhatsApp
+          </button>
+          
+          <button onclick="postLeaderboardToWhatsApp()" style="
+            background: linear-gradient(135deg, #128c7e, #075e54);
+            color: white;
+            padding: 10px 18px;
+            border: 2px solid white;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 3px 8px rgba(18, 140, 126, 0.3);
+            transition: all 0.3s ease;
+          " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(18, 140, 126, 0.4)'" 
+             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(18, 140, 126, 0.3)'">
+            🏆 Post Leaderboard to WhatsApp
+          </button>
+        </div>
+        
+        <!-- Auto-post toggle -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px">
+          <label style="color: white; font-weight: 600; font-size: 14px;">
+            <input type="checkbox" id="autoPostToggle" style="margin-right: 8px; transform: scale(1.2);" onchange="toggleAutoPost()">
+            🔄 Auto-post every round result
+          </label>
+        </div>
+        
+        <!-- WhatsApp Helper Text -->
+        <div style="margin-top: 12px; padding: 12px; background-color: rgba(255,255,255,0.2); border-radius: 6px; border-left: 4px solid white;">
+          <h4 style="margin: 0 0 8px 0; color: white; font-size: 14px;">💡 WhatsApp Features:</h4>
+          <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: white; line-height: 1.4;">
+            <li><strong>Round Results:</strong> Share current round scores with all players</li>
+            <li><strong>Leaderboard:</strong> Share final standings and settlement amounts</li>
+            <li><strong>Auto-post:</strong> Automatically share results when rounds are completed</li>
+            <li><strong>Auto-formatting:</strong> Messages are automatically formatted for easy reading</li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <div id="scoreTableContainer"></div>
@@ -1721,6 +1791,9 @@
 
       // Disable settings since game is already started
       disableGameSettingsAfterStart();
+      
+      // Update WhatsApp section visibility
+      updateWhatsAppSection();
     }
 
     function startNewGame() {
@@ -1786,6 +1859,9 @@
 
       // Save initial game state to cloud with PIN only (no device info)
       saveInitialGameStateToCloud(pin);
+      
+      // Show WhatsApp section for new game
+      updateWhatsAppSection();
     }
 
     // ...existing code...
@@ -2325,6 +2401,7 @@
       // Add event listeners to inputs (only if not in view-only mode)
       if (!isViewOnlyMode) {
         addInputEventListeners();
+        addWhatsAppEventListeners();
       }
 
       // Apply color coding to existing scores
@@ -2343,6 +2420,9 @@
 
       // Update Game ID display
       updateGameIdDisplay();
+      
+      // Update WhatsApp section visibility
+      updateWhatsAppSection();
     }
 
     // Function to add event listeners to input fields
@@ -2778,6 +2858,11 @@
 
       // Add settlement explanation AFTER chart is updated
       updateSettlementInfo(gstPercent, numPlayers, pointValue);
+      
+      // Check if round is completed for auto-posting
+      if (!isViewOnlyMode) {
+        setTimeout(autoPostRoundResults, 1000);
+      }
     }
 
     function updateChart(scores) {
@@ -3483,6 +3568,9 @@
 
           // Clear temporary game ID
           window.tempGameId = null;
+          
+          // Show WhatsApp section for loaded game
+          updateWhatsAppSection();
         } else {
           showToast(
             "❌ Game ID not found. Please check and try again.",
@@ -4123,6 +4211,9 @@
       // Reset page title
       document.title = "⭐ Rummy Score Master";
 
+      // Hide WhatsApp section
+      updateWhatsAppSection();
+
       // No modal needed - user can see the fresh state immediately
     }
 
@@ -4170,6 +4261,255 @@
           closeGame();
         }
       );
+    }
+
+    // WhatsApp Integration Functions
+    
+    // Function to show/hide WhatsApp section based on game state
+    function updateWhatsAppSection() {
+      const whatsappSection = document.getElementById("whatsappSection");
+      const gameData = localStorage.getItem("scoreData");
+      
+      if (gameData && whatsappSection) {
+        whatsappSection.style.display = "block";
+        
+        // Restore auto-post preference
+        const autoPostToggle = document.getElementById("autoPostToggle");
+        if (autoPostToggle) {
+          const savedPreference = localStorage.getItem("autoPostEnabled");
+          autoPostToggle.checked = savedPreference === "true";
+        }
+      } else if (whatsappSection) {
+        whatsappSection.style.display = "none";
+      }
+    }
+
+    // Function to get current round results
+    function getCurrentRoundResults() {
+      const numPlayers = document.querySelectorAll('input[id^="name"]').length;
+      const currentRound = getCurrentRound();
+      const roundResults = [];
+      
+      // Get the round number from currentRound (e.g., "R3" -> 3)
+      const roundNumber = currentRound === 'GAME OVER' ? 10 : parseInt(currentRound.replace('R', ''));
+      
+      for (let i = 1; i <= numPlayers; i++) {
+        const nameInput = document.getElementById(`name${i}`);
+        const scoreInput = document.getElementById(`p${i}r${roundNumber}`);
+        
+        if (nameInput && scoreInput) {
+          const name = nameInput.value.trim() || `Player ${i}`;
+          const score = scoreInput.value;
+          const randomNumber = nameInput.dataset.randomNumber;
+          
+          roundResults.push({
+            name: name,
+            score: score,
+            randomNumber: randomNumber
+          });
+        }
+      }
+      
+      return {
+        roundNumber: roundNumber,
+        currentRound: currentRound,
+        results: roundResults
+      };
+    }
+
+    // Function to format round results for WhatsApp
+    function formatRoundResultsForWhatsApp() {
+      const roundData = getCurrentRoundResults();
+      const gameId = localStorage.getItem("gameId");
+      const pointValue = parseFloat(document.getElementById("pointValue").value) || 0.15;
+      
+      let message = `🎯 *ROUND ${roundData.roundNumber} RESULTS* 🎯\n\n`;
+      message += `Game ID: ${gameId}\n`;
+      message += `Point Value: ₹${pointValue}\n\n`;
+      
+      // Sort results by score (lowest first for Rummy)
+      const sortedResults = roundData.results.sort((a, b) => {
+        const scoreA = parseInt(a.score) || -1;
+        const scoreB = parseInt(b.score) || -1;
+        return scoreA - scoreB;
+      });
+      
+      sortedResults.forEach((player, index) => {
+        const score = parseInt(player.score) || -1;
+        const scoreText = score === -1 ? "Not played" : score.toString();
+        const playerName = player.randomNumber ? `${player.name} (#${player.randomNumber})` : player.name;
+        
+        // Add emoji based on position
+        let emoji = "";
+        if (index === 0 && score !== -1) emoji = "🥇";
+        else if (index === 1 && score !== -1) emoji = "🥈";
+        else if (index === 2 && score !== -1) emoji = "🥉";
+        else if (score === -1) emoji = "⏳";
+        else emoji = "📊";
+        
+        message += `${emoji} ${playerName}: ${scoreText}\n`;
+      });
+      
+      message += `\n${roundData.currentRound === 'GAME OVER' ? '🏁 GAME COMPLETED! 🏁' : '🎮 Keep playing!'}`;
+      
+      return message;
+    }
+
+    // Function to format leaderboard for WhatsApp
+    function formatLeaderboardForWhatsApp() {
+      const gameId = localStorage.getItem("gameId");
+      const pointValue = parseFloat(document.getElementById("pointValue").value) || 0.15;
+      const gstPercent = parseFloat(document.getElementById("gstPercent").value) || 25.0;
+      const numPlayers = document.querySelectorAll('input[id^="name"]').length;
+      
+      // Get current scores
+      const scores = [];
+      for (let i = 1; i <= numPlayers; i++) {
+        let total = 0;
+        for (let j = 1; j <= 10; j++) {
+          const scoreInput = document.getElementById(`p${i}r${j}`);
+          if (scoreInput) {
+            const val = parseInt(scoreInput.value);
+            total += isNaN(val) || val === -1 ? 0 : val;
+          }
+        }
+        const nameInput = document.getElementById(`name${i}`);
+        const name = nameInput ? nameInput.value.trim() : `Player ${i}`;
+        const randomNumber = nameInput ? nameInput.dataset.randomNumber : null;
+        scores.push({ name, total, randomNumber });
+      }
+      
+      // Sort by total score (lowest wins)
+      const sortedScores = [...scores].sort((a, b) => a.total - b.total);
+      
+      // Calculate settlement amounts
+      const totalAllScores = sortedScores.reduce((sum, score) => sum + score.total, 0);
+      sortedScores.forEach((score) => {
+        score.grossAmount = Math.round((totalAllScores - score.total * numPlayers) * pointValue);
+        if (score.grossAmount > 0) {
+          score.gstPaid = Math.round((score.grossAmount * gstPercent) / 100);
+          score.netAmount = score.grossAmount - score.gstPaid;
+        } else {
+          score.gstPaid = 0;
+          score.netAmount = score.grossAmount;
+        }
+      });
+      
+      let message = `🏆 *FINAL LEADERBOARD* 🏆\n\n`;
+      message += `Game ID: ${gameId}\n`;
+      message += `Point Value: ₹${pointValue}\n`;
+      message += `GST: ${gstPercent}%\n\n`;
+      
+      sortedScores.forEach((score, index) => {
+        const playerName = score.randomNumber ? `${score.name} (#${score.randomNumber})` : score.name;
+        
+        // Add medal emoji
+        let emoji = "";
+        if (index === 0) emoji = "🥇";
+        else if (index === 1) emoji = "🥈";
+        else if (index === 2) emoji = "🥉";
+        else emoji = `${index + 1}.`;
+        
+        const amountText = score.netAmount > 0 ? `+₹${score.netAmount}` : `₹${score.netAmount}`;
+        const amountColor = score.netAmount > 0 ? "🟢" : score.netAmount < 0 ? "🔴" : "⚪";
+        
+        message += `${emoji} ${playerName}\n`;
+        message += `   Score: ${score.total}\n`;
+        message += `   ${amountColor} ${amountText}\n\n`;
+      });
+      
+      // Calculate total GST collected
+      const totalGstCollected = sortedScores.reduce((sum, score) => sum + score.gstPaid, 0);
+      message += `💰 Total GST Collected: ₹${totalGstCollected}\n\n`;
+      message += `🎉 Thanks for playing! 🎉`;
+      
+      return message;
+    }
+
+    // Function to post round results to WhatsApp
+    function postRoundResultsToWhatsApp() {
+      const message = formatRoundResultsForWhatsApp();
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+      
+      // Open WhatsApp in new tab
+      window.open(whatsappUrl, '_blank');
+      
+      // Show success toast
+      showToast("📱 Opening WhatsApp with round results...", "success", 3000);
+    }
+
+    // Function to post leaderboard to WhatsApp
+    function postLeaderboardToWhatsApp() {
+      const message = formatLeaderboardForWhatsApp();
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+      
+      // Open WhatsApp in new tab
+      window.open(whatsappUrl, '_blank');
+      
+      // Show success toast
+      showToast("📱 Opening WhatsApp with leaderboard...", "success", 3000);
+    }
+
+    // Function to toggle auto-post feature
+    function toggleAutoPost() {
+      const autoPostToggle = document.getElementById("autoPostToggle");
+      const isEnabled = autoPostToggle.checked;
+      
+      // Save preference to localStorage
+      localStorage.setItem("autoPostEnabled", isEnabled);
+      
+      if (isEnabled) {
+        showToast("🔄 Auto-post enabled! Round results will be shared automatically", "success", 3000);
+      } else {
+        showToast("⏸️ Auto-post disabled", "info", 2000);
+      }
+    }
+
+    // Function to automatically post round results when round is completed
+    function autoPostRoundResults() {
+      const roundData = getCurrentRoundResults();
+      const numPlayers = document.querySelectorAll('input[id^="name"]').length;
+      
+      // Check if all players have entered scores for this round
+      let completedPlayers = 0;
+      for (let i = 1; i <= numPlayers; i++) {
+        const scoreInput = document.getElementById(`p${i}r${roundData.roundNumber}`);
+        if (scoreInput && scoreInput.value !== '' && scoreInput.value !== '-1') {
+          completedPlayers++;
+        }
+      }
+      
+      // If all players completed the round
+      if (completedPlayers === numPlayers) {
+        // Check if auto-post is enabled
+        const autoPostToggle = document.getElementById("autoPostToggle");
+        const isAutoPostEnabled = autoPostToggle ? autoPostToggle.checked : false;
+        
+        if (isAutoPostEnabled) {
+          // Automatically post to WhatsApp
+          setTimeout(() => {
+            postRoundResultsToWhatsApp();
+          }, 2000); // Small delay to let user see the completion
+        } else {
+          // Show manual option
+          showToast("🎯 Round completed! Click WhatsApp button to share results", "info", 5000);
+        }
+      }
+    }
+
+    // Add event listeners for auto-posting functionality
+    function addWhatsAppEventListeners() {
+      const scoreInputs = document.querySelectorAll('input[id^="p"][id*="r"]');
+      scoreInputs.forEach(input => {
+        input.addEventListener('change', function() {
+          if (!isViewOnlyMode) {
+            // Check if round is completed after score change
+            setTimeout(autoPostRoundResults, 1000);
+          }
+        });
+      });
     }
   </script>
 </body>
