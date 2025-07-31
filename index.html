@@ -12,16 +12,19 @@
   <meta http-equiv="Expires" content="0" />
   
   <!-- Version for cache busting - Update this with each deployment -->
-  <meta name="app-version" content="v2.0.11" />
+  <meta name="app-version" content="v2.1.0" />
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <!-- Register Service Worker for cache management -->
   <script>
     if ('serviceWorker' in navigator) {
+      // Get version from meta tag - single source of truth
+      const appVersion = document.querySelector('meta[name="app-version"]').getAttribute('content');
+      
       // Simple service worker registration for cache control
       const swCode = `
-        const CACHE_NAME = 'rummy-score-v1.2.1';
+        const CACHE_NAME = 'rummy-score-${appVersion}';
         
         self.addEventListener('fetch', (event) => {
           // Don't cache the main HTML file - always fetch fresh
@@ -1323,6 +1326,73 @@
           </ul>
         </div>
       </div>
+
+      <!-- WhatsApp Integration Section -->
+      <div id="whatsappSection" style="
+        background: linear-gradient(135deg, #25d366, #128c7e);
+        padding: 15px;
+        border-radius: 8px;
+        border: 2px solid #128c7e;
+        margin-bottom: 10px;
+        display: none;
+      ">
+                 <h3 style="
+           margin: 0 0 12px 0;
+           font-size: 16px;
+           color: white;
+           text-align: center;
+         ">📱 WhatsApp Sharing</h3>
+        
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px">
+                     <button onclick="postRoundResultsToWhatsApp()" style="
+             background: linear-gradient(135deg, #25d366, #128c7e);
+             color: white;
+             padding: 10px 18px;
+             border: 2px solid white;
+             border-radius: 6px;
+             font-weight: 600;
+             cursor: pointer;
+             font-size: 14px;
+             box-shadow: 0 3px 8px rgba(37, 211, 102, 0.3);
+             transition: all 0.3s ease;
+           " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(37, 211, 102, 0.4)'" 
+              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(37, 211, 102, 0.3)'">
+             📱 Post Round Results
+           </button>
+           
+           <button onclick="postLeaderboardToWhatsApp()" style="
+             background: linear-gradient(135deg, #128c7e, #075e54);
+             color: white;
+             padding: 10px 18px;
+             border: 2px solid white;
+             border-radius: 6px;
+             font-weight: 600;
+             cursor: pointer;
+             font-size: 14px;
+             box-shadow: 0 3px 8px rgba(18, 140, 126, 0.3);
+             transition: all 0.3s ease;
+           " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(18, 140, 126, 0.4)'" 
+              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(18, 140, 126, 0.3)'">
+             🏆 Post Leaderboard
+           </button>
+        </div>
+        
+
+
+
+        
+        <!-- WhatsApp Helper Text -->
+        <div style="margin-top: 12px; padding: 12px; background-color: rgba(255,255,255,0.2); border-radius: 6px; border-left: 4px solid white;">
+          <h4 style="margin: 0 0 8px 0; color: white; font-size: 14px;">💡 WhatsApp Sharing Features:</h4>
+          <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: white; line-height: 1.4;">
+            <li><strong>Round Results:</strong> Share current round scores with your group</li>
+            <li><strong>Leaderboard:</strong> Share final standings and settlement amounts</li>
+
+            <li><strong>Easy Sharing:</strong> Opens WhatsApp with pre-filled message</li>
+            <li><strong>Group Selection:</strong> Choose your GST group when sharing</li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <div id="scoreTableContainer"></div>
@@ -1385,7 +1455,7 @@
   <!-- Your existing script tag starts here -->
   <script>
     // Version management and auto-update functionality
-    const CURRENT_VERSION = "v2.0.11"; // Update this with each deployment
+    const CURRENT_VERSION = document.querySelector('meta[name="app-version"]').getAttribute('content'); // Read from meta tag
     
     // Check for updates every 5 minutes
     let updateCheckInterval = null;
@@ -1721,6 +1791,9 @@
 
       // Disable settings since game is already started
       disableGameSettingsAfterStart();
+      
+      // Update WhatsApp section visibility
+      updateWhatsAppSection();
     }
 
     function startNewGame() {
@@ -1786,6 +1859,9 @@
 
       // Save initial game state to cloud with PIN only (no device info)
       saveInitialGameStateToCloud(pin);
+      
+      // Show WhatsApp section for new game
+      updateWhatsAppSection();
     }
 
     // ...existing code...
@@ -2343,6 +2419,9 @@
 
       // Update Game ID display
       updateGameIdDisplay();
+      
+      // Update WhatsApp section visibility
+      updateWhatsAppSection();
     }
 
     // Function to add event listeners to input fields
@@ -2778,6 +2857,8 @@
 
       // Add settlement explanation AFTER chart is updated
       updateSettlementInfo(gstPercent, numPlayers, pointValue);
+      
+
     }
 
     function updateChart(scores) {
@@ -3483,6 +3564,9 @@
 
           // Clear temporary game ID
           window.tempGameId = null;
+          
+          // Show WhatsApp section for loaded game
+          updateWhatsAppSection();
         } else {
           showToast(
             "❌ Game ID not found. Please check and try again.",
@@ -4123,6 +4207,9 @@
       // Reset page title
       document.title = "⭐ Rummy Score Master";
 
+      // Hide WhatsApp section
+      updateWhatsAppSection();
+
       // No modal needed - user can see the fresh state immediately
     }
 
@@ -4171,6 +4258,241 @@
         }
       );
     }
+
+    // WhatsApp Integration Functions
+    
+    // Function to show/hide WhatsApp section based on game state
+    function updateWhatsAppSection() {
+      const whatsappSection = document.getElementById("whatsappSection");
+      const gameData = localStorage.getItem("scoreData");
+      
+      if (gameData && whatsappSection) {
+        whatsappSection.style.display = "block";
+        
+        // Restore auto-post preference
+
+        
+
+      } else if (whatsappSection) {
+        whatsappSection.style.display = "none";
+      }
+    }
+
+    // Function to get last completed round results
+    function getLastCompletedRoundResults() {
+      const numPlayers = document.querySelectorAll('input[id^="name"]').length;
+      let lastCompletedRound = 0;
+      
+      // Find the last completed round
+      for (let round = 1; round <= 10; round++) {
+        let completedPlayers = 0;
+        
+        // Check if all players have entered scores for this round
+        for (let player = 1; player <= numPlayers; player++) {
+          const scoreInput = document.getElementById(`p${player}r${round}`);
+          if (scoreInput && scoreInput.value !== '' && scoreInput.value !== '-1') {
+            completedPlayers++;
+          }
+        }
+        
+        // If all players completed this round, update lastCompletedRound
+        if (completedPlayers === numPlayers) {
+          lastCompletedRound = round;
+        } else {
+          // If this round is not completed, stop searching
+          break;
+        }
+      }
+      
+      const roundResults = [];
+      
+      // If no rounds are completed yet, return empty results
+      if (lastCompletedRound === 0) {
+        return {
+          roundNumber: 0,
+          currentRound: 'NO ROUNDS COMPLETED',
+          results: []
+        };
+      }
+      
+      for (let i = 1; i <= numPlayers; i++) {
+        const nameInput = document.getElementById(`name${i}`);
+        const scoreInput = document.getElementById(`p${i}r${lastCompletedRound}`);
+        
+        if (nameInput && scoreInput) {
+          const name = nameInput.value.trim() || `Player ${i}`;
+          const score = scoreInput.value;
+          const randomNumber = nameInput.dataset.randomNumber;
+          
+          roundResults.push({
+            name: name,
+            score: score,
+            randomNumber: randomNumber
+          });
+        }
+      }
+      
+      return {
+        roundNumber: lastCompletedRound,
+        currentRound: `R${lastCompletedRound}`,
+        results: roundResults
+      };
+    }
+
+    // Function to format round results for WhatsApp
+    function formatRoundResultsForWhatsApp() {
+      const roundData = getLastCompletedRoundResults();
+      const gameId = localStorage.getItem("gameId");
+      const pointValue = parseFloat(document.getElementById("pointValue").value) || 0.15;
+      
+      // Check if no rounds are completed yet
+      if (roundData.roundNumber === 0) {
+        return "No rounds completed yet. Complete a round to share results!";
+      }
+      
+      let message = `🎯 *ROUND ${roundData.roundNumber} RESULTS* 🎯\n\n`;
+      message += `Game ID: ${gameId}\n`;
+      message += `Point Value: ₹${pointValue}\n\n`;
+      
+      // Sort results by score (lowest first for Rummy)
+      const sortedResults = roundData.results.sort((a, b) => {
+        const scoreA = parseInt(a.score) || -1;
+        const scoreB = parseInt(b.score) || -1;
+        return scoreA - scoreB;
+      });
+      
+      sortedResults.forEach((player, index) => {
+        const score = parseInt(player.score) || -1;
+        const scoreText = score === -1 ? "Not played" : score.toString();
+        const playerName = player.randomNumber ? `${player.name} (#${player.randomNumber})` : player.name;
+        
+        // Add emoji based on position
+        let emoji = "";
+        if (index === 0 && score !== -1) emoji = "🥇";
+        else if (index === 1 && score !== -1) emoji = "🥈";
+        else if (index === 2 && score !== -1) emoji = "🥉";
+        else if (score === -1) emoji = "⏳";
+        else emoji = "📊";
+        
+        message += `${emoji} ${playerName}: ${scoreText}\n`;
+      });
+      
+      message += `\n${roundData.currentRound === 'GAME OVER' ? '🏁 GAME COMPLETED! 🏁' : '🎮 Keep playing!'}`;
+      
+      return message;
+    }
+
+    // Function to format leaderboard for WhatsApp
+    function formatLeaderboardForWhatsApp() {
+      const gameId = localStorage.getItem("gameId");
+      const pointValue = parseFloat(document.getElementById("pointValue").value) || 0.15;
+      const gstPercent = parseFloat(document.getElementById("gstPercent").value) || 25.0;
+      const numPlayers = document.querySelectorAll('input[id^="name"]').length;
+      
+      // Get current scores
+      const scores = [];
+      for (let i = 1; i <= numPlayers; i++) {
+        let total = 0;
+        for (let j = 1; j <= 10; j++) {
+          const scoreInput = document.getElementById(`p${i}r${j}`);
+          if (scoreInput) {
+            const val = parseInt(scoreInput.value);
+            total += isNaN(val) || val === -1 ? 0 : val;
+          }
+        }
+        const nameInput = document.getElementById(`name${i}`);
+        const name = nameInput ? nameInput.value.trim() : `Player ${i}`;
+        const randomNumber = nameInput ? nameInput.dataset.randomNumber : null;
+        scores.push({ name, total, randomNumber });
+      }
+      
+      // Sort by total score (lowest wins)
+      const sortedScores = [...scores].sort((a, b) => a.total - b.total);
+      
+      // Calculate settlement amounts
+      const totalAllScores = sortedScores.reduce((sum, score) => sum + score.total, 0);
+      sortedScores.forEach((score) => {
+        score.grossAmount = Math.round((totalAllScores - score.total * numPlayers) * pointValue);
+        if (score.grossAmount > 0) {
+          score.gstPaid = Math.round((score.grossAmount * gstPercent) / 100);
+          score.netAmount = score.grossAmount - score.gstPaid;
+        } else {
+          score.gstPaid = 0;
+          score.netAmount = score.grossAmount;
+        }
+      });
+      
+      let message = `🏆 *FINAL LEADERBOARD* 🏆\n\n`;
+      message += `Game ID: ${gameId}\n`;
+      message += `Point Value: ₹${pointValue}\n`;
+      message += `GST: ${gstPercent}%\n\n`;
+      
+      sortedScores.forEach((score, index) => {
+        const playerName = score.randomNumber ? `${score.name} (#${score.randomNumber})` : score.name;
+        
+        // Add medal emoji
+        let emoji = "";
+        if (index === 0) emoji = "🥇";
+        else if (index === 1) emoji = "🥈";
+        else if (index === 2) emoji = "🥉";
+        else emoji = `${index + 1}.`;
+        
+        const amountText = score.netAmount > 0 ? `+₹${score.netAmount}` : `₹${score.netAmount}`;
+        const amountColor = score.netAmount > 0 ? "🟢" : score.netAmount < 0 ? "🔴" : "⚪";
+        
+        message += `${emoji} ${playerName}\n`;
+        message += `   Score: ${score.total}\n`;
+        message += `   ${amountColor} ${amountText}\n\n`;
+      });
+      
+      // Calculate total GST collected
+      const totalGstCollected = sortedScores.reduce((sum, score) => sum + score.gstPaid, 0);
+      message += `💰 Total GST Collected: ₹${totalGstCollected}\n\n`;
+      message += `🎉 Thanks for playing! 🎉`;
+      
+      return message;
+    }
+
+    // Function to post round results to WhatsApp GST group
+    function postRoundResultsToWhatsApp() {
+      const message = formatRoundResultsForWhatsApp();
+      
+      // Check if no rounds are completed yet
+      if (message === "No rounds completed yet. Complete a round to share results!") {
+        showToast("⚠️ No rounds completed yet. Complete a round to share results!", "warning", 3000);
+        return;
+      }
+      
+      const encodedMessage = encodeURIComponent(message);
+      
+      // Use standard WhatsApp sharing (user will select the group)
+      const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+      
+      // Open WhatsApp in new tab
+      window.open(whatsappUrl, '_blank');
+      
+      // Show success toast with instructions
+      showToast("📱 Opening WhatsApp with last completed round results. Select your GST group and click 'Send'!", "success", 4000);
+    }
+
+    // Function to post leaderboard to WhatsApp GST group
+    function postLeaderboardToWhatsApp() {
+      const message = formatLeaderboardForWhatsApp();
+      const encodedMessage = encodeURIComponent(message);
+      
+      // Use standard WhatsApp sharing (user will select the group)
+      const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+      
+      // Open WhatsApp in new tab
+      window.open(whatsappUrl, '_blank');
+      
+      // Show success toast with instructions
+      showToast("📱 Opening WhatsApp with leaderboard. Select your GST group and click 'Send'!", "success", 4000);
+    }
+
+
+
+
   </script>
 </body>
 </html>
