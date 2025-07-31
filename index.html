@@ -1738,18 +1738,11 @@
         if (gameId) {
           console.log("Starting real-time listener for view-only mode on page refresh");
           startRealtimeListener(gameId);
-          
-          // Also start auto-refresh as a backup in case real-time updates fail
-          startAutoRefresh();
-          
-          // Do an immediate refresh to ensure we have the latest data
-          setTimeout(forceRefreshFromFirebase, 1000);
         }
       } else {
         removeViewOnlyRestrictions();
-        // Stop any existing real-time listener and auto-refresh for edit mode
+        // Stop any existing real-time listener for edit mode
         stopRealtimeListener();
-        stopAutoRefresh();
       }
 
       // Disable settings since game is already started
@@ -3565,15 +3558,10 @@
             applyViewOnlyRestrictions();
             // Start real-time listener for view-only mode
             startRealtimeListener(gameId);
-            // Start auto-refresh as a backup in case real-time updates fail
-            startAutoRefresh();
-            // Do an immediate refresh to ensure we have the latest data
-            setTimeout(forceRefreshFromFirebase, 1000);
           } else {
             removeViewOnlyRestrictions();
-            // Stop any existing real-time listener and auto-refresh for edit mode
+            // Stop any existing real-time listener for edit mode
             stopRealtimeListener();
-            stopAutoRefresh();
           }
 
           // Clear temporary game ID
@@ -3885,77 +3873,7 @@
       }
     }
 
-    // Function to manually force a reload from Firebase
-    async function forceRefreshFromFirebase() {
-      if (!isViewOnlyMode) {
-        console.log("Not in view-only mode, can't force refresh");
-        return;
-      }
-      
-      const gameId = localStorage.getItem("gameId");
-      if (!gameId || !window.db) {
-        console.log("Missing gameId or Firebase not initialized");
-        return;
-      }
-      
-      try {
-        console.log("🔄 Forcing manual refresh from Firebase for gameId:", gameId);
-        const gameDataRef = window.firestore.doc(window.db, "gameData", gameId);
-        const docSnapshot = await window.firestore.getDoc(gameDataRef);
-        
-        if (docSnapshot.exists()) {
-          const cloudData = docSnapshot.data();
-          
-          // Update local storage
-          localStorage.setItem("scoreData", JSON.stringify(cloudData.data));
-          
-          // Update UI
-          document.getElementById("pointValue").value = cloudData.data.pointValue || 1.0;
-          document.getElementById("gstPercent").value = cloudData.data.gstPercent || 18.0;
-          
-          // Reload the table and calculations
-          generateTable(cloudData.data, false);
-          calculateScores();
-          updateWhatsAppButtons();
-          
-          console.log("📥 Manual refresh from Firebase completed");
-          showToast("🔄 Data refreshed from cloud", "success", 2000);
-        } else {
-          console.log("⚠️ Game document not found in manual refresh");
-          showToast("⚠️ Game data not found", "error", 2000);
-        }
-      } catch (error) {
-        console.error("Error in manual refresh:", error);
-        showToast("❌ Error refreshing data", "error", 2000);
-      }
-    }
-    
-    // Add auto-refresh for view-only mode every 30 seconds
-    let autoRefreshInterval = null;
-    
-    function startAutoRefresh() {
-      if (!isViewOnlyMode) return;
-      
-      // Clear any existing interval
-      stopAutoRefresh();
-      
-      console.log("Starting auto-refresh for view-only mode");
-      autoRefreshInterval = setInterval(() => {
-        const gameId = localStorage.getItem("gameId");
-        if (isViewOnlyMode && gameId) {
-          console.log("Auto-refresh: Forcing data refresh");
-          forceRefreshFromFirebase();
-        }
-      }, 30000); // Every 30 seconds
-    }
-    
-    function stopAutoRefresh() {
-      if (autoRefreshInterval) {
-        console.log("Stopping auto-refresh");
-        clearInterval(autoRefreshInterval);
-        autoRefreshInterval = null;
-      }
-    }
+    // View-only mode is handled by real-time Firestore listeners
 
     function showRealtimeUpdateNotification() {
       // Create a subtle notification that doesn't interrupt the user
@@ -4297,9 +4215,8 @@
       isViewOnlyMode = false;
       removeViewOnlyIndicator();
 
-      // Stop real-time listener and auto-refresh
+      // Stop real-time listener
       stopRealtimeListener();
-      stopAutoRefresh();
 
       // Clear the game display
       document.getElementById("scoreTableContainer").innerHTML = "";
