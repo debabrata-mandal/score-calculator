@@ -2861,6 +2861,7 @@
       
       // Check if round is completed for auto-posting
       if (!isViewOnlyMode) {
+        console.log("calculateScores: Calling autoPostRoundResults...");
         setTimeout(autoPostRoundResults, 1000);
       }
     }
@@ -4278,6 +4279,7 @@
         if (autoPostToggle) {
           const savedPreference = localStorage.getItem("autoPostEnabled");
           autoPostToggle.checked = savedPreference === "true";
+          console.log(`Auto-post preference restored: ${autoPostToggle.checked}`);
         }
       } else if (whatsappSection) {
         whatsappSection.style.display = "none";
@@ -4457,6 +4459,8 @@
       const autoPostToggle = document.getElementById("autoPostToggle");
       const isEnabled = autoPostToggle.checked;
       
+      console.log(`Auto-post toggled: ${isEnabled}`);
+      
       // Save preference to localStorage
       localStorage.setItem("autoPostEnabled", isEnabled);
       
@@ -4481,15 +4485,21 @@
         }
       }
       
+      // Debug logging
+      console.log(`Auto-post check: Round ${roundData.roundNumber}, Players: ${numPlayers}, Completed: ${completedPlayers}`);
+      
       // If all players completed the round
-      if (completedPlayers === numPlayers) {
+      if (completedPlayers === numPlayers && numPlayers > 0) {
         // Check if auto-post is enabled
         const autoPostToggle = document.getElementById("autoPostToggle");
         const isAutoPostEnabled = autoPostToggle ? autoPostToggle.checked : false;
         
+        console.log(`Auto-post enabled: ${isAutoPostEnabled}`);
+        
         if (isAutoPostEnabled) {
           // Automatically post to WhatsApp
           setTimeout(() => {
+            console.log("Auto-posting round results to WhatsApp...");
             postRoundResultsToWhatsApp();
           }, 2000); // Small delay to let user see the completion
         } else {
@@ -4502,8 +4512,11 @@
     // Add event listeners for auto-posting functionality
     function addWhatsAppEventListeners() {
       const scoreInputs = document.querySelectorAll('input[id^="p"][id*="r"]');
+      console.log(`Adding WhatsApp event listeners to ${scoreInputs.length} score inputs`);
+      
       scoreInputs.forEach(input => {
         input.addEventListener('change', function() {
+          console.log(`Score input changed: ${input.id} = ${input.value}`);
           if (!isViewOnlyMode) {
             // Check if round is completed after score change
             setTimeout(autoPostRoundResults, 1000);
