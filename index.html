@@ -12,7 +12,7 @@
   <meta http-equiv="Expires" content="0" />
   
   <!-- Version for cache busting - Update this with each deployment -->
-  <meta name="app-version" content="v2.1.0" />
+  <meta name="app-version" content="v2.1.1" />
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
@@ -59,6 +59,28 @@
     .container {
       max-width: 1000px;
       margin: auto;
+    }
+    
+    /* Ensure consistent styling */
+    #gameIdDisplay, #whatsappSection, .controls > div {
+      box-sizing: border-box;
+      width: 100%;
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+      
+      #gameIdDisplay, #whatsappSection, .controls > div {
+        margin: 10px 0;
+        padding: 10px;
+      }
+      
+      .controls button {
+        margin-bottom: 8px;
+      }
     }
 
     /* Dynamic header sizing */
@@ -1329,67 +1351,60 @@
 
       <!-- WhatsApp Integration Section -->
       <div id="whatsappSection" style="
-        background: linear-gradient(135deg, #25d366, #128c7e);
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
         padding: 15px;
         border-radius: 8px;
-        border: 2px solid #128c7e;
-        margin-bottom: 10px;
+        border: 2px solid #dee2e6;
+        margin-bottom: 15px;
         display: none;
       ">
-                 <h3 style="
-           margin: 0 0 12px 0;
-           font-size: 16px;
-           color: white;
-           text-align: center;
-         ">📱 WhatsApp Sharing</h3>
+        <h3 style="
+          margin: 0 0 12px 0;
+          font-size: 16px;
+          color: #495057;
+          text-align: center;
+        ">📱 WhatsApp Sharing</h3>
         
         <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px">
-                     <button onclick="postRoundResultsToWhatsApp()" style="
-             background: linear-gradient(135deg, #25d366, #128c7e);
-             color: white;
-             padding: 10px 18px;
-             border: 2px solid white;
-             border-radius: 6px;
-             font-weight: 600;
-             cursor: pointer;
-             font-size: 14px;
-             box-shadow: 0 3px 8px rgba(37, 211, 102, 0.3);
-             transition: all 0.3s ease;
-           " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(37, 211, 102, 0.4)'" 
-              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(37, 211, 102, 0.3)'">
-             📱 Post Round Results
-           </button>
-           
-           <button onclick="postLeaderboardToWhatsApp()" style="
-             background: linear-gradient(135deg, #128c7e, #075e54);
-             color: white;
-             padding: 10px 18px;
-             border: 2px solid white;
-             border-radius: 6px;
-             font-weight: 600;
-             cursor: pointer;
-             font-size: 14px;
-             box-shadow: 0 3px 8px rgba(18, 140, 126, 0.3);
-             transition: all 0.3s ease;
-           " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(18, 140, 126, 0.4)'" 
-              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(18, 140, 126, 0.3)'">
-             🏆 Post Leaderboard
-           </button>
+          <button onclick="postRoundResultsToWhatsApp()" style="
+            background: linear-gradient(135deg, #25d366, #128c7e);
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 3px 8px rgba(37, 211, 102, 0.3);
+            transition: all 0.3s ease;
+          " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(37, 211, 102, 0.4)'" 
+             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(37, 211, 102, 0.3)'">
+            📱 Post Round Results
+          </button>
+          
+          <button onclick="postLeaderboardToWhatsApp()" style="
+            background: linear-gradient(135deg, #128c7e, #075e54);
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 3px 8px rgba(18, 140, 126, 0.3);
+            transition: all 0.3s ease;
+          " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(18, 140, 126, 0.4)'" 
+             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(18, 140, 126, 0.3)'">
+            🏆 Post Leaderboard
+          </button>
         </div>
         
-
-
-
-        
         <!-- WhatsApp Helper Text -->
-        <div style="margin-top: 12px; padding: 12px; background-color: rgba(255,255,255,0.2); border-radius: 6px; border-left: 4px solid white;">
-          <h4 style="margin: 0 0 8px 0; color: white; font-size: 14px;">💡 WhatsApp Sharing Features:</h4>
-          <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: white; line-height: 1.4;">
+        <div style="margin-top: 12px; padding: 12px; background-color: #e8f5e8; border-radius: 6px; border-left: 4px solid #28a745;">
+          <h4 style="margin: 0 0 8px 0; color: #155724; font-size: 14px;">💡 WhatsApp Sharing Features:</h4>
+          <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: #155724; line-height: 1.4;">
             <li><strong>Round Results:</strong> Share current round scores with your group</li>
             <li><strong>Leaderboard:</strong> Share final standings and settlement amounts</li>
-
-            <li><strong>Easy Sharing:</strong> Opens WhatsApp with pre-filled message</li>
-            <li><strong>Group Selection:</strong> Choose your GST group when sharing</li>
           </ul>
         </div>
       </div>
