@@ -1376,13 +1376,7 @@
         
 
 
-        <!-- Auto-post toggle -->
-        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px">
-          <label style="color: white; font-weight: 600; font-size: 14px;">
-            <input type="checkbox" id="autoPostToggle" style="margin-right: 8px; transform: scale(1.2);" onchange="toggleAutoPost()">
-            🔄 Auto-post every round result
-          </label>
-        </div>
+
         
         <!-- WhatsApp Helper Text -->
         <div style="margin-top: 12px; padding: 12px; background-color: rgba(255,255,255,0.2); border-radius: 6px; border-left: 4px solid white;">
@@ -1390,7 +1384,7 @@
           <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: white; line-height: 1.4;">
             <li><strong>Round Results:</strong> Share current round scores with your group</li>
             <li><strong>Leaderboard:</strong> Share final standings and settlement amounts</li>
-            <li><strong>Auto-post:</strong> Automatically share when rounds are completed</li>
+
             <li><strong>Easy Sharing:</strong> Opens WhatsApp with pre-filled message</li>
             <li><strong>Group Selection:</strong> Choose your GST group when sharing</li>
           </ul>
@@ -2404,7 +2398,6 @@
       // Add event listeners to inputs (only if not in view-only mode)
       if (!isViewOnlyMode) {
         addInputEventListeners();
-        addWhatsAppEventListeners();
       }
 
       // Apply color coding to existing scores
@@ -2862,11 +2855,7 @@
       // Add settlement explanation AFTER chart is updated
       updateSettlementInfo(gstPercent, numPlayers, pointValue);
       
-      // Check if round is completed for auto-posting
-      if (!isViewOnlyMode) {
-        console.log("calculateScores: Calling autoPostRoundResults...");
-        setTimeout(autoPostRoundResults, 1000);
-      }
+
     }
 
     function updateChart(scores) {
@@ -4278,12 +4267,7 @@
         whatsappSection.style.display = "block";
         
         // Restore auto-post preference
-        const autoPostToggle = document.getElementById("autoPostToggle");
-        if (autoPostToggle) {
-          const savedPreference = localStorage.getItem("autoPostEnabled");
-          autoPostToggle.checked = savedPreference === "true";
-          console.log(`Auto-post preference restored: ${autoPostToggle.checked}`);
-        }
+
         
 
       } else if (whatsappSection) {
@@ -4291,18 +4275,46 @@
       }
     }
 
-    // Function to get current round results
-    function getCurrentRoundResults() {
+    // Function to get last completed round results
+    function getLastCompletedRoundResults() {
       const numPlayers = document.querySelectorAll('input[id^="name"]').length;
-      const currentRound = getCurrentRound();
+      let lastCompletedRound = 0;
+      
+      // Find the last completed round
+      for (let round = 1; round <= 10; round++) {
+        let completedPlayers = 0;
+        
+        // Check if all players have entered scores for this round
+        for (let player = 1; player <= numPlayers; player++) {
+          const scoreInput = document.getElementById(`p${player}r${round}`);
+          if (scoreInput && scoreInput.value !== '' && scoreInput.value !== '-1') {
+            completedPlayers++;
+          }
+        }
+        
+        // If all players completed this round, update lastCompletedRound
+        if (completedPlayers === numPlayers) {
+          lastCompletedRound = round;
+        } else {
+          // If this round is not completed, stop searching
+          break;
+        }
+      }
+      
       const roundResults = [];
       
-      // Get the round number from currentRound (e.g., "R3" -> 3)
-      const roundNumber = currentRound === 'GAME OVER' ? 10 : parseInt(currentRound.replace('R', ''));
+      // If no rounds are completed yet, return empty results
+      if (lastCompletedRound === 0) {
+        return {
+          roundNumber: 0,
+          currentRound: 'NO ROUNDS COMPLETED',
+          results: []
+        };
+      }
       
       for (let i = 1; i <= numPlayers; i++) {
         const nameInput = document.getElementById(`name${i}`);
-        const scoreInput = document.getElementById(`p${i}r${roundNumber}`);
+        const scoreInput = document.getElementById(`p${i}r${lastCompletedRound}`);
         
         if (nameInput && scoreInput) {
           const name = nameInput.value.trim() || `Player ${i}`;
@@ -4318,17 +4330,22 @@
       }
       
       return {
-        roundNumber: roundNumber,
-        currentRound: currentRound,
+        roundNumber: lastCompletedRound,
+        currentRound: `R${lastCompletedRound}`,
         results: roundResults
       };
     }
 
     // Function to format round results for WhatsApp
     function formatRoundResultsForWhatsApp() {
-      const roundData = getCurrentRoundResults();
+      const roundData = getLastCompletedRoundResults();
       const gameId = localStorage.getItem("gameId");
       const pointValue = parseFloat(document.getElementById("pointValue").value) || 0.15;
+      
+      // Check if no rounds are completed yet
+      if (roundData.roundNumber === 0) {
+        return "No rounds completed yet. Complete a round to share results!";
+      }
       
       let message = `🎯 *ROUND ${roundData.roundNumber} RESULTS* 🎯\n\n`;
       message += `Game ID: ${gameId}\n`;
@@ -4436,6 +4453,13 @@
     // Function to post round results to WhatsApp GST group
     function postRoundResultsToWhatsApp() {
       const message = formatRoundResultsForWhatsApp();
+      
+      // Check if no rounds are completed yet
+      if (message === "No rounds completed yet. Complete a round to share results!") {
+        showToast("⚠️ No rounds completed yet. Complete a round to share results!", "warning", 3000);
+        return;
+      }
+      
       const encodedMessage = encodeURIComponent(message);
       
       // Use standard WhatsApp sharing (user will select the group)
@@ -4445,7 +4469,7 @@
       window.open(whatsappUrl, '_blank');
       
       // Show success toast with instructions
-      showToast("📱 Opening WhatsApp with round results. Select your GST group and click 'Send'!", "success", 4000);
+      showToast("📱 Opening WhatsApp with last completed round results. Select your GST group and click 'Send'!", "success", 4000);
     }
 
     // Function to post leaderboard to WhatsApp GST group
@@ -4465,73 +4489,7 @@
 
 
 
-    // Function to toggle auto-post feature
-    function toggleAutoPost() {
-      const autoPostToggle = document.getElementById("autoPostToggle");
-      const isEnabled = autoPostToggle.checked;
-      
-      console.log(`Auto-post toggled: ${isEnabled}`);
-      
-      // Save preference to localStorage
-      localStorage.setItem("autoPostEnabled", isEnabled);
-      
-      if (isEnabled) {
-        showToast("🔄 Auto-post enabled! Round results will be shared automatically", "success", 3000);
-      } else {
-        showToast("⏸️ Auto-post disabled", "info", 2000);
-      }
-    }
 
-    // Function to automatically post round results when round is completed
-    function autoPostRoundResults() {
-      const roundData = getCurrentRoundResults();
-      const numPlayers = document.querySelectorAll('input[id^="name"]').length;
-      
-      // Check if all players have entered scores for this round
-      let completedPlayers = 0;
-      for (let i = 1; i <= numPlayers; i++) {
-        const scoreInput = document.getElementById(`p${i}r${roundData.roundNumber}`);
-        if (scoreInput && scoreInput.value !== '' && scoreInput.value !== '-1') {
-          completedPlayers++;
-        }
-      }
-      
-      // Debug logging
-      console.log(`Auto-post check: Round ${roundData.roundNumber}, Players: ${numPlayers}, Completed: ${completedPlayers}`);
-      
-      // If all players completed the round
-      if (completedPlayers === numPlayers && numPlayers > 0) {
-        // Check if auto-post is enabled
-        const autoPostToggle = document.getElementById("autoPostToggle");
-        const isAutoPostEnabled = autoPostToggle ? autoPostToggle.checked : false;
-        
-        console.log(`Auto-post enabled: ${isAutoPostEnabled}`);
-        
-        if (isAutoPostEnabled) {
-                  // Automatically post to WhatsApp
-        setTimeout(() => {
-          console.log("Auto-posting round results to WhatsApp...");
-          postRoundResultsToWhatsApp();
-        }, 2000); // Small delay to let user see the completion
-        }
-      }
-    }
-
-    // Add event listeners for auto-posting functionality
-    function addWhatsAppEventListeners() {
-      const scoreInputs = document.querySelectorAll('input[id^="p"][id*="r"]');
-      console.log(`Adding WhatsApp event listeners to ${scoreInputs.length} score inputs`);
-      
-      scoreInputs.forEach(input => {
-        input.addEventListener('change', function() {
-          console.log(`Score input changed: ${input.id} = ${input.value}`);
-          if (!isViewOnlyMode) {
-            // Check if round is completed after score change
-            setTimeout(autoPostRoundResults, 1000);
-          }
-        });
-      });
-    }
   </script>
 </body>
 </html>
