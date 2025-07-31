@@ -1338,7 +1338,7 @@
            font-size: 16px;
            color: white;
            text-align: center;
-         ">📱 GST WhatsApp Group</h3>
+         ">📱 WhatsApp Sharing</h3>
         
         <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px">
                      <button onclick="postRoundResultsToWhatsApp()" style="
@@ -1354,7 +1354,7 @@
              transition: all 0.3s ease;
            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(37, 211, 102, 0.4)'" 
               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(37, 211, 102, 0.3)'">
-             📱 Post Round Results to GST Group
+             📱 Post Round Results
            </button>
            
            <button onclick="postLeaderboardToWhatsApp()" style="
@@ -1370,30 +1370,11 @@
              transition: all 0.3s ease;
            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(18, 140, 126, 0.4)'" 
               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(18, 140, 126, 0.3)'">
-             🏆 Post Leaderboard to GST Group
+             🏆 Post Leaderboard
            </button>
         </div>
         
-        <!-- GST Group Configuration -->
-        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="color: white; font-weight: 600; font-size: 14px;">📱 GST Group:</span>
-            <span id="gstGroupDisplay" style="color: white; font-size: 12px; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px;">GST</span>
-            <button onclick="setGstGroupLink()" style="
-              background: rgba(255,255,255,0.2);
-              color: white;
-              border: 1px solid white;
-              border-radius: 4px;
-              padding: 4px 8px;
-              font-size: 12px;
-              cursor: pointer;
-              transition: all 0.3s ease;
-            " onmouseover="this.style.background='rgba(255,255,255,0.3)'" 
-               onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-              ⚙️ Set
-            </button>
-          </div>
-        </div>
+
 
         <!-- Auto-post toggle -->
         <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px">
@@ -1405,13 +1386,13 @@
         
         <!-- WhatsApp Helper Text -->
         <div style="margin-top: 12px; padding: 12px; background-color: rgba(255,255,255,0.2); border-radius: 6px; border-left: 4px solid white;">
-          <h4 style="margin: 0 0 8px 0; color: white; font-size: 14px;">💡 GST Group Features:</h4>
+          <h4 style="margin: 0 0 8px 0; color: white; font-size: 14px;">💡 WhatsApp Sharing Features:</h4>
           <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: white; line-height: 1.4;">
-            <li><strong>Round Results:</strong> Automatically post round scores to GST group</li>
-            <li><strong>Leaderboard:</strong> Post final standings and settlement amounts</li>
+            <li><strong>Round Results:</strong> Share current round scores with your group</li>
+            <li><strong>Leaderboard:</strong> Share final standings and settlement amounts</li>
             <li><strong>Auto-post:</strong> Automatically share when rounds are completed</li>
-            <li><strong>Direct Group:</strong> Posts directly to GST WhatsApp group</li>
-            <li><strong>Setup:</strong> Click "Set" to configure your GST group link</li>
+            <li><strong>Easy Sharing:</strong> Opens WhatsApp with pre-filled message</li>
+            <li><strong>Group Selection:</strong> Choose your GST group when sharing</li>
           </ul>
         </div>
       </div>
@@ -4304,8 +4285,7 @@
           console.log(`Auto-post preference restored: ${autoPostToggle.checked}`);
         }
         
-        // Update GST group display
-        updateGstGroupDisplay();
+
       } else if (whatsappSection) {
         whatsappSection.style.display = "none";
       }
@@ -4458,15 +4438,14 @@
       const message = formatRoundResultsForWhatsApp();
       const encodedMessage = encodeURIComponent(message);
       
-      // Get GST group link from localStorage or use default
-      const gstGroupLink = localStorage.getItem("gstGroupLink") || "GST";
-      const whatsappUrl = `https://wa.me/group/${gstGroupLink}?text=${encodedMessage}`;
+      // Use standard WhatsApp sharing (user will select the group)
+      const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
       
       // Open WhatsApp in new tab
       window.open(whatsappUrl, '_blank');
       
       // Show success toast with instructions
-      showToast("📱 Opening WhatsApp with round results. Click 'Send' to post to GST group!", "success", 4000);
+      showToast("📱 Opening WhatsApp with round results. Select your GST group and click 'Send'!", "success", 4000);
     }
 
     // Function to post leaderboard to WhatsApp GST group
@@ -4474,37 +4453,17 @@
       const message = formatLeaderboardForWhatsApp();
       const encodedMessage = encodeURIComponent(message);
       
-      // Get GST group link from localStorage or use default
-      const gstGroupLink = localStorage.getItem("gstGroupLink") || "GST";
-      const whatsappUrl = `https://wa.me/group/${gstGroupLink}?text=${encodedMessage}`;
+      // Use standard WhatsApp sharing (user will select the group)
+      const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
       
       // Open WhatsApp in new tab
       window.open(whatsappUrl, '_blank');
       
       // Show success toast with instructions
-      showToast("📱 Opening WhatsApp with leaderboard. Click 'Send' to post to GST group!", "success", 4000);
+      showToast("📱 Opening WhatsApp with leaderboard. Select your GST group and click 'Send'!", "success", 4000);
     }
 
-    // Function to set GST group link
-    function setGstGroupLink() {
-      const currentLink = localStorage.getItem("gstGroupLink") || "GST";
-      const newLink = prompt("Enter your GST WhatsApp group invite link or ID:", currentLink);
-      
-      if (newLink && newLink.trim()) {
-        localStorage.setItem("gstGroupLink", newLink.trim());
-        showToast("✅ GST group link updated!", "success", 2000);
-        updateGstGroupDisplay();
-      }
-    }
 
-    // Function to update GST group display
-    function updateGstGroupDisplay() {
-      const gstGroupLink = localStorage.getItem("gstGroupLink") || "GST";
-      const gstGroupDisplay = document.getElementById("gstGroupDisplay");
-      if (gstGroupDisplay) {
-        gstGroupDisplay.textContent = gstGroupLink;
-      }
-    }
 
     // Function to toggle auto-post feature
     function toggleAutoPost() {
@@ -4549,11 +4508,11 @@
         console.log(`Auto-post enabled: ${isAutoPostEnabled}`);
         
         if (isAutoPostEnabled) {
-          // Automatically post to GST WhatsApp group
-          setTimeout(() => {
-            console.log("Auto-posting round results to GST WhatsApp group...");
-            postRoundResultsToWhatsApp();
-          }, 2000); // Small delay to let user see the completion
+                  // Automatically post to WhatsApp
+        setTimeout(() => {
+          console.log("Auto-posting round results to WhatsApp...");
+          postRoundResultsToWhatsApp();
+        }, 2000); // Small delay to let user see the completion
         }
       }
     }
