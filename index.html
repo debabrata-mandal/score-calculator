@@ -12,7 +12,7 @@
   <meta http-equiv="Expires" content="0" />
   
   <!-- Version for cache busting - Update this with each deployment -->
-  <meta name="app-version" content="v2.1.1" />
+  <meta name="app-version" content="v2.2.0" />
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
@@ -1348,66 +1348,6 @@
           </ul>
         </div>
       </div>
-
-      <!-- WhatsApp Integration Section -->
-      <div id="whatsappSection" style="
-        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-        padding: 15px;
-        border-radius: 8px;
-        border: 2px solid #dee2e6;
-        margin-bottom: 15px;
-        display: none;
-      ">
-        <h3 style="
-          margin: 0 0 12px 0;
-          font-size: 16px;
-          color: #495057;
-          text-align: center;
-        ">📱 WhatsApp Sharing</h3>
-        
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px">
-          <button onclick="postRoundResultsToWhatsApp()" style="
-            background: linear-gradient(135deg, #25d366, #128c7e);
-            color: white;
-            padding: 10px 18px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-            box-shadow: 0 3px 8px rgba(37, 211, 102, 0.3);
-            transition: all 0.3s ease;
-          " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(37, 211, 102, 0.4)'" 
-             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(37, 211, 102, 0.3)'">
-            📱 Post Round Results
-          </button>
-          
-          <button onclick="postLeaderboardToWhatsApp()" style="
-            background: linear-gradient(135deg, #128c7e, #075e54);
-            color: white;
-            padding: 10px 18px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-            box-shadow: 0 3px 8px rgba(18, 140, 126, 0.3);
-            transition: all 0.3s ease;
-          " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(18, 140, 126, 0.4)'" 
-             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(18, 140, 126, 0.3)'">
-            🏆 Post Leaderboard
-          </button>
-        </div>
-        
-        <!-- WhatsApp Helper Text -->
-        <div style="margin-top: 12px; padding: 12px; background-color: #e8f5e8; border-radius: 6px; border-left: 4px solid #28a745;">
-          <h4 style="margin: 0 0 8px 0; color: #155724; font-size: 14px;">💡 WhatsApp Sharing Features:</h4>
-          <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: #155724; line-height: 1.4;">
-            <li><strong>Round Results:</strong> Share current round scores with your group</li>
-            <li><strong>Leaderboard:</strong> Share final standings and settlement amounts</li>
-          </ul>
-        </div>
-      </div>
     </div>
 
     <div id="scoreTableContainer"></div>
@@ -1807,8 +1747,8 @@
       // Disable settings since game is already started
       disableGameSettingsAfterStart();
       
-      // Update WhatsApp section visibility
-      updateWhatsAppSection();
+      // Update WhatsApp button visibility
+      updateWhatsAppButtons();
     }
 
     function startNewGame() {
@@ -1875,8 +1815,8 @@
       // Save initial game state to cloud with PIN only (no device info)
       saveInitialGameStateToCloud(pin);
       
-      // Show WhatsApp section for new game
-      updateWhatsAppSection();
+      // Show WhatsApp buttons for new game
+      updateWhatsAppButtons();
     }
 
     // ...existing code...
@@ -2264,7 +2204,27 @@
       const headerText = showRandomNumbers ? "Player (#)" : "Player";
 
       let html = `
-<h2>Score</h2>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+  <h2 style="margin: 0;">Score</h2>
+  <button onclick="postRoundResultsToWhatsApp()" style="
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 12px;
+    box-shadow: 0 2px 4px rgba(37, 211, 102, 0.2);
+    transition: all 0.3s ease;
+    display: none;
+    align-items: center;
+    gap: 4px;
+  " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 3px 6px rgba(37, 211, 102, 0.3)'" 
+     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(37, 211, 102, 0.2)'">
+    <span>📱</span> Share Round
+  </button>
+</div>
 <div class="table-container">
   <table>
     <thead>
@@ -2435,8 +2395,8 @@
       // Update Game ID display
       updateGameIdDisplay();
       
-      // Update WhatsApp section visibility
-      updateWhatsAppSection();
+      // Update WhatsApp button visibility
+      updateWhatsAppButtons();
     }
 
     // Function to add event listeners to input fields
@@ -2690,7 +2650,27 @@
 
       // Create leaderboard table WITHOUT settlement explanation
       let leaderboardHtml = `
-<h2>Leaderboard & Settlement</h2>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+  <h2 style="margin: 0;">Standings</h2>
+  <button onclick="postLeaderboardToWhatsApp()" style="
+    background: linear-gradient(135deg, #128c7e, #075e54);
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 12px;
+    box-shadow: 0 2px 4px rgba(18, 140, 126, 0.2);
+    transition: all 0.3s ease;
+    display: none;
+    align-items: center;
+    gap: 4px;
+  " onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 3px 6px rgba(18, 140, 126, 0.3)'" 
+     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(18, 140, 126, 0.2)'">
+    <span>🏆</span> Share Results
+  </button>
+</div>
 <div style="
   text-align: center; 
   margin-bottom: 12px; 
@@ -3580,8 +3560,8 @@
           // Clear temporary game ID
           window.tempGameId = null;
           
-          // Show WhatsApp section for loaded game
-          updateWhatsAppSection();
+          // Show WhatsApp buttons for loaded game
+          updateWhatsAppButtons();
         } else {
           showToast(
             "❌ Game ID not found. Please check and try again.",
@@ -4164,6 +4144,9 @@
       loadData();
       updateGameIdDisplay();
       
+      // Set initial state of WhatsApp buttons
+      updateWhatsAppButtons();
+      
       // Start checking for app updates
       startUpdateChecker();
     };
@@ -4222,8 +4205,8 @@
       // Reset page title
       document.title = "⭐ Rummy Score Master";
 
-      // Hide WhatsApp section
-      updateWhatsAppSection();
+      // Hide WhatsApp buttons
+      updateWhatsAppButtons();
 
       // No modal needed - user can see the fresh state immediately
     }
@@ -4277,20 +4260,19 @@
     // WhatsApp Integration Functions
     
     // Function to show/hide WhatsApp section based on game state
-    function updateWhatsAppSection() {
-      const whatsappSection = document.getElementById("whatsappSection");
+    function updateWhatsAppButtons() {
+      // Get all WhatsApp sharing buttons by their onclick attribute
+      const whatsAppButtons = document.querySelectorAll('button[onclick^="post"][onclick$="WhatsApp()"]');
       const gameData = localStorage.getItem("scoreData");
       
-      if (gameData && whatsappSection) {
-        whatsappSection.style.display = "block";
-        
-        // Restore auto-post preference
-
-        
-
-      } else if (whatsappSection) {
-        whatsappSection.style.display = "none";
-      }
+      // Show or hide WhatsApp buttons based on whether a game is active
+      whatsAppButtons.forEach(button => {
+        if (gameData) {
+          button.style.display = "flex";
+        } else {
+          button.style.display = "none";
+        }
+      });
     }
 
     // Function to get last completed round results
