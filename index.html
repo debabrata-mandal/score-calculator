@@ -12,7 +12,7 @@
   <meta http-equiv="Expires" content="0" />
   
   <!-- Version for cache busting - Update this with each deployment -->
-  <meta name="app-version" content="v2.2.0" />
+  <meta name="app-version" content="v2.2.1" />
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
@@ -4344,6 +4344,7 @@
         // Check if all players have entered scores for this round
         for (let player = 1; player <= numPlayers; player++) {
           const scoreInput = document.getElementById(`p${player}r${round}`);
+          // Check if score is entered (including 0) but not -1 (not played)
           if (scoreInput && scoreInput.value !== '' && scoreInput.value !== '-1') {
             completedPlayers++;
           }
@@ -4410,13 +4411,16 @@
       
       // Sort results by score (lowest first for Rummy)
       const sortedResults = roundData.results.sort((a, b) => {
-        const scoreA = parseInt(a.score) || -1;
-        const scoreB = parseInt(b.score) || -1;
+        // Handle 0 scores properly in comparison
+        const scoreA = a.score === "0" ? 0 : parseInt(a.score) || -1;
+        const scoreB = b.score === "0" ? 0 : parseInt(b.score) || -1;
         return scoreA - scoreB;
       });
       
       sortedResults.forEach((player, index) => {
-        const score = parseInt(player.score) || -1;
+        // Parse score, being careful to distinguish between 0 and -1
+        const score = player.score === "0" ? 0 : parseInt(player.score) || -1;
+        // Display "Not played" only for -1 scores; 0 is displayed as "0"
         const scoreText = score === -1 ? "Not played" : score.toString();
         const playerName = player.randomNumber ? `${player.name} (#${player.randomNumber})` : player.name;
         
@@ -4543,10 +4547,6 @@
       // Show success toast with instructions
       showToast("📱 Opening WhatsApp with leaderboard. Select your GST group and click 'Send'!", "success", 4000);
     }
-
-
-
-
   </script>
 </body>
 </html>
