@@ -1333,45 +1333,45 @@
         margin-bottom: 10px;
         display: none;
       ">
-        <h3 style="
-          margin: 0 0 12px 0;
-          font-size: 16px;
-          color: white;
-          text-align: center;
-        ">📱 WhatsApp Integration</h3>
+                 <h3 style="
+           margin: 0 0 12px 0;
+           font-size: 16px;
+           color: white;
+           text-align: center;
+         ">📱 GST WhatsApp Group</h3>
         
         <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px">
-          <button onclick="postRoundResultsToWhatsApp()" style="
-            background: linear-gradient(135deg, #25d366, #128c7e);
-            color: white;
-            padding: 10px 18px;
-            border: 2px solid white;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-            box-shadow: 0 3px 8px rgba(37, 211, 102, 0.3);
-            transition: all 0.3s ease;
-          " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(37, 211, 102, 0.4)'" 
-             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(37, 211, 102, 0.3)'">
-            📱 Post Round Results to WhatsApp
-          </button>
-          
-          <button onclick="postLeaderboardToWhatsApp()" style="
-            background: linear-gradient(135deg, #128c7e, #075e54);
-            color: white;
-            padding: 10px 18px;
-            border: 2px solid white;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-            box-shadow: 0 3px 8px rgba(18, 140, 126, 0.3);
-            transition: all 0.3s ease;
-          " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(18, 140, 126, 0.4)'" 
-             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(18, 140, 126, 0.3)'">
-            🏆 Post Leaderboard to WhatsApp
-          </button>
+                     <button onclick="postRoundResultsToWhatsApp()" style="
+             background: linear-gradient(135deg, #25d366, #128c7e);
+             color: white;
+             padding: 10px 18px;
+             border: 2px solid white;
+             border-radius: 6px;
+             font-weight: 600;
+             cursor: pointer;
+             font-size: 14px;
+             box-shadow: 0 3px 8px rgba(37, 211, 102, 0.3);
+             transition: all 0.3s ease;
+           " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(37, 211, 102, 0.4)'" 
+              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(37, 211, 102, 0.3)'">
+             📱 Post Round Results to GST Group
+           </button>
+           
+           <button onclick="postLeaderboardToWhatsApp()" style="
+             background: linear-gradient(135deg, #128c7e, #075e54);
+             color: white;
+             padding: 10px 18px;
+             border: 2px solid white;
+             border-radius: 6px;
+             font-weight: 600;
+             cursor: pointer;
+             font-size: 14px;
+             box-shadow: 0 3px 8px rgba(18, 140, 126, 0.3);
+             transition: all 0.3s ease;
+           " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 12px rgba(18, 140, 126, 0.4)'" 
+              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 8px rgba(18, 140, 126, 0.3)'">
+             🏆 Post Leaderboard to GST Group
+           </button>
         </div>
         
         <!-- Auto-post toggle -->
@@ -1382,16 +1382,16 @@
           </label>
         </div>
         
-        <!-- WhatsApp Helper Text -->
-        <div style="margin-top: 12px; padding: 12px; background-color: rgba(255,255,255,0.2); border-radius: 6px; border-left: 4px solid white;">
-          <h4 style="margin: 0 0 8px 0; color: white; font-size: 14px;">💡 WhatsApp Features:</h4>
-          <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: white; line-height: 1.4;">
-            <li><strong>Round Results:</strong> Share current round scores with all players</li>
-            <li><strong>Leaderboard:</strong> Share final standings and settlement amounts</li>
-            <li><strong>Auto-post:</strong> Automatically share results when rounds are completed</li>
-            <li><strong>Auto-formatting:</strong> Messages are automatically formatted for easy reading</li>
-          </ul>
-        </div>
+                 <!-- WhatsApp Helper Text -->
+         <div style="margin-top: 12px; padding: 12px; background-color: rgba(255,255,255,0.2); border-radius: 6px; border-left: 4px solid white;">
+           <h4 style="margin: 0 0 8px 0; color: white; font-size: 14px;">💡 GST Group Features:</h4>
+           <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: white; line-height: 1.4;">
+             <li><strong>Round Results:</strong> Automatically post round scores to GST group</li>
+             <li><strong>Leaderboard:</strong> Post final standings and settlement amounts</li>
+             <li><strong>Auto-post:</strong> Automatically share when rounds are completed</li>
+             <li><strong>Direct Group:</strong> Posts directly to GST WhatsApp group</li>
+           </ul>
+         </div>
       </div>
     </div>
 
@@ -4428,30 +4428,32 @@
       return message;
     }
 
-    // Function to post round results to WhatsApp
+    // Function to post round results to WhatsApp GST group
     function postRoundResultsToWhatsApp() {
       const message = formatRoundResultsForWhatsApp();
       const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+      // Direct link to GST group (you'll need to replace with actual group link)
+      const whatsappUrl = `https://wa.me/group/GST?text=${encodedMessage}`;
       
       // Open WhatsApp in new tab
       window.open(whatsappUrl, '_blank');
       
       // Show success toast
-      showToast("📱 Opening WhatsApp with round results...", "success", 3000);
+      showToast("📱 Posted to GST WhatsApp group!", "success", 3000);
     }
 
-    // Function to post leaderboard to WhatsApp
+    // Function to post leaderboard to WhatsApp GST group
     function postLeaderboardToWhatsApp() {
       const message = formatLeaderboardForWhatsApp();
       const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+      // Direct link to GST group (you'll need to replace with actual group link)
+      const whatsappUrl = `https://wa.me/group/GST?text=${encodedMessage}`;
       
       // Open WhatsApp in new tab
       window.open(whatsappUrl, '_blank');
       
       // Show success toast
-      showToast("📱 Opening WhatsApp with leaderboard...", "success", 3000);
+      showToast("📱 Posted to GST WhatsApp group!", "success", 3000);
     }
 
     // Function to toggle auto-post feature
@@ -4497,14 +4499,11 @@
         console.log(`Auto-post enabled: ${isAutoPostEnabled}`);
         
         if (isAutoPostEnabled) {
-          // Automatically post to WhatsApp
+          // Automatically post to GST WhatsApp group
           setTimeout(() => {
-            console.log("Auto-posting round results to WhatsApp...");
+            console.log("Auto-posting round results to GST WhatsApp group...");
             postRoundResultsToWhatsApp();
           }, 2000); // Small delay to let user see the completion
-        } else {
-          // Show manual option
-          showToast("🎯 Round completed! Click WhatsApp button to share results", "info", 5000);
         }
       }
     }
