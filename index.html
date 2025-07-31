@@ -2371,6 +2371,9 @@
           newTableContainer.scrollLeft = savedScrollLeft;
           newTableContainer.scrollTop = savedScrollTop;
         }
+        
+        // Update WhatsApp buttons after table is rendered
+        updateWhatsAppButtons();
       }, 0);
 
       // Add event listeners to inputs (only if not in view-only mode)
@@ -2832,6 +2835,9 @@
 
       document.getElementById("leaderboard").innerHTML = leaderboardHtml;
       updateChart(originalOrderScores); // Pass original order to chart
+      
+      // Update WhatsApp buttons after leaderboard is rendered
+      updateWhatsAppButtons();
 
       // Color code the leaderboard scores
       sortedScores.forEach((score, index) => {
@@ -4141,11 +4147,31 @@
       });
     });
     window.onload = function () {
+      // Load data first (this generates the tables)
       loadData();
       updateGameIdDisplay();
       
-      // Set initial state of WhatsApp buttons
-      updateWhatsAppButtons();
+      // Set initial state of WhatsApp buttons after a short delay
+      // to ensure the DOM is fully updated with tables
+      setTimeout(updateWhatsAppButtons, 100);
+      
+      // Setup mutation observer to detect DOM changes and update WhatsApp buttons
+      // This helps with mobile browsers that might have different rendering behavior
+      const observer = new MutationObserver((mutations) => {
+        // If there are changes to scoreTableContainer or leaderboard, update buttons
+        for (let mutation of mutations) {
+          if (mutation.type === 'childList' && 
+              (mutation.target.id === 'scoreTableContainer' || 
+               mutation.target.id === 'leaderboard')) {
+            updateWhatsAppButtons();
+            break;
+          }
+        }
+      });
+      
+      // Observe both containers for changes to their children
+      observer.observe(document.getElementById('scoreTableContainer'), { childList: true });
+      observer.observe(document.getElementById('leaderboard'), { childList: true });
       
       // Start checking for app updates
       startUpdateChecker();
@@ -4269,10 +4295,19 @@
       whatsAppButtons.forEach(button => {
         if (gameData) {
           button.style.display = "flex";
+          console.log("WhatsApp button display set to flex");
         } else {
           button.style.display = "none";
+          console.log("WhatsApp button display set to none");
         }
       });
+      
+      // If no buttons were found but game data exists, we might need to wait for the DOM
+      // This can happen on page refresh when elements aren't fully rendered yet
+      if (whatsAppButtons.length === 0 && gameData) {
+        console.log("No WhatsApp buttons found but game data exists. Setting timeout to retry.");
+        setTimeout(updateWhatsAppButtons, 500); // Try again in 500ms
+      }
     }
 
     // Function to get last completed round results
