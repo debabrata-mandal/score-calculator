@@ -12,16 +12,19 @@
   <meta http-equiv="Expires" content="0" />
   
   <!-- Version for cache busting - Update this with each deployment -->
-  <meta name="app-version" content="v2.0.11" />
+  <meta name="app-version" content="v2.1.0" />
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <!-- Register Service Worker for cache management -->
   <script>
     if ('serviceWorker' in navigator) {
+      // Get version from meta tag - single source of truth
+      const appVersion = document.querySelector('meta[name="app-version"]').getAttribute('content');
+      
       // Simple service worker registration for cache control
       const swCode = `
-        const CACHE_NAME = 'rummy-score-v1.2.1';
+        const CACHE_NAME = 'rummy-score-${appVersion}';
         
         self.addEventListener('fetch', (event) => {
           // Don't cache the main HTML file - always fetch fresh
@@ -1452,7 +1455,7 @@
   <!-- Your existing script tag starts here -->
   <script>
     // Version management and auto-update functionality
-    const CURRENT_VERSION = "v2.0.11"; // Update this with each deployment
+    const CURRENT_VERSION = document.querySelector('meta[name="app-version"]').getAttribute('content'); // Read from meta tag
     
     // Check for updates every 5 minutes
     let updateCheckInterval = null;
