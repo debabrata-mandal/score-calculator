@@ -1,0 +1,938 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  margin: 0;
+}
+
+.container {
+  max-width: 1000px;
+  margin: auto;
+}
+    
+/* Ensure consistent styling */
+#gameIdDisplay, #whatsappSection, .controls > div {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  body {
+    padding: 10px;
+  }
+      
+  #gameIdDisplay, #whatsappSection, .controls > div {
+    margin: 10px 0;
+    padding: 10px;
+  }
+      
+  .controls button {
+    margin-bottom: 8px;
+  }
+}
+
+/* Dynamic header sizing */
+h1 {
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: clamp(1.2rem, 4vw, 2rem);
+  margin: 0 0 20px 0;
+  background: linear-gradient(135deg, #007bff, #28a745);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+}
+
+/* Section headers */
+h2 {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 5px;
+}
+
+/* Table headers with better colors and enhanced styling */
+table th {
+  background: linear-gradient(135deg, #007bff, #0056b3) !important;
+  color: white !important;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  border: 1px solid #495057 !important;
+  transition: all 0.3s ease;
+}
+
+/* First column header special styling */
+table th:first-child {
+  background: linear-gradient(135deg, #6c757d, #495057) !important;
+  color: white !important;
+  font-weight: 700;
+}
+
+/* Header hover effects */
+table th:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+}
+
+/* Table container for horizontal scroll */
+.table-container {
+  overflow-x: auto;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+table {
+  border-collapse: collapse;
+  margin-top: 0;
+  /* Changed from 10px to 0 */
+  width: 100%;
+  min-width: 800px;
+}
+
+/* First column (Player Name) - frozen */
+table th:first-child,
+table td:first-child {
+  position: sticky;
+  left: 0;
+  background-color: #fff;
+  z-index: 10;
+  min-width: 150px;
+  max-width: 150px;
+  width: 150px;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+}
+
+table th:first-child {
+  background: linear-gradient(135deg, #6c757d, #495057) !important;
+  color: white !important;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3) !important;
+  z-index: 11;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+}
+
+th,
+td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+  min-width: 60px;
+}
+
+/* Bigger inputs for better user experience */
+input[type="number"] {
+  width: 60px;
+  padding: 6px;
+  font-size: 14px;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+input[type="text"] {
+  width: 100%;
+  min-width: 120px;
+  padding: 6px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* Input fields in tables - transparent styling */
+table input[type="number"],
+table input[type="text"] {
+  border: none;
+  background: transparent;
+  width: 100%;
+  padding: 4px;
+  font-size: 14px;
+}
+
+table input[type="number"] {
+  text-align: center;
+}
+
+.leaderboard,
+.chart-container {
+  margin-top: 30px;
+}
+
+.controls {
+  margin-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-start;
+  /* Align items to the left */
+}
+
+button {
+  padding: 8px 16px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  background-color: #c82333;
+}
+
+/* Special styling for the Start Play button */
+.start-play-button {
+  padding: 12px 24px !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+  background-color: #007bff !important;
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.start-play-button:hover {
+  background-color: #0056b3 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 12px rgba(0, 123, 255, 0.4) !important;
+}
+
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: clamp(1rem, 5vw, 1.5rem);
+  }
+
+  /* First column smaller on mobile */
+  table th:first-child,
+  table td:first-child {
+    min-width: 120px;
+    max-width: 120px;
+    width: 120px;
+    position: sticky;
+    left: 0;
+    z-index: 10;
+  }
+
+  table th:first-child {
+    background: linear-gradient(135deg, #6c757d, #495057) !important;
+    color: white !important;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3) !important;
+    z-index: 11;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+  }
+
+  input[type="text"] {
+    width: 100%;
+    min-width: 100px;
+    font-size: 13px;
+    padding: 4px;
+  }
+
+  input[type="number"] {
+    width: 55px;
+    font-size: 12px;
+    padding: 4px;
+  }
+
+  th,
+  td {
+    padding: 4px;
+    font-size: 11px;
+    min-width: 50px;
+  }
+
+  table input[type="number"],
+  table input[type="text"] {
+    font-size: 12px;
+    padding: 2px;
+  }
+
+  table input[type="number"] {
+    min-width: 45px;
+    width: 100%;
+  }
+
+  /* Mobile styles for delete buttons */
+  button[onclick^="deletePlayer"] {
+    padding: 2px 4px !important;
+    font-size: 10px !important;
+    min-width: 35px !important;
+  }
+
+  .controls {
+    flex-direction: row;
+    /* Keep row direction instead of column */
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .controls label {
+    width: auto;
+    /* Changed from 100% to auto */
+    margin-bottom: 0;
+    /* Changed from 5px to 0 */
+    white-space: nowrap;
+    /* Prevent label from wrapping */
+  }
+
+  .controls input[type="number"] {
+    width: 70px !important;
+    font-size: 13px;
+  }
+
+  button {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .start-play-button {
+    padding: 10px 20px !important;
+    font-size: 15px !important;
+  }
+}
+
+/* Custom Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: none;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-buttons {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.modal-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.modal-button.confirm {
+  background-color: #dc3545;
+  color: white;
+}
+
+.modal-button.cancel {
+  background-color: #6c757d;
+  color: white;
+}
+
+.modal-button:hover {
+  opacity: 0.9;
+}
+
+.leaderboard-table,
+.leaderboard-table * {
+  position: static !important;
+  left: auto !important;
+  z-index: auto !important;
+  background-color: transparent !important;
+}
+
+.leaderboard-table th:first-child,
+.leaderboard-table td:first-child {
+  position: static !important;
+  left: auto !important;
+  background-color: transparent !important;
+  z-index: auto !important;
+  width: auto !important;
+  min-width: auto !important;
+  max-width: auto !important;
+}
+
+.leaderboard-table th:first-child {
+  background-color: #f8f9fa !important;
+}
+
+/* Color improvements */
+/* Header with gradient */
+h1 {
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: clamp(1.2rem, 4vw, 2rem);
+  margin: 0 0 20px 0;
+  background: linear-gradient(135deg, #007bff, #28a745);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+}
+
+/* Section headers */
+h2 {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 5px;
+}
+
+/* Table headers with better colors and enhanced styling (duplicate for specificity) */
+table th {
+  background: linear-gradient(135deg, #007bff, #0056b3) !important;
+  color: white !important;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  border: 1px solid #495057 !important;
+}
+
+/* First column header special styling */
+table th:first-child {
+  background: linear-gradient(135deg, #6c757d, #495057) !important;
+  color: white !important;
+  font-weight: 700;
+}
+
+/* Player name inputs with subtle styling */
+table input[type="text"] {
+  border: none;
+  background: transparent;
+  width: 100%;
+  padding: 4px;
+  font-size: 14px;
+  color: #212529;
+  font-weight: 500;
+}
+
+/* Score inputs with color coding */
+table input[type="number"] {
+  border: none;
+  background: transparent;
+  width: 100%;
+  padding: 4px;
+  font-size: 14px;
+  text-align: center;
+  color: #495057;
+  font-weight: 500;
+}
+
+/* Color code score inputs based on value */
+table input[type="number"][value="-1"] {
+  color: #6c757d;
+  /* Gray for -1 values */
+  font-style: italic;
+}
+
+/* Leaderboard with better colors */
+.leaderboard-table th {
+  background-color: #343a40 !important;
+  color: white !important;
+}
+
+.leaderboard-table td:first-child {
+  font-weight: bold;
+  color: #495057;
+  /* Standard color for all ranks */
+}
+
+/* Player names in leaderboard */
+.leaderboard-table td:nth-child(2) {
+  color: #495057;
+  font-weight: 500;
+}
+
+/* Scores in leaderboard with conditional colors */
+.leaderboard-table td:last-child {
+  font-weight: 600;
+}
+
+/* Controls styling */
+.controls label {
+  color: #495057;
+  font-weight: 500;
+}
+
+.controls input[type="number"] {
+  border: 2px solid #e9ecef;
+  color: #495057;
+  font-weight: 500;
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+
+.controls input[type="number"]:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Add Player button with better styling */
+.add-player-btn {
+  background: linear-gradient(135deg, #28a745, #20c997) !important;
+  border: none;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.add-player-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+/* Add these styles to your existing CSS */
+
+/* Game ID Display styling */
+#gameIdDisplay {
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#gameIdInput {
+  user-select: all;
+  /* Allow easy text selection */
+}
+
+#gameIdInput:hover {
+  background-color: #f8f9fa !important;
+  border-color: #0d47a1 !important;
+}
+
+#qrCodeContainer:hover {
+  background-color: #f0f8ff !important;
+  border-color: #0d47a1 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(13, 71, 161, 0.3);
+}
+
+#qrCodeContainer.copied {
+  background-color: #e8f5e8 !important;
+  border-color: #4caf50 !important;
+  animation: pulse 0.6s ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* QR Scanner specific animations */
+@keyframes scannerPulse {
+  0% {
+    border-color: #00ff00;
+    background: rgba(0, 255, 0, 0.1);
+  }
+
+  50% {
+    border-color: #00aa00;
+    background: rgba(0, 255, 0, 0.2);
+  }
+
+  100% {
+    border-color: #00ff00;
+    background: rgba(0, 255, 0, 0.1);
+  }
+}
+
+/* Mobile responsive for Game ID display */
+@media (max-width: 768px) {
+  #gameIdDisplay {
+    margin: 10px 0;
+    padding: 10px;
+  }
+
+  #gameIdInput {
+    font-size: 16px;
+    min-width: 100px;
+  }
+}
+
+/* Update controls styling for better button alignment */
+.controls {
+  margin-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-start;
+  /* Align items to the left */
+}
+
+/* Make Start Play button same size as Load Game button when inline */
+.controls .start-play-button {
+  padding: 8px 16px !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
+  background-color: #007bff !important;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3) !important;
+  transition: all 0.3s ease !important;
+  margin: 0 !important;
+  /* Remove any margin */
+}
+
+.controls .start-play-button:hover {
+  background-color: #0056b3 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4) !important;
+}
+
+/* Ensure buttons are same height */
+.controls button {
+  padding: 8px 16px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  height: auto;
+  /* Let height be determined by padding */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .controls>div {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: space-between;
+  }
+
+  /* Stack buttons on mobile */
+  .controls button {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+
+  .controls .start-play-button {
+    width: 100% !important;
+    padding: 10px 16px !important;
+    font-size: 14px !important;
+  }
+}
+
+/* Alternative mobile-friendly layout */
+@media (max-width: 768px) {
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .controls>div {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  /* Financial inputs group */
+  .controls div:nth-child(1) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  /* Action buttons group */
+  .controls div:nth-child(2) {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+}
+
+/* Disabled button styling */
+button:disabled {
+  background-color: #6c757d !important;
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+button:disabled:hover {
+  background-color: #6c757d !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* New player row highlight animation */
+@keyframes newPlayerHighlight {
+  0% {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(40, 167, 69, 0.6);
+  }
+  50% {
+    background: linear-gradient(135deg, #17a2b8, #20c997);
+    transform: scale(1.01);
+    box-shadow: 0 0 15px rgba(23, 162, 184, 0.4);
+  }
+  100% {
+    background: transparent;
+    transform: scale(1);
+    box-shadow: none;
+  }
+}
+
+/* Class for newly added player rows */
+.new-player-row {
+  animation: newPlayerHighlight 2s ease-out;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+/* Ensure the first column (name) also gets highlighted */
+.new-player-row td:first-child {
+  background: inherit !important;
+  border-radius: 4px 0 0 4px;
+}
+
+/* Mobile responsive for toast */
+@media (max-width: 768px) {
+  #toast {
+    top: 10px !important;
+    right: 10px !important;
+    left: 10px !important;
+    max-width: none !important;
+    font-size: 13px !important;
+  }
+
+  /* Game Setup Section Mobile Styles */
+  .controls {
+    margin-top: 10px;
+    padding: 0 5px; /* Add horizontal padding to prevent cutoff */
+  }
+
+  /* Load Game Section - Mobile */
+  .controls > div:first-child {
+    padding: 12px !important;
+    margin-bottom: 15px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .controls > div:first-child h3 {
+    font-size: 14px !important;
+    margin-bottom: 10px !important;
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  .controls > div:first-child > div:first-child {
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .controls > div:first-child > div:first-child button {
+    width: 100% !important;
+    padding: 12px 18px !important;
+    font-size: 14px !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2) !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .controls > div:first-child > div:first-child button:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* Game Setup Group - Mobile */
+  .controls > div:nth-child(2) {
+    padding: 12px !important;
+    margin-bottom: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .controls > div:nth-child(2) h3 {
+    font-size: 14px !important;
+    margin-bottom: 10px !important;
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  /* Financial Settings - Mobile: Stack vertically with better alignment */
+  .controls > div:nth-child(2) > div:first-child {
+    flex-direction: column !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+    align-items: stretch !important;
+    width: 100% !important;
+  }
+
+  /* Individual input groups - Mobile: Consistent width and alignment */
+  .controls > div:nth-child(2) > div:first-child > div {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding: 10px 15px !important;
+    background: rgba(255, 255, 255, 0.8) !important;
+    border-radius: 6px !important;
+    border: 1px solid #dee2e6 !important;
+    box-sizing: border-box !important;
+  }
+
+  .controls > div:nth-child(2) > div:first-child > div label {
+    font-size: 14px !important;
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+    font-weight: 600 !important;
+    color: #495057 !important;
+    width: auto !important;
+    text-align: left !important;
+  }
+
+  .controls > div:nth-child(2) > div:first-child > div span {
+    font-size: 14px !important;
+    margin: 0 !important;
+    font-weight: 600 !important;
+    color: #495057 !important;
+  }
+
+  .controls > div:nth-child(2) > div:first-child > div input {
+    width: 100px !important;
+    padding: 8px 12px !important;
+    font-size: 16px !important;
+    margin: 0 !important;
+    flex-shrink: 0 !important;
+    text-align: center !important;
+    border: 2px solid #ced4da !important;
+    border-radius: 4px !important;
+    font-weight: 600 !important;
+  }
+
+  /* Start Game Button - Mobile */
+  .controls > div:nth-child(2) > div:nth-child(2) {
+    text-align: center !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+  }
+
+  .controls > div:nth-child(2) > div:nth-child(2) button {
+    padding: 12px 20px !important;
+    font-size: 15px !important;
+    width: 100% !important;
+    max-width: 280px !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+
+  /* Target the actual Start Game button container */
+  .controls > div:nth-child(2) > div[style*="text-align: center"] {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+
+  /* Game Setup Start Button - Mobile Full Width and Centered */
+  .start-play-button {
+    width: 100% !important;
+    max-width: 280px !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  /* Additional mobile centering for Start Game button */
+  .controls div[style*="text-align: center"] {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+
+  .controls div[style*="text-align: center"] .start-play-button {
+    margin: 0 auto !important;
+  }
+}
