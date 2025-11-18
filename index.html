@@ -12,7 +12,7 @@
   <meta http-equiv="Expires" content="0" />
   
   <!-- Version for cache busting - Update this with each deployment -->
-  <meta name="app-version" content="v2.2.2" />
+  <meta name="app-version" content="v2.3.0" />
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
@@ -1047,7 +1047,179 @@
 </head>
 
 <body>
+  <!-- ================================================ -->
+  <!-- LOGIN SCREEN (Web Authentication - Shown when not authenticated) -->
+  <!-- ================================================ -->
+  <div id="loginScreen" style="
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+  ">
+    <div style="
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      animation: fadeInUp 0.5s ease;
+    ">
+      <div style="font-size: 60px; margin-bottom: 20px;">🃏</div>
+      <h1 style="
+        margin: 0 0 10px 0;
+        font-size: 28px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      ">Rummy Score Master</h1>
+      <p style="
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 14px;
+      ">Sign in to create and manage your games</p>
+      
+      <!-- Google Sign In Button (Official Style) -->
+      <button id="googleSignInBtn" onclick="signInWithGoogleWeb()" style="
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        width: 100%;
+        padding: 12px 24px;
+        background: white;
+        border: 2px solid #dadce0;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 0 auto;
+        font-family: 'Roboto', Arial, sans-serif;
+        color: #3c4043;
+      " onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.15)'; this.style.borderColor='#d2e3fc';" 
+         onmouseout="this.style.boxShadow='none'; this.style.borderColor='#dadce0';">
+        <!-- Google Icon (Official) -->
+        <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+          <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
+          <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>
+          <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24c0 3.55.85 6.91 2.34 9.88l7.35-5.7z"/>
+          <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>
+        </svg>
+        <span>Sign in with Google</span>
+      </button>
+      
+      <div style="
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+        font-size: 12px;
+        color: #999;
+      ">
+        <p style="margin: 5px 0;">🔒 Secure authentication via Google</p>
+        <p style="margin: 5px 0;">Your data is private and protected</p>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+
   <div class="container">
+    <!-- ================================================ -->
+    <!-- USER PROFILE HEADER (Shown when authenticated) -->
+    <!-- ================================================ -->
+    <div id="userProfileHeader" style="
+      display: none;
+      background: white;
+      padding: 15px 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 15px;
+    ">
+      <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
+        <img id="userProfilePhoto" 
+          src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23667eea'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"
+          referrerpolicy="no-referrer"
+          style="
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 3px solid #667eea;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          background: #f0f0f0;
+        " alt="User" />
+        <div style="flex: 1;">
+          <div id="userProfileName" style="
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 2px;
+          "></div>
+          <div id="userProfileEmail" style="
+            font-size: 13px;
+            color: #666;
+          "></div>
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <button id="signOutBtn" onclick="signOutWebUser()" style="
+          padding: 8px 16px;
+          background: #f8f9fa;
+          border: 1px solid #ddd;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 14px;
+          transition: all 0.2s;
+          color: #666;
+        " onmouseover="this.style.background='#e9ecef';" 
+           onmouseout="this.style.background='#f8f9fa';">
+          🚪 Sign Out
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile responsive adjustments for user profile -->
+    <style>
+      @media (max-width: 600px) {
+        #userProfileHeader {
+          flex-direction: column !important;
+          align-items: stretch !important;
+        }
+        #userProfileHeader > div {
+          width: 100%;
+        }
+        #userProfileHeader button {
+          width: 100%;
+        }
+      }
+    </style>
+
     <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 10px;">
       <h1 style="margin: 0;">⭐ Rummy Score Master</h1>
       
@@ -1477,8 +1649,19 @@
       setDoc,
       getDoc,
       onSnapshot,
-      serverTimestamp,
+      serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    
+    // ============================================
+    // Firebase Authentication (Web Only)
+    // ============================================
+    import { 
+      getAuth, 
+      signInWithPopup, 
+      GoogleAuthProvider,
+      onAuthStateChanged,
+      signOut 
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     // Your Firebase configuration (paste the config you copied from Step 1)
     const firebaseConfig = {
@@ -1494,12 +1677,310 @@
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    
+    // Initialize Firebase Authentication (Web Only)
+    const auth = getAuth(app);
+    const googleProvider = new GoogleAuthProvider();
 
     // Make Firebase available globally
     window.db = db;
     window.firestore = { doc, setDoc, getDoc, onSnapshot, serverTimestamp };
+    
+    // Make Auth available globally (Web Only)
+    window.auth = auth;
+    window.googleProvider = googleProvider;
+    window.firebaseAuth = { signInWithPopup, onAuthStateChanged, signOut };
 
     console.log("Firebase initialized successfully!");
+    console.log("🔐 Firebase Authentication ready for Web");
+
+    // ============================================
+    // Web Authentication Module
+    // ============================================
+    
+    // Global state for current user
+    let currentWebUser = null;
+
+    /**
+     * Initialize Web Authentication
+     * Sets up authentication state listener
+     */
+    function initializeWebAuth() {
+      console.log("🔐 Initializing Web Authentication...");
+      
+      onAuthStateChanged(auth, async (firebaseUser) => {
+        if (firebaseUser) {
+          // User is signed in
+          console.log("✅ User signed in:", firebaseUser.email);
+          
+          // Create or update user in Firestore (matches Android implementation)
+          await createOrUpdateWebUser(firebaseUser);
+          
+          // Show main app
+          showMainApp();
+          updateUserProfileUI(firebaseUser);
+        } else {
+          // User is signed out
+          console.log("❌ No user signed in");
+          currentWebUser = null;
+          showLoginScreen();
+        }
+      });
+    }
+
+    /**
+     * Sign in with Google (Web)
+     * Opens Google popup for authentication
+     */
+    async function signInWithGoogleWeb() {
+      try {
+        console.log("🔐 Starting Google Sign-In...");
+        
+        // Show loading state
+        const signInBtn = document.getElementById('googleSignInBtn');
+        if (signInBtn) {
+          signInBtn.disabled = true;
+          signInBtn.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; gap: 10px;"><div style="width: 20px; height: 20px; border: 3px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>Signing in...</div>';
+        }
+        
+        // Sign in with Google popup
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+        
+        console.log("✅ Sign-in successful:", user.email);
+        
+        // User will be handled by onAuthStateChanged listener
+        
+      } catch (error) {
+        console.error("❌ Sign-in error:", error);
+        
+        // Reset button state
+        const signInBtn = document.getElementById('googleSignInBtn');
+        if (signInBtn) {
+          signInBtn.disabled = false;
+          signInBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width: 18px; height: 18px; margin-right: 10px;">Sign in with Google';
+        }
+        
+        // Show user-friendly error message
+        let errorMessage = "Failed to sign in. Please try again.";
+        if (error.code === 'auth/popup-closed-by-user') {
+          errorMessage = "Sign-in cancelled. Please try again when ready.";
+        } else if (error.code === 'auth/popup-blocked') {
+          errorMessage = "Popup blocked by browser. Please allow popups and try again.";
+        } else if (error.code === 'auth/network-request-failed') {
+          errorMessage = "Network error. Please check your connection and try again.";
+        }
+        
+        alert(errorMessage);
+      }
+    }
+
+    /**
+     * Sign out current user (Web)
+     */
+    async function signOutWebUser() {
+      try {
+        console.log("🔐 Signing out...");
+        
+        // Show confirmation
+        const confirmed = confirm("Are you sure you want to sign out?");
+        if (!confirmed) {
+          return;
+        }
+        
+        await signOut(auth);
+        console.log("✅ Sign-out successful");
+        
+        // Clear current user
+        currentWebUser = null;
+        
+        // User will be redirected to login by onAuthStateChanged listener
+        
+      } catch (error) {
+        console.error("❌ Sign-out error:", error);
+        alert("Failed to sign out. Please try again.");
+      }
+    }
+
+    /**
+     * Create or update user in Firestore (matches Android implementation EXACTLY)
+     * This ensures 100% compatibility with Android app
+     * 
+     * @param {Object} firebaseUser - Firebase user object
+     */
+    async function createOrUpdateWebUser(firebaseUser) {
+      try {
+        console.log("📝 Creating/updating user in Firestore:", firebaseUser.uid);
+        
+        const userRef = doc(db, "appUser", firebaseUser.uid);
+        const userSnapshot = await getDoc(userRef);
+        
+        const now = new Date().getTime();
+        
+        if (userSnapshot.exists()) {
+          // User exists - update lastLoginAt only
+          console.log("👤 User exists, updating lastLoginAt");
+          
+          await setDoc(userRef, {
+            lastLoginAt: now
+          }, { merge: true });
+          
+          // Get full user data
+          const userData = userSnapshot.data();
+          currentWebUser = {
+            userId: firebaseUser.uid,
+            email: userData.email || firebaseUser.email,
+            displayName: userData.displayName || firebaseUser.displayName,
+            photoUrl: userData.photoUrl || firebaseUser.photoURL,
+            provider: userData.provider || "Google",
+            role: userData.role || "REGULAR_USER"
+          };
+          
+        } else {
+          // New user - create full document (EXACT Android structure)
+          console.log("✨ New user, creating document");
+          
+          const newUser = {
+            userId: firebaseUser.uid,
+            provider: "Google",
+            role: "REGULAR_USER",
+            email: firebaseUser.email || "",
+            displayName: firebaseUser.displayName || "User",
+            photoUrl: firebaseUser.photoURL || "",
+            createdAt: now,
+            lastLoginAt: now
+          };
+          
+          await setDoc(userRef, newUser);
+          currentWebUser = newUser;
+          
+          console.log("✅ User document created successfully");
+        }
+        
+        console.log("✅ Current user:", currentWebUser);
+        
+      } catch (error) {
+        console.error("❌ Error creating/updating user:", error);
+        throw error;
+      }
+    }
+
+    /**
+     * Show login screen, hide main app
+     */
+    function showLoginScreen() {
+      console.log("🔐 Showing login screen");
+      
+      const loginScreen = document.getElementById('loginScreen');
+      const container = document.querySelector('.container');
+      const userProfile = document.getElementById('userProfileHeader');
+      
+      if (loginScreen) loginScreen.style.display = 'flex';
+      if (container) container.style.display = 'none';
+      if (userProfile) userProfile.style.display = 'none';
+    }
+
+    /**
+     * Show main app, hide login screen
+     */
+    function showMainApp() {
+      console.log("✅ Showing main app");
+      
+      const loginScreen = document.getElementById('loginScreen');
+      const container = document.querySelector('.container');
+      const userProfile = document.getElementById('userProfileHeader');
+      
+      if (loginScreen) loginScreen.style.display = 'none';
+      if (container) container.style.display = 'block';
+      if (userProfile) userProfile.style.display = 'flex';
+    }
+
+    /**
+     * Update user profile UI with user information
+     * 
+     * @param {Object} firebaseUser - Firebase user object
+     */
+    function updateUserProfileUI(firebaseUser) {
+      console.log("🖼️ Updating user profile UI");
+      console.log("User data:", {
+        displayName: firebaseUser.displayName,
+        email: firebaseUser.email,
+        photoURL: firebaseUser.photoURL,
+        uid: firebaseUser.uid
+      });
+      
+      // Update profile photo
+      const profilePhoto = document.getElementById('userProfilePhoto');
+      if (profilePhoto && firebaseUser.photoURL) {
+        console.log("✅ Setting photo from Google:", firebaseUser.photoURL);
+        // Simply set the src - referrerpolicy="no-referrer" in HTML handles CORS
+        profilePhoto.src = firebaseUser.photoURL;
+      } else {
+        console.log("⚠️ No photoURL provided by Google, keeping default icon");
+      }
+      
+      // Update display name
+      const profileName = document.getElementById('userProfileName');
+      if (profileName) {
+        profileName.textContent = firebaseUser.displayName || "User";
+      }
+      
+      // Update email
+      const profileEmail = document.getElementById('userProfileEmail');
+      if (profileEmail) {
+        profileEmail.textContent = firebaseUser.email || "";
+      }
+    }
+
+    /**
+     * Get current authenticated user
+     * 
+     * @returns {Object|null} Current user object or null
+     */
+    function getCurrentWebUser() {
+      return currentWebUser;
+    }
+
+    /**
+     * Check if user is authenticated
+     * 
+     * @returns {boolean} True if user is authenticated
+     */
+    function isWebUserAuthenticated() {
+      return currentWebUser !== null && auth.currentUser !== null;
+    }
+
+    /**
+     * Get current Firebase Auth user
+     * 
+     * @returns {Object|null} Firebase user object or null
+     */
+    function getCurrentFirebaseUser() {
+      return auth.currentUser;
+    }
+
+    // Make functions globally available (both as object and direct)
+    window.webAuth = {
+      initializeWebAuth,
+      signInWithGoogleWeb,
+      signOutWebUser,
+      getCurrentWebUser,
+      isWebUserAuthenticated,
+      getCurrentFirebaseUser,
+      showLoginScreen,
+      showMainApp
+    };
+    
+    // Also expose functions directly for easier access
+    window.initializeWebAuth = initializeWebAuth;
+    window.signInWithGoogleWeb = signInWithGoogleWeb;
+    window.signOutWebUser = signOutWebUser;
+    window.getCurrentWebUser = getCurrentWebUser;
+    window.isWebUserAuthenticated = isWebUserAuthenticated;
+    window.getCurrentFirebaseUser = getCurrentFirebaseUser;
+
+    console.log("✅ Web Authentication Module loaded");
+
   </script>
   <!-- QR Code Scanner Library -->
   <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
@@ -1923,6 +2404,16 @@
     }
 
     function startNewGame() {
+      // ============================================
+      // AUTHENTICATION CHECK (Web Only) - Safety check
+      // ============================================
+      if (!isWebUserAuthenticated()) {
+        console.error("🔐 User not authenticated - this shouldn't happen!");
+        alert("Please sign in with Google to create a new game.");
+        showLoginScreen();
+        return;
+      }
+      
       // Check if Start Play button is already disabled
       const startButton = document.querySelector(".start-play-button");
       if (startButton && startButton.disabled) {
@@ -2017,12 +2508,32 @@
             players: [],
           };
 
-        // Save authentication data to 'games' collection (ID + PIN only)
+        // ============================================
+        // Get creator information (Web Authentication)
+        // ============================================
+        const currentUser = getCurrentWebUser();
+        const firebaseUser = getCurrentFirebaseUser();
+        
+        let creatorUserId = null;
+        let creatorName = null;
+        
+        if (currentUser && firebaseUser) {
+          creatorUserId = currentUser.userId || firebaseUser.uid;
+          creatorName = currentUser.displayName || firebaseUser.displayName || "Unknown User";
+          console.log("✅ Adding creator info:", creatorUserId, creatorName);
+        } else {
+          console.warn("⚠️ No authenticated user found - creator info will be null");
+        }
+        
+        // Save authentication data to 'games' collection (ID + PIN + creator info)
+        // EXACT structure as Android app for 100% compatibility
         await window.firestore.setDoc(
           window.firestore.doc(window.db, "games", gameId),
           {
             gameId: gameId,
             pin: pin || localStorage.getItem("gamePin") || "0000", // Fallback to "0000" if PIN is somehow missing
+            creatorUserId: creatorUserId, // Creator's Firebase UID (null for legacy games)
+            creatorName: creatorName, // Creator's display name (null for legacy games)
             createdAt: window.firestore.serverTimestamp(),
             version: "1.0",
           }
@@ -4328,6 +4839,22 @@
       });
     });
     window.onload = function () {
+      // Initialize Web Authentication first
+      // Wait a moment for the module script to fully load
+      setTimeout(() => {
+        if (typeof initializeWebAuth === 'function') {
+          initializeWebAuth();
+        } else {
+          console.error("❌ Web Authentication module not loaded yet - retrying...");
+          // Retry after another delay
+          setTimeout(() => {
+            if (typeof initializeWebAuth === 'function') {
+              initializeWebAuth();
+            }
+          }, 500);
+        }
+      }, 100);
+      
       // Load data first (this generates the tables)
       loadData();
       updateGameIdDisplay();
@@ -4487,10 +5014,8 @@
       whatsAppButtons.forEach(button => {
         if (gameData) {
           button.style.display = "flex";
-          console.log("WhatsApp button display set to flex");
         } else {
           button.style.display = "none";
-          console.log("WhatsApp button display set to none");
         }
       });
       
